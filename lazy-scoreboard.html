@@ -7,36 +7,11 @@
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@300;400;600&display=swap" rel="stylesheet">
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
-body {
-  font-family: 'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif;
-  background: #0d0d1a;
-  color: #e8dcc0;
-  min-height: 100vh;
-}
-body::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  background: radial-gradient(ellipse 60% 40% at 50% 0%, #1a1030 0%, transparent 70%);
-  pointer-events: none;
-  z-index: 0;
-}
-.back-btn {
-  position: fixed; top: 16px; left: 16px; z-index: 100;
-  background: rgba(13,13,26,0.85); border: 1px solid #2a2a4a;
-  color: #6a5a9a; font-size: 0.75rem; letter-spacing: 0.15em;
-  padding: 7px 14px; cursor: pointer; transition: all 0.2s;
-  backdrop-filter: blur(4px); text-decoration: none; display: inline-block;
-  font-family: 'Noto Serif JP', serif;
-}
+body { font-family: 'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif; background: #0d0d1a; color: #e8dcc0; min-height: 100vh; }
+body::before { content: ''; position: fixed; inset: 0; background: radial-gradient(ellipse 60% 40% at 50% 0%, #1a1030 0%, transparent 70%); pointer-events: none; z-index: 0; }
+.back-btn { position: fixed; top: 16px; left: 16px; z-index: 100; background: rgba(13,13,26,0.85); border: 1px solid #2a2a4a; color: #6a5a9a; font-size: 0.75rem; letter-spacing: 0.15em; padding: 7px 14px; cursor: pointer; transition: all 0.2s; backdrop-filter: blur(4px); text-decoration: none; display: inline-block; font-family: 'Noto Serif JP', serif; }
 .back-btn:hover { border-color: #9b7fff; color: #c9b8ff; }
-.lazy-container {
-  max-width: 480px;
-  margin: 0 auto;
-  padding: 72px 20px 60px;
-  position: relative;
-  z-index: 1;
-}
+.lazy-container { max-width: 480px; margin: 0 auto; padding: 72px 20px 60px; position: relative; z-index: 1; }
 h2 { text-align: center; font-size: 1.6rem; margin-bottom: 4px; color: #c9b8ff; letter-spacing: 0.1em; }
 .lazy-subtitle { text-align: center; font-size: 0.75rem; color: #666; margin-bottom: 24px; }
 .lcard { background: #1a1a2e; border-radius: 16px; padding: 20px; margin-bottom: 16px; border: 1px solid #2a2a4a; }
@@ -71,7 +46,6 @@ input[type=range] { flex: 1; accent-color: #9b7fff; height: 6px; }
 </head>
 <body>
 <a href="index.html" class="back-btn">← もどる</a>
-
 <div class="lazy-container">
   <h2>😴 怠惰スコアボード</h2>
   <p class="lazy-subtitle">今日のサボり具合を正直に申告してください</p>
@@ -100,9 +74,7 @@ input[type=range] { flex: 1; accent-color: #9b7fff; height: 6px; }
         <input type="range" id="self" min="0" max="10" value="5" oninput="document.getElementById('self-val').textContent=this.value">
         <span class="slider-val" id="self-val">5</span>
       </div>
-      <div style="display:flex;justify-content:space-between;font-size:0.7rem;color:#555;margin-top:2px;">
-        <span>まあええやろ</span><span>反省している</span>
-      </div>
+      <div style="display:flex;justify-content:space-between;font-size:0.7rem;color:#555;margin-top:2px;"><span>まあええやろ</span><span>反省している</span></div>
     </div>
   </div>
   <button class="lazy-btn" onclick="calcScore()">🔮 今日の怠惰を診断する</button>
@@ -119,46 +91,40 @@ input[type=range] { flex: 1; accent-color: #9b7fff; height: 6px; }
     <ul class="history-list" id="lazy-history"></ul>
   </div>
 </div>
-
 <script>
 const ranks = [
-  { min: 0,  max: 20,  emoji: '💼', title: '勤勉市民',     desc: '今日はちゃんとしてたんですね。\nなんか怖いですね。' },
-  { min: 21, max: 40,  emoji: '😏', title: '小狡い社会人', desc: '上手いことやってますね。\n生き方として正しいかもしれない。' },
-  { min: 41, max: 60,  emoji: '🛋️', title: '在宅の申し子', desc: '在宅勤務の本来の姿がここに。\nリビングはあなたのもの。' },
-  { min: 61, max: 80,  emoji: '🌫️', title: '時間溶解者',   desc: '気づいたら夕方、よくある。\n時間の概念が薄れてきている。' },
-  { min: 81, max: 100, emoji: '👑', title: '怠惰の賢者',   desc: 'これはもう才能です。\nサボることへの全力投球を感じる。' },
-  { min: 101,max: 999, emoji: '🌌', title: '怠惰の神',     desc: '測定不能な領域に達しました。\n今日あなたは何かを超えた。' },
+  { min:0,max:20,emoji:'💼',title:'勤勉市民',desc:'今日はちゃんとしてたんですね。\nなんか怖いですね。' },
+  { min:21,max:40,emoji:'😏',title:'小狡い社会人',desc:'上手いことやってますね。\n生き方として正しいかもしれない。' },
+  { min:41,max:60,emoji:'🛋️',title:'在宅の申し子',desc:'在宅勤務の本来の姿がここに。\nリビングはあなたのもの。' },
+  { min:61,max:80,emoji:'🌫️',title:'時間溶解者',desc:'気づいたら夕方、よくある。\n時間の概念が薄れてきている。' },
+  { min:81,max:100,emoji:'👑',title:'怠惰の賢者',desc:'これはもう才能です。\nサボることへの全力投球を感じる。' },
+  { min:101,max:999,emoji:'🌌',title:'怠惰の神',desc:'測定不能な領域に達しました。\n今日あなたは何かを超えた。' },
 ];
-
 function calcScore() {
   const work = 10 - parseInt(document.getElementById('work').value);
   const self = parseInt(document.getElementById('self').value);
-  const sins = [...document.querySelectorAll('.sin:checked')].reduce((a, el) => a + parseInt(el.value), 0);
-  const score = Math.round(work * 3 + self * 2 + sins);
-  const rank = ranks.find(r => score >= r.min && score <= r.max) || ranks[ranks.length - 1];
-  document.getElementById('r-emoji').textContent = rank.emoji;
-  document.getElementById('r-title').textContent = rank.title;
-  document.getElementById('r-desc').textContent = rank.desc;
-  document.getElementById('r-score').textContent = score;
-  document.getElementById('r-meter').style.width = Math.min(score, 100) + '%';
-  const result = document.getElementById('result');
-  result.style.display = 'block';
-  result.scrollIntoView({ behavior: 'smooth' });
-  const history = JSON.parse(localStorage.getItem('lazy-history') || '[]');
-  const today = new Date().toLocaleDateString('ja-JP', { month: 'numeric', day: 'numeric' });
-  history.unshift({ date: today, score, title: rank.title, emoji: rank.emoji });
-  if (history.length > 10) history.pop();
-  localStorage.setItem('lazy-history', JSON.stringify(history));
+  const sins = [...document.querySelectorAll('.sin:checked')].reduce((a,el)=>a+parseInt(el.value),0);
+  const score = Math.round(work*3+self*2+sins);
+  const rank = ranks.find(r=>score>=r.min&&score<=r.max)||ranks[ranks.length-1];
+  document.getElementById('r-emoji').textContent=rank.emoji;
+  document.getElementById('r-title').textContent=rank.title;
+  document.getElementById('r-desc').textContent=rank.desc;
+  document.getElementById('r-score').textContent=score;
+  document.getElementById('r-meter').style.width=Math.min(score,100)+'%';
+  const result=document.getElementById('result'); result.style.display='block'; result.scrollIntoView({behavior:'smooth'});
+  const history=JSON.parse(localStorage.getItem('lazy-history')||'[]');
+  const today=new Date().toLocaleDateString('ja-JP',{month:'numeric',day:'numeric'});
+  history.unshift({date:today,score,title:rank.title,emoji:rank.emoji});
+  if(history.length>10)history.pop();
+  localStorage.setItem('lazy-history',JSON.stringify(history));
   renderHistory();
 }
-
 function renderHistory() {
-  const history = JSON.parse(localStorage.getItem('lazy-history') || '[]');
-  const el = document.getElementById('lazy-history');
-  if (history.length === 0) { el.innerHTML = '<div class="empty-history">まだ記録がありません</div>'; return; }
-  el.innerHTML = history.map(h => `<li class="history-item"><span class="history-date">${h.date}</span><span class="history-rank">${h.emoji} ${h.title}</span><span class="history-score">${h.score}pt</span></li>`).join('');
+  const history=JSON.parse(localStorage.getItem('lazy-history')||'[]');
+  const el=document.getElementById('lazy-history');
+  if(history.length===0){el.innerHTML='<div class="empty-history">まだ記録がありません</div>';return;}
+  el.innerHTML=history.map(h=>`<li class="history-item"><span class="history-date">${h.date}</span><span class="history-rank">${h.emoji} ${h.title}</span><span class="history-score">${h.score}pt</span></li>`).join('');
 }
-
 renderHistory();
 </script>
 </body>

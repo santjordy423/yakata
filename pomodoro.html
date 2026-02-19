@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>勝手にポモドーロ — 怠惰な雑種と王の館</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Zen+Kaku+Gothic+New:wght@400;700&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { min-height: 100vh; overflow: auto; font-family: 'Zen Kaku Gothic New', sans-serif; }
+.back-link {
+  position: fixed; top: 16px; left: 16px; z-index: 100;
+  color: rgba(255,107,107,0.5); font-size: 0.75rem; text-decoration: none;
+  letter-spacing: 0.1em; transition: color 0.2s;
+}
+.back-link:hover { color: #ff6b6b; }
+.timer-display {
+  font-family: 'Orbitron', monospace;
+  text-shadow: 0 0 30px currentColor, 0 0 60px currentColor;
+}
+@keyframes pulse-glow {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+.pulse-animation { animation: pulse-glow 2s ease-in-out infinite; }
+@keyframes rotate {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+.rotate-slow { animation: rotate 60s linear infinite; }
+.progress-ring { transition: stroke-dashoffset 1s linear; }
+
+#app-container {
+  min-height: 100vh;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 64px 32px 32px;
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%);
+}
+.bg-deco {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+.bg-circle-1 {
+  position: absolute;
+  top: 25%;
+  left: 25%;
+  width: 384px;
+  height: 384px;
+  border-radius: 50%;
+  opacity: 0.1;
+  animation: rotate 60s linear infinite;
+  background: radial-gradient(circle, #ff6b6b 0%, transparent 70%);
+}
+.bg-circle-2 {
+  position: absolute;
+  bottom: 25%;
+  right: 25%;
+  width: 320px;
+  height: 320px;
+  border-radius: 50%;
+  opacity: 0.1;
+  animation: rotate 60s linear infinite reverse;
+  background: radial-gradient(circle, #4ecdc4 0%, transparent 70%);
+}
+.content {
+  position: relative;
+  z-index: 10;
+  text-align: center;
+}
+#status-label {
+  font-size: 1.75rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: #ff6b6b;
+}
+.timer-wrapper {
+  position: relative;
+  display: inline-block;
+  margin: 32px 0;
+}
+.timer-svg {
+  width: 256px;
+  height: 256px;
+  transform: rotate(-90deg);
+}
+@media (min-width: 768px) {
+  .timer-svg { width: 320px; height: 320px; }
+  #status-label { font-size: 2rem; }
+}
+.timer-inner {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+#timer-display {
+  font-size: 3rem;
+  font-weight: 900;
+  color: #ff6b6b;
+}
+@media (min-width: 768px) { #timer-display { font-size: 4rem; } }
+#cycle-info {
+  font-size: 0.875rem;
+  margin-top: 8px;
+  opacity: 0.6;
+  color: #e0e0e0;
+}
+.session-info { color: #a0a0b0; }
+#completed-count { font-weight: 700; color: #4ecdc4; }
+#current-time-wrap {
+  margin-top: 32px;
+  font-size: 0.75rem;
+  opacity: 0.5;
+  color: #808090;
+}
+</style>
+</head>
+<body>
+<a href="index.html" class="back-link">← もどる</a>
+
+<div id="app-container">
+  <div class="bg-deco">
+    <div class="bg-circle-1"></div>
+    <div class="bg-circle-2"></div>
+  </div>
+  <div class="content">
+    <div style="margin-bottom: 32px;">
+      <span id="status-label" class="pulse-animation">作業中</span>
+    </div>
+    <div class="timer-wrapper">
+      <svg class="timer-svg" viewBox="0 0 200 200">
+        <circle cx="100" cy="100" r="90" fill="none" stroke="#2a2a4a" stroke-width="8"/>
+        <circle id="progress-ring" class="progress-ring" cx="100" cy="100" r="90"
+          fill="none" stroke="#ff6b6b" stroke-width="8" stroke-linecap="round"
+          stroke-dasharray="565.48" stroke-dashoffset="0"/>
+      </svg>
+      <div class="timer-inner">
+        <div id="timer-display" class="timer-display">25:00</div>
+        <div id="cycle-info">サイクル #1</div>
+      </div>
+    </div>
+    <div class="session-info" style="margin-bottom: 8px;">
+      <p style="font-size: 0.875rem;">本日のポモドーロ: <span id="completed-count">0</span> 完了</p>
+    </div>
+    <div class="session-info">
+      <p style="font-size: 0.75rem; opacity: 0.7;">次の休憩まで: <span id="next-break-time">--:--</span></p>
+    </div>
+    <div id="current-time-wrap">
+      現在時刻: <span id="current-time">00:00:00</span>
+    </div>
+  </div>
+</div>
+
+<script>
+const WORK_DURATION = 25 * 60;
+const BREAK_DURATION = 5 * 60;
+const CYCLE_DURATION = WORK_DURATION + BREAK_DURATION;
+const CIRCUMFERENCE = 2 * Math.PI * 90;
+
+function getSecondsSinceMidnight() {
+  const now = new Date();
+  return now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
+}
+
+function getCurrentPhaseInfo() {
+  const secondsSinceMidnight = getSecondsSinceMidnight();
+  const cycleNumber = Math.floor(secondsSinceMidnight / CYCLE_DURATION) + 1;
+  const positionInCycle = secondsSinceMidnight % CYCLE_DURATION;
+  const isWorking = positionInCycle < WORK_DURATION;
+  const remainingInPhase = isWorking
+    ? WORK_DURATION - positionInCycle
+    : CYCLE_DURATION - positionInCycle;
+  const phaseDuration = isWorking ? WORK_DURATION : BREAK_DURATION;
+  const elapsedInPhase = phaseDuration - remainingInPhase;
+  const progress = elapsedInPhase / phaseDuration;
+  const completedPomodoros = isWorking ? cycleNumber - 1 : cycleNumber;
+  const timeUntilNextBreak = isWorking ? remainingInPhase : CYCLE_DURATION + WORK_DURATION - (positionInCycle - WORK_DURATION);
+  return { isWorking, remainingInPhase, cycleNumber, progress, completedPomodoros, timeUntilNextBreak };
+}
+
+function formatTime(seconds) {
+  const mins = Math.floor(seconds / 60);
+  const secs = seconds % 60;
+  return `${String(mins).padStart(2,'0')}:${String(secs).padStart(2,'0')}`;
+}
+
+function updateDisplay() {
+  const info = getCurrentPhaseInfo();
+  const primaryColor = '#ff6b6b';
+  const secondaryColor = '#4ecdc4';
+  const currentColor = info.isWorking ? primaryColor : secondaryColor;
+  const statusText = info.isWorking ? '作業中' : '休憩中';
+
+  const statusLabel = document.getElementById('status-label');
+  statusLabel.textContent = statusText;
+  statusLabel.style.color = currentColor;
+
+  const timerDisplay = document.getElementById('timer-display');
+  timerDisplay.textContent = formatTime(info.remainingInPhase);
+  timerDisplay.style.color = currentColor;
+
+  const progressRing = document.getElementById('progress-ring');
+  progressRing.style.strokeDashoffset = CIRCUMFERENCE * (1 - info.progress);
+  progressRing.style.stroke = currentColor;
+
+  document.getElementById('cycle-info').textContent = `サイクル #${info.cycleNumber}`;
+  document.getElementById('completed-count').textContent = info.completedPomodoros;
+  document.getElementById('next-break-time').textContent = formatTime(info.timeUntilNextBreak);
+  document.getElementById('current-time').textContent = new Date().toLocaleTimeString('ja-JP', { hour12: false });
+}
+
+setInterval(updateDisplay, 1000);
+updateDisplay();
+</script>
+</body>
+</html>

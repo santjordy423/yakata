@@ -6,106 +6,23 @@
 <title>怠惰な雑種と王の館</title>
 <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700&family=Noto+Serif+JP:wght@300;400;600&display=swap" rel="stylesheet">
 <style>
-:root {
-  --gold: #c9a84c;
-  --gold-light: #f0d080;
-  --gold-dim: #7a6030;
-  --black: #06060a;
-  --text: #e8dcc0;
-}
+:root { --gold: #c9a84c; --gold-light: #f0d080; --gold-dim: #7a6030; --black: #06060a; --text: #e8dcc0; }
 * { box-sizing: border-box; margin: 0; padding: 0; }
-body {
-  font-family: 'Noto Serif JP', serif;
-  background: var(--black);
-  color: var(--text);
-  min-height: 100vh;
-  overflow-x: hidden;
-}
-body::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  background:
-    radial-gradient(ellipse 60% 40% at 50% 0%, #1a1408 0%, transparent 70%),
-    repeating-linear-gradient(45deg, transparent, transparent 40px, rgba(201,168,76,0.015) 40px, rgba(201,168,76,0.015) 41px);
-  pointer-events: none;
-  z-index: 0;
-}
-.top-container {
-  max-width: 540px;
-  margin: 0 auto;
-  padding: 60px 20px 80px;
-  position: relative;
-  z-index: 1;
-}
+body { font-family: 'Noto Serif JP', serif; background: var(--black); color: var(--text); min-height: 100vh; overflow-x: hidden; }
+body::before { content: ''; position: fixed; inset: 0; background: radial-gradient(ellipse 60% 40% at 50% 0%, #1a1408 0%, transparent 70%), repeating-linear-gradient(45deg, transparent, transparent 40px, rgba(201,168,76,0.015) 40px, rgba(201,168,76,0.015) 41px); pointer-events: none; z-index: 0; }
+.top-container { max-width: 540px; margin: 0 auto; padding: 60px 20px 80px; position: relative; z-index: 1; }
 .header { text-align: center; margin-bottom: 56px; }
-.header-icon {
-  font-size: 2.8rem;
-  display: block;
-  margin-bottom: 12px;
-  animation: float 4s ease-in-out infinite;
-  filter: drop-shadow(0 0 16px rgba(201,168,76,0.5));
-}
-@keyframes float {
-  0%,100% { transform: translateY(0); }
-  50% { transform: translateY(-8px); }
-}
-.site-label {
-  font-family: 'Cinzel Decorative', serif;
-  font-size: 0.7rem;
-  letter-spacing: 0.4em;
-  color: var(--gold-dim);
-  text-transform: uppercase;
-  margin-bottom: 10px;
-}
-h1.site-title {
-  font-size: 1.8rem;
-  font-weight: 600;
-  color: var(--gold-light);
-  letter-spacing: 0.2em;
-  text-shadow: 0 0 30px rgba(201,168,76,0.35);
-  margin-bottom: 10px;
-}
+.header-icon { font-size: 2.8rem; display: block; margin-bottom: 12px; animation: float 4s ease-in-out infinite; filter: drop-shadow(0 0 16px rgba(201,168,76,0.5)); }
+@keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+.site-label { font-family: 'Cinzel Decorative', serif; font-size: 0.7rem; letter-spacing: 0.4em; color: var(--gold-dim); text-transform: uppercase; margin-bottom: 10px; }
+h1.site-title { font-size: 1.8rem; font-weight: 600; color: var(--gold-light); letter-spacing: 0.2em; text-shadow: 0 0 30px rgba(201,168,76,0.35); margin-bottom: 10px; }
 .header-desc { font-size: 0.75rem; color: #555; letter-spacing: 0.1em; line-height: 1.8; }
-.divider {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 32px;
-}
-.divider::before, .divider::after {
-  content: '';
-  flex: 1;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, var(--gold-dim), transparent);
-}
+.divider { display: flex; align-items: center; gap: 12px; margin-bottom: 32px; }
+.divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: linear-gradient(90deg, transparent, var(--gold-dim), transparent); }
 .divider span { color: var(--gold); font-size: 0.65rem; letter-spacing: 0.25em; white-space: nowrap; }
-.cards {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 14px;
-}
-.card {
-  display: block;
-  background: #0e0d12;
-  border: 1px solid #1e1c28;
-  border-radius: 12px;
-  padding: 24px 18px;
-  text-decoration: none;
-  color: var(--text);
-  position: relative;
-  overflow: hidden;
-  transition: all 0.3s;
-  text-align: left;
-}
-.card::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(135deg, rgba(201,168,76,0.05), transparent 60%);
-  opacity: 0;
-  transition: opacity 0.3s;
-}
+.cards { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.card { display: block; background: #0e0d12; border: 1px solid #1e1c28; border-radius: 12px; padding: 24px 18px; text-decoration: none; color: var(--text); position: relative; overflow: hidden; transition: all 0.3s; text-align: left; }
+.card::before { content: ''; position: absolute; inset: 0; background: linear-gradient(135deg, rgba(201,168,76,0.05), transparent 60%); opacity: 0; transition: opacity 0.3s; }
 .card:hover { border-color: var(--gold-dim); transform: translateY(-3px); box-shadow: 0 8px 32px rgba(0,0,0,0.5), 0 0 20px rgba(201,168,76,0.08); }
 .card:hover::before { opacity: 1; }
 .card-icon { font-size: 2.2rem; display: block; margin-bottom: 12px; filter: drop-shadow(0 0 8px rgba(201,168,76,0.3)); }
@@ -138,13 +55,13 @@ h1.site-title {
       <div class="card-desc">今日のギルガメッシュの機嫌を理不尽に占う</div>
       <span class="card-tag">推し活</span>
     </a>
-    <a class="card" href="https://santjordy.my.canva.site" target="_blank">
+    <a class="card" href="pomodoro.html">
       <span class="card-icon">🍅</span>
       <div class="card-title">勝手にポモドーロ</div>
       <div class="card-desc">ポモドーロタイマー、勝手にやってくれる</div>
       <span class="card-tag">集中</span>
     </a>
-    <a class="card" href="https://santjordy.my.canva.site/c20q8y605r5mw6n1" target="_blank">
+    <a class="card" href="task-crusher.html">
       <span class="card-icon">💥</span>
       <div class="card-title">タスク粉砕機</div>
       <div class="card-desc">大きなタスクを極小ステップに分解する</div>

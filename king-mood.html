@@ -6,116 +6,68 @@
 <title>王の機嫌予報 — 怠惰な雑種と王の館</title>
 <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700&family=Noto+Serif+JP:wght@300;400;600&display=swap" rel="stylesheet">
 <style>
-:root {
-  --gold: #c9a84c;
-  --gold-light: #f0d080;
-  --gold-dim: #7a6030;
-  --black: #06060a;
-  --dark2: #161420;
-  --red: #8b1a1a;
-  --text: #e8dcc0;
-}
-* { box-sizing: border-box; margin: 0; padding: 0; }
-body {
-  font-family: 'Noto Serif JP', serif;
-  background: var(--black);
-  color: var(--text);
-  min-height: 100vh;
-  overflow-x: hidden;
-}
-body::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  background:
-    radial-gradient(ellipse 60% 40% at 50% 0%, #1a1408 0%, transparent 70%),
-    repeating-linear-gradient(45deg, transparent, transparent 40px, rgba(201,168,76,0.015) 40px, rgba(201,168,76,0.015) 41px);
-  pointer-events: none;
-  z-index: 0;
-}
-.back-btn {
-  position: fixed; top: 16px; left: 16px; z-index: 100;
-  background: rgba(6,6,10,0.85); border: 1px solid #2a2520;
-  color: var(--gold-dim); font-family: 'Noto Serif JP', serif;
-  font-size: 0.75rem; letter-spacing: 0.15em;
-  padding: 7px 14px; cursor: pointer; transition: all 0.2s;
-  backdrop-filter: blur(4px); text-decoration: none; display: inline-block;
-}
-.back-btn:hover { border-color: var(--gold); color: var(--gold); }
-.gil-container {
-  max-width: 480px;
-  margin: 0 auto;
-  padding: 72px 20px 60px;
-  position: relative;
-  z-index: 1;
-}
-.gil-header { text-align: center; margin-bottom: 40px; }
-.crown { font-size: 2.4rem; display: block; margin-bottom: 8px; filter: drop-shadow(0 0 12px rgba(201,168,76,0.6)); animation: float 3s ease-in-out infinite; }
-@keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
-.g-title { font-family: 'Cinzel Decorative', serif; font-size: 0.85rem; letter-spacing: 0.3em; color: var(--gold); text-transform: uppercase; margin-bottom: 4px; }
-h2.g-h2 { font-size: 1.7rem; font-weight: 600; color: var(--gold-light); letter-spacing: 0.15em; text-shadow: 0 0 30px rgba(201,168,76,0.4); }
-.g-subtitle { font-size: 0.7rem; color: var(--gold-dim); margin-top: 6px; letter-spacing: 0.2em; }
-.g-divider { display: flex; align-items: center; gap: 12px; margin: 28px 0; }
-.g-divider::before, .g-divider::after { content: ''; flex: 1; height: 1px; background: linear-gradient(90deg, transparent, var(--gold-dim), transparent); }
-.g-divider span { color: var(--gold); font-size: 0.7rem; letter-spacing: 0.2em; white-space: nowrap; }
-.q-block { margin-bottom: 22px; }
-.q-label { font-size: 0.78rem; color: var(--gold-dim); letter-spacing: 0.15em; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
-.q-label::before { content: '◆'; color: var(--gold); font-size: 0.5rem; }
-.q-hint { font-size: 0.65rem; color: #444; letter-spacing: 0.05em; }
-.opts { display: flex; flex-direction: column; gap: 6px; }
-.opts.multi { flex-direction: row; flex-wrap: wrap; gap: 6px; }
-.gopt {
-  background: var(--dark2); border: 1px solid #2a2520; border-radius: 4px;
-  padding: 10px 14px; font-size: 0.82rem; font-family: 'Noto Serif JP', serif;
-  color: #888; cursor: pointer; transition: all 0.2s; text-align: left; letter-spacing: 0.05em;
-}
-.opts.multi .gopt { padding: 7px 12px; font-size: 0.78rem; border-radius: 20px; }
-.gopt:hover { border-color: var(--gold-dim); color: var(--text); background: #1a1810; }
-.gopt.selected { border-color: var(--gold); color: var(--gold-light); background: linear-gradient(90deg, #1e1a0a, #1a1810); box-shadow: 0 0 10px rgba(201,168,76,0.15); }
-.divine-btn {
-  width: 100%; margin-top: 32px; padding: 16px; background: transparent;
-  border: 1px solid var(--gold); color: var(--gold-light); font-family: 'Noto Serif JP', serif;
-  font-size: 0.95rem; letter-spacing: 0.3em; cursor: pointer; position: relative;
-  overflow: hidden; transition: all 0.3s;
-}
-.divine-btn::before { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, transparent, rgba(201,168,76,0.08), transparent); transform: translateX(-100%); transition: transform 0.5s; }
-.divine-btn:hover::before { transform: translateX(100%); }
-.divine-btn:hover { background: rgba(201,168,76,0.06); box-shadow: 0 0 20px rgba(201,168,76,0.2); }
-.divine-btn:disabled { border-color: #333; color: #444; cursor: not-allowed; }
-.divine-btn:disabled::before { display: none; }
-.g-result { display: none; margin-top: 40px; }
-.g-frame { border: 1px solid var(--gold-dim); position: relative; padding: 32px 24px; background: linear-gradient(160deg, #100e08, #0e0d10); }
-.g-frame::before, .g-frame::after { content: '◈'; position: absolute; color: var(--gold); font-size: 0.8rem; }
-.g-frame::before { top: -8px; left: -4px; }
-.g-frame::after { bottom: -8px; right: -4px; }
-.mood-icon { font-size: 3.8rem; display: block; text-align: center; margin-bottom: 12px; animation: gappear 0.5s ease-out; filter: drop-shadow(0 0 16px rgba(201,168,76,0.5)); }
-@keyframes gappear { from { transform: scale(0.5) rotate(-10deg); opacity: 0; } to { transform: scale(1) rotate(0); opacity: 1; } }
-.mood-title { text-align: center; font-size: 1.4rem; font-weight: 600; color: var(--gold-light); letter-spacing: 0.2em; margin-bottom: 6px; text-shadow: 0 0 20px rgba(201,168,76,0.4); }
-.mood-level { text-align: center; font-family: 'Cinzel Decorative', serif; font-size: 0.65rem; color: var(--gold-dim); letter-spacing: 0.3em; margin-bottom: 20px; }
-.mood-meter { display: flex; gap: 4px; justify-content: center; margin-bottom: 16px; }
-.mpip { width: 20px; height: 4px; background: #222; border-radius: 2px; }
-.mpip.on { background: var(--gold); box-shadow: 0 0 6px rgba(201,168,76,0.5); }
-.mpip.danger { background: var(--red); box-shadow: 0 0 6px rgba(139,26,26,0.6); }
-.random-note { text-align: center; font-size: 0.68rem; color: #4a3f28; margin-bottom: 18px; letter-spacing: 0.08em; font-style: italic; }
-.verdict { font-size: 0.88rem; line-height: 2; color: var(--text); text-align: center; margin-bottom: 18px; letter-spacing: 0.05em; white-space: pre-line; }
-.gil-quote { border-top: 1px solid #2a2520; padding-top: 16px; font-size: 0.78rem; color: var(--gold-dim); text-align: center; line-height: 1.8; font-style: italic; letter-spacing: 0.1em; }
-.gil-quote::before { content: '「'; }
-.gil-quote::after { content: '」'; }
-.today-tip { margin-top: 16px; padding: 12px; background: rgba(201,168,76,0.04); border-left: 2px solid var(--gold-dim); font-size: 0.78rem; color: #999; line-height: 1.7; letter-spacing: 0.05em; }
-.retry-btn { display: block; width: 100%; margin-top: 20px; padding: 10px; background: transparent; border: 1px solid #2a2520; color: #555; font-family: 'Noto Serif JP', serif; font-size: 0.75rem; letter-spacing: 0.2em; cursor: pointer; transition: all 0.2s; }
-.retry-btn:hover { border-color: var(--gold-dim); color: var(--gold-dim); }
-.g-hist { margin-top: 36px; }
-.g-hitem { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #141210; font-size: 0.75rem; }
-.g-hitem:last-child { border-bottom: none; }
-.h-date { color: #444; }
-.h-mood { color: var(--gold-dim); }
-.h-score { color: var(--gold); font-size: 0.7rem; }
-.no-history { font-size: 0.75rem; color: #333; text-align: center; padding: 12px 0; letter-spacing: 0.1em; }
+:root { --gold:#c9a84c; --gold-light:#f0d080; --gold-dim:#7a6030; --black:#06060a; --dark2:#161420; --text:#e8dcc0; }
+* { box-sizing:border-box; margin:0; padding:0; }
+body { font-family:'Noto Serif JP',serif; background:var(--black); color:var(--text); min-height:100vh; overflow-x:hidden; }
+body::before { content:''; position:fixed; inset:0; background:radial-gradient(ellipse 60% 40% at 50% 0%,#1a1408 0%,transparent 70%),repeating-linear-gradient(45deg,transparent,transparent 40px,rgba(201,168,76,0.015) 40px,rgba(201,168,76,0.015) 41px); pointer-events:none; z-index:0; }
+.back-btn { position:fixed; top:16px; left:16px; z-index:100; background:rgba(6,6,10,0.85); border:1px solid #2a2520; color:var(--gold-dim); font-family:'Noto Serif JP',serif; font-size:0.75rem; letter-spacing:0.15em; padding:7px 14px; cursor:pointer; transition:all 0.2s; backdrop-filter:blur(4px); text-decoration:none; display:inline-block; }
+.back-btn:hover { border-color:var(--gold); color:var(--gold); }
+.gil-container { max-width:480px; margin:0 auto; padding:72px 20px 60px; position:relative; z-index:1; }
+.gil-header { text-align:center; margin-bottom:40px; }
+.crown { font-size:2.4rem; display:block; margin-bottom:8px; filter:drop-shadow(0 0 12px rgba(201,168,76,0.6)); animation:float 3s ease-in-out infinite; }
+@keyframes float { 0%,100%{transform:translateY(0);}50%{transform:translateY(-8px);} }
+.g-title { font-family:'Cinzel Decorative',serif; font-size:0.85rem; letter-spacing:0.3em; color:var(--gold); text-transform:uppercase; margin-bottom:4px; }
+h2.g-h2 { font-size:1.7rem; font-weight:600; color:var(--gold-light); letter-spacing:0.15em; text-shadow:0 0 30px rgba(201,168,76,0.4); }
+.g-subtitle { font-size:0.7rem; color:var(--gold-dim); margin-top:6px; letter-spacing:0.2em; }
+.g-divider { display:flex; align-items:center; gap:12px; margin:28px 0; }
+.g-divider::before,.g-divider::after { content:''; flex:1; height:1px; background:linear-gradient(90deg,transparent,var(--gold-dim),transparent); }
+.g-divider span { color:var(--gold); font-size:0.7rem; letter-spacing:0.2em; white-space:nowrap; }
+.q-block { margin-bottom:22px; }
+.q-label { font-size:0.78rem; color:var(--gold-dim); letter-spacing:0.15em; margin-bottom:10px; display:flex; align-items:center; gap:8px; }
+.q-label::before { content:'◆'; color:var(--gold); font-size:0.5rem; }
+.q-hint { font-size:0.65rem; color:#444; letter-spacing:0.05em; }
+.opts { display:flex; flex-direction:column; gap:6px; }
+.opts.multi { flex-direction:row; flex-wrap:wrap; gap:6px; }
+.gopt { background:var(--dark2); border:1px solid #2a2520; border-radius:4px; padding:10px 14px; font-size:0.82rem; font-family:'Noto Serif JP',serif; color:#888; cursor:pointer; transition:all 0.2s; text-align:left; letter-spacing:0.05em; }
+.opts.multi .gopt { padding:7px 12px; font-size:0.78rem; border-radius:20px; }
+.gopt:hover { border-color:var(--gold-dim); color:var(--text); background:#1a1810; }
+.gopt.selected { border-color:var(--gold); color:var(--gold-light); background:linear-gradient(90deg,#1e1a0a,#1a1810); box-shadow:0 0 10px rgba(201,168,76,0.15); }
+.divine-btn { width:100%; margin-top:32px; padding:16px; background:transparent; border:1px solid var(--gold); color:var(--gold-light); font-family:'Noto Serif JP',serif; font-size:0.95rem; letter-spacing:0.3em; cursor:pointer; position:relative; overflow:hidden; transition:all 0.3s; }
+.divine-btn::before { content:''; position:absolute; inset:0; background:linear-gradient(90deg,transparent,rgba(201,168,76,0.08),transparent); transform:translateX(-100%); transition:transform 0.5s; }
+.divine-btn:hover::before { transform:translateX(100%); }
+.divine-btn:hover { background:rgba(201,168,76,0.06); box-shadow:0 0 20px rgba(201,168,76,0.2); }
+.divine-btn:disabled { border-color:#333; color:#444; cursor:not-allowed; }
+.g-result { display:none; margin-top:40px; }
+.g-frame { border:1px solid var(--gold-dim); position:relative; padding:32px 24px; background:linear-gradient(160deg,#100e08,#0e0d10); }
+.g-frame::before,.g-frame::after { content:'◈'; position:absolute; color:var(--gold); font-size:0.8rem; }
+.g-frame::before { top:-8px; left:-4px; }
+.g-frame::after { bottom:-8px; right:-4px; }
+.mood-icon { font-size:3.8rem; display:block; text-align:center; margin-bottom:12px; animation:gappear 0.5s ease-out; filter:drop-shadow(0 0 16px rgba(201,168,76,0.5)); }
+@keyframes gappear { from{transform:scale(0.5)rotate(-10deg);opacity:0;}to{transform:scale(1)rotate(0);opacity:1;} }
+.mood-title { text-align:center; font-size:1.4rem; font-weight:600; color:var(--gold-light); letter-spacing:0.2em; margin-bottom:6px; text-shadow:0 0 20px rgba(201,168,76,0.4); }
+.mood-level { text-align:center; font-family:'Cinzel Decorative',serif; font-size:0.65rem; color:var(--gold-dim); letter-spacing:0.3em; margin-bottom:20px; }
+.mood-meter { display:flex; gap:4px; justify-content:center; margin-bottom:16px; }
+.mpip { width:20px; height:4px; background:#222; border-radius:2px; }
+.mpip.on { background:var(--gold); box-shadow:0 0 6px rgba(201,168,76,0.5); }
+.mpip.danger { background:#8b1a1a; box-shadow:0 0 6px rgba(139,26,26,0.6); }
+.random-note { text-align:center; font-size:0.68rem; color:#4a3f28; margin-bottom:18px; letter-spacing:0.08em; font-style:italic; }
+.verdict { font-size:0.88rem; line-height:2; color:var(--text); text-align:center; margin-bottom:18px; letter-spacing:0.05em; white-space:pre-line; }
+.gil-quote { border-top:1px solid #2a2520; padding-top:16px; font-size:0.78rem; color:var(--gold-dim); text-align:center; line-height:1.8; font-style:italic; letter-spacing:0.1em; }
+.gil-quote::before { content:'「'; }
+.gil-quote::after { content:'」'; }
+.today-tip { margin-top:16px; padding:12px; background:rgba(201,168,76,0.04); border-left:2px solid var(--gold-dim); font-size:0.78rem; color:#999; line-height:1.7; letter-spacing:0.05em; }
+.retry-btn { display:block; width:100%; margin-top:20px; padding:10px; background:transparent; border:1px solid #2a2520; color:#555; font-family:'Noto Serif JP',serif; font-size:0.75rem; letter-spacing:0.2em; cursor:pointer; transition:all 0.2s; }
+.retry-btn:hover { border-color:var(--gold-dim); color:var(--gold-dim); }
+.g-hitem { display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid #141210; font-size:0.75rem; }
+.g-hitem:last-child { border-bottom:none; }
+.h-date { color:#444; }
+.h-mood { color:var(--gold-dim); }
+.h-score { color:var(--gold); font-size:0.7rem; }
+.no-history { font-size:0.75rem; color:#333; text-align:center; padding:12px 0; letter-spacing:0.1em; }
 </style>
 </head>
 <body>
 <a href="index.html" class="back-btn">← もどる</a>
-
 <div class="gil-container">
   <div class="gil-header">
     <span class="crown">♛</span>
@@ -124,7 +76,6 @@ h2.g-h2 { font-size: 1.7rem; font-weight: 600; color: var(--gold-light); letter-
     <div class="g-subtitle">— 今日の王はご機嫌斜めか、それとも —</div>
   </div>
   <div class="g-divider"><span>◆ 現在の状況を申告せよ ◆</span></div>
-
   <div class="q-block">
     <div class="q-label">今日の天気</div>
     <div class="opts single" data-q="weather">
@@ -186,9 +137,7 @@ h2.g-h2 { font-size: 1.7rem; font-weight: 600; color: var(--gold-light); letter-
       <button class="gopt" data-v="3">深夜（真の王は夜に語る）</button>
     </div>
   </div>
-
   <button class="divine-btn" id="divineBtn" onclick="divine()" disabled>◆ &nbsp;王の機嫌を占う&nbsp; ◆</button>
-
   <div class="g-result" id="g-result">
     <div class="g-frame">
       <span class="mood-icon" id="moodIcon"></span>
@@ -202,138 +151,84 @@ h2.g-h2 { font-size: 1.7rem; font-weight: 600; color: var(--gold-light); letter-
     </div>
     <button class="retry-btn" onclick="resetGil()">— もう一度占う —</button>
   </div>
-
-  <div class="g-hist">
+  <div style="margin-top:36px;">
     <div class="g-divider"><span>◆ 過去の御機嫌 ◆</span></div>
     <div id="gil-history"></div>
   </div>
 </div>
-
 <script>
-const randomEvents = [
-  { text: '今日は月が欠けている', delta: -3 },
-  { text: '王の気分が宇宙の法則に従い悪化した', delta: -5 },
-  { text: '誰かが王の名を呼び捨てにした（どこかで）', delta: -4 },
-  { text: '空気の湿度が王の好みではない', delta: -2 },
-  { text: '神々が今日の王に微笑んだ', delta: +4 },
-  { text: '王の財宝庫が今日も完璧である', delta: +3 },
-  { text: '英雄が一人どこかで戦いを挑んでいる（王は興味なし）', delta: -1 },
-  { text: '特に何もない。だからこそ退屈', delta: -2 },
-  { text: '王は今日、己の完璧さを再確認した', delta: +5 },
-  { text: 'エルキドゥの夢を見た（王は否定する）', delta: -3 },
-  { text: '雑種どもが騒がしい', delta: -3 },
-  { text: '今日の星の並びが王を讃えている', delta: +4 },
-  { text: '誰かが王を「ギルくん」と呼んだ', delta: -6 },
-  { text: '王の食事が今日は特に豪勢だった', delta: +3 },
-  { text: '何者かが王の前世を詮索した', delta: -4 },
-  { text: '風が今日は気持ちよかった', delta: +2 },
-  { text: '王の黄金鎧の輝きが増した（気がする）', delta: +3 },
-  { text: 'バビロンが今日も美しい', delta: +2 },
-  { text: '誰かが英雄王の功績を「意外と知らない」と言った', delta: -5 },
-  { text: '今日はなぜか全てがどうでもよい', delta: -4 },
+const randomEvents=[{text:'今日は月が欠けている',delta:-3},{text:'王の気分が宇宙の法則に従い悪化した',delta:-5},{text:'誰かが王の名を呼び捨てにした（どこかで）',delta:-4},{text:'空気の湿度が王の好みではない',delta:-2},{text:'神々が今日の王に微笑んだ',delta:+4},{text:'王の財宝庫が今日も完璧である',delta:+3},{text:'英雄が一人どこかで戦いを挑んでいる（王は興味なし）',delta:-1},{text:'特に何もない。だからこそ退屈',delta:-2},{text:'王は今日、己の完璧さを再確認した',delta:+5},{text:'エルキドゥの夢を見た（王は否定する）',delta:-3},{text:'雑種どもが騒がしい',delta:-3},{text:'今日の星の並びが王を讃えている',delta:+4},{text:'誰かが王を「ギルくん」と呼んだ',delta:-6},{text:'王の食事が今日は特に豪勢だった',delta:+3},{text:'何者かが王の前世を詮索した',delta:-4},{text:'風が今日は気持ちよかった',delta:+2},{text:'王の黄金鎧の輝きが増した（気がする）',delta:+3},{text:'バビロンが今日も美しい',delta:+2},{text:'誰かが英雄王の功績を「意外と知らない」と言った',delta:-5},{text:'今日はなぜか全てがどうでもよい',delta:-4}];
+const moods=[
+  {min:-999,max:-5,icon:'⚔️',title:'烈火の怒り',level:'WRATH MODE',pips:10,danger:true,verdicts:['王は今日、地上の全てに飽いておられる。\n存在するだけで気に障るらしい。','近寄るな。王の怒りは今日、宇宙規模である。','機嫌が悪いというレベルではない。\n王が「世界ごと終わらせよう」と思っている顔をしている。'],quotes:['雑種め、その程度で我に話しかけるとは笑止','今日の我に話しかけることは死に等しい','この世の全てが気に食わない。当然だが'],tips:['⚠ 今日は絶対に近づかないこと。推し活は明日にしろ。']},
+  {min:-4,max:2,icon:'😒',title:'不機嫌',level:'LOW TOLERANCE',pips:3,danger:true,verdicts:['王は不満足の状態にある。\n何かが足りない。貢ぎ物が足りない。','王の眉間にしわが寄っている。\n今日は何をやっても褒められない日だ。','まずい。王が「つまらぬ」と言い始めた。'],quotes:['我を楽しませてみよ、できるならば','貢ぎ物が足りぬ','この程度か'],tips:['⚡ 良い二次創作を見るか、推し語りをするか。とにかく何かを捧げよ。']},
+  {min:3,max:9,icon:'😐',title:'やや退屈',level:'MILD BOREDOM',pips:5,danger:false,verdicts:['悪くはないが、良くもない。\n王の基準では「普通」以下である。','王は今日、退屈している。\n退屈な王は危険だが、まだ爆発はしない。','凪の状態。\n嵐の前なのか、ただの無風なのかは王のみぞ知る。'],quotes:['まあ、悪くはないな','面白いものを連れてこい','ふむ…'],tips:['📜 普通の日。推しのことを考えながら過ごすと吉。']},
+  {min:10,max:16,icon:'😏',title:'まずまず',level:'ACCEPTABLE',pips:7,danger:false,verdicts:['王は今日、比較的穏やかである。\nこれは千載一遇のチャンスかもしれない。','王の口角がわずかに上がっている。\n今日は推し活に絶好の日だ。','上機嫌とは言えないが、不機嫌でもない。\n王のご加護が薄くかかっている状態。'],quotes:['今日の我は気分がいい。感謝するがいい','ふ、よくやった','悪くない。続けよ'],tips:['✨ チャンスの日！創作活動や推し活に向いている。']},
+  {min:17,max:999,icon:'👑',title:'絶好調・王者の風格',level:'MAXIMUM GILGAMESH',pips:10,danger:false,verdicts:['王は今日、全てを肯定している。\n世界は王のために存在していると確信している。','完璧な機嫌。\n王が笑っている。この光景は千年に一度しか見られない。','今日の王は無敵だ。\n太陽も王を讃えるために輝いている（王談）。'],quotes:['フハハ、今日の我は完璧だ。当然だが','世界よ、これが王の機嫌というものだ','我が笑っているうちに、何でも申してみよ'],tips:['🌟 最高の日！何をやっても王の加護がある。重い二次創作も萌え萌えな同人も全部OK。']},
 ];
-
-const moods = [
-  { min: -999, max: -5, icon: '⚔️', title: '烈火の怒り', level: 'WRATH MODE', pips: 10, danger: true,
-    verdicts: ['王は今日、地上の全てに飽いておられる。\n存在するだけで気に障るらしい。','近寄るな。王の怒りは今日、宇宙規模である。','機嫌が悪いというレベルではない。\n王が「世界ごと終わらせよう」と思っている顔をしている。'],
-    quotes: ['雑種め、その程度で我に話しかけるとは笑止','今日の我に話しかけることは死に等しい','この世の全てが気に食わない。当然だが'],
-    tips: ['⚠ 今日は絶対に近づかないこと。推し活は明日にしろ。'] },
-  { min: -4, max: 2, icon: '😒', title: '不機嫌', level: 'LOW TOLERANCE', pips: 3, danger: true,
-    verdicts: ['王は不満足の状態にある。\n何かが足りない。貢ぎ物が足りない。','王の眉間にしわが寄っている。\n今日は何をやっても褒められない日だ。','まずい。王が「つまらぬ」と言い始めた。'],
-    quotes: ['我を楽しませてみよ、できるならば','貢ぎ物が足りぬ','この程度か'],
-    tips: ['⚡ 良い二次創作を見るか、推し語りをするか。とにかく何かを捧げよ。'] },
-  { min: 3, max: 9, icon: '😐', title: 'やや退屈', level: 'MILD BOREDOM', pips: 5, danger: false,
-    verdicts: ['悪くはないが、良くもない。\n王の基準では「普通」以下である。','王は今日、退屈している。\n退屈な王は危険だが、まだ爆発はしない。','凪の状態。\n嵐の前なのか、ただの無風なのかは王のみぞ知る。'],
-    quotes: ['まあ、悪くはないな','面白いものを連れてこい','ふむ…'],
-    tips: ['📜 普通の日。推しのことを考えながら過ごすと吉。'] },
-  { min: 10, max: 16, icon: '😏', title: 'まずまず', level: 'ACCEPTABLE', pips: 7, danger: false,
-    verdicts: ['王は今日、比較的穏やかである。\nこれは千載一遇のチャンスかもしれない。','王の口角がわずかに上がっている。\n今日は推し活に絶好の日だ。','上機嫌とは言えないが、不機嫌でもない。\n王のご加護が薄くかかっている状態。'],
-    quotes: ['今日の我は気分がいい。感謝するがいい','ふ、よくやった','悪くない。続けよ'],
-    tips: ['✨ チャンスの日！創作活動や推し活に向いている。'] },
-  { min: 17, max: 999, icon: '👑', title: '絶好調・王者の風格', level: 'MAXIMUM GILGAMESH', pips: 10, danger: false,
-    verdicts: ['王は今日、全てを肯定している。\n世界は王のために存在していると確信している。','完璧な機嫌。\n王が笑っている。この光景は千年に一度しか見られない。','今日の王は無敵だ。\n太陽も王を讃えるために輝いている（王談）。'],
-    quotes: ['フハハ、今日の我は完璧だ。当然だが','世界よ、これが王の機嫌というものだ','我が笑っているうちに、何でも申してみよ'],
-    tips: ['🌟 最高の日！何をやっても王の加護がある。重い二次創作も萌え萌えな同人も全部OK。'] },
-];
-
-function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
-
-const gilAnswers = {};
-let noiseScore = 0;
-
-document.querySelectorAll('.opts.single').forEach(group => {
-  group.querySelectorAll('.gopt').forEach(btn => {
-    btn.addEventListener('click', () => {
-      group.querySelectorAll('.gopt').forEach(b => b.classList.remove('selected'));
+function pick(arr){return arr[Math.floor(Math.random()*arr.length)];}
+const gilAnswers={};
+let noiseScore=0;
+document.querySelectorAll('.opts.single').forEach(group=>{
+  group.querySelectorAll('.gopt').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      group.querySelectorAll('.gopt').forEach(b=>b.classList.remove('selected'));
       btn.classList.add('selected');
-      gilAnswers[group.dataset.q] = parseInt(btn.dataset.v);
+      gilAnswers[group.dataset.q]=parseInt(btn.dataset.v);
       checkReady();
     });
   });
 });
-document.querySelector('.opts.multi').querySelectorAll('.gopt').forEach(btn => {
-  btn.addEventListener('click', () => {
+document.querySelector('.opts.multi').querySelectorAll('.gopt').forEach(btn=>{
+  btn.addEventListener('click',()=>{
     btn.classList.toggle('selected');
-    noiseScore = [...document.querySelectorAll('.opts.multi .gopt.selected')].reduce((s, b) => s + parseInt(b.dataset.v), 0);
-    gilAnswers['noise'] = noiseScore;
+    noiseScore=[...document.querySelectorAll('.opts.multi .gopt.selected')].reduce((s,b)=>s+parseInt(b.dataset.v),0);
+    gilAnswers['noise']=noiseScore;
     checkReady();
   });
 });
-gilAnswers['noise'] = 0;
-
-function checkReady() {
-  const ready = ['weather','self','tribute','time'].every(q => gilAnswers[q] !== undefined);
-  document.getElementById('divineBtn').disabled = !ready;
+gilAnswers['noise']=0;
+function checkReady(){
+  const ready=['weather','self','tribute','time'].every(q=>gilAnswers[q]!==undefined);
+  document.getElementById('divineBtn').disabled=!ready;
 }
-
-function divine() {
-  const event = pick(randomEvents);
-  const base = Object.values(gilAnswers).reduce((a,b) => a+b, 0);
-  const final = base + event.delta;
-  const mood = moods.find(m => final >= m.min && final <= m.max);
-  document.getElementById('moodIcon').textContent = mood.icon;
-  document.getElementById('moodTitle').textContent = mood.title;
-  document.getElementById('moodLevel').textContent = mood.level;
-  document.getElementById('verdict').textContent = pick(mood.verdicts);
-  document.getElementById('gilQuote').textContent = pick(mood.quotes);
-  document.getElementById('todayTip').textContent = pick(mood.tips);
-  document.getElementById('randomNote').textContent = `※ 理不尽な補正：「${event.text}」(${event.delta > 0 ? '+' : ''}${event.delta})`;
-  const meter = document.getElementById('moodMeter');
-  meter.innerHTML = '';
-  for (let i = 0; i < 10; i++) {
-    const pip = document.createElement('div');
-    pip.className = 'mpip' + (i < mood.pips ? (mood.danger ? ' danger' : ' on') : '');
-    meter.appendChild(pip);
-  }
-  const gr = document.getElementById('g-result');
-  gr.style.display = 'block';
-  gr.scrollIntoView({ behavior: 'smooth' });
-  const history = JSON.parse(localStorage.getItem('gil-history') || '[]');
-  const now = new Date();
-  const date = now.toLocaleDateString('ja-JP', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' });
-  history.unshift({ date, title: mood.title, icon: mood.icon, score: final });
-  if (history.length > 7) history.pop();
-  localStorage.setItem('gil-history', JSON.stringify(history));
+function divine(){
+  const event=pick(randomEvents);
+  const base=Object.values(gilAnswers).reduce((a,b)=>a+b,0);
+  const final=base+event.delta;
+  const mood=moods.find(m=>final>=m.min&&final<=m.max);
+  document.getElementById('moodIcon').textContent=mood.icon;
+  document.getElementById('moodTitle').textContent=mood.title;
+  document.getElementById('moodLevel').textContent=mood.level;
+  document.getElementById('verdict').textContent=pick(mood.verdicts);
+  document.getElementById('gilQuote').textContent=pick(mood.quotes);
+  document.getElementById('todayTip').textContent=pick(mood.tips);
+  document.getElementById('randomNote').textContent=`※ 理不尽な補正：「${event.text}」(${event.delta>0?'+':''}${event.delta})`;
+  const meter=document.getElementById('moodMeter');
+  meter.innerHTML='';
+  for(let i=0;i<10;i++){const pip=document.createElement('div');pip.className='mpip'+(i<mood.pips?(mood.danger?' danger':' on'):'');meter.appendChild(pip);}
+  const gr=document.getElementById('g-result');gr.style.display='block';gr.scrollIntoView({behavior:'smooth'});
+  const history=JSON.parse(localStorage.getItem('gil-history')||'[]');
+  const now=new Date();
+  const date=now.toLocaleDateString('ja-JP',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'});
+  history.unshift({date,title:mood.title,icon:mood.icon,score:final});
+  if(history.length>7)history.pop();
+  localStorage.setItem('gil-history',JSON.stringify(history));
   renderHistory();
 }
-
-function resetGil() {
-  document.querySelectorAll('.gopt').forEach(b => b.classList.remove('selected'));
-  Object.keys(gilAnswers).forEach(k => delete gilAnswers[k]);
-  gilAnswers['noise'] = 0;
-  noiseScore = 0;
-  document.getElementById('divineBtn').disabled = true;
-  document.getElementById('g-result').style.display = 'none';
-  window.scrollTo({ top: 0, behavior: 'smooth' });
+function resetGil(){
+  document.querySelectorAll('.gopt').forEach(b=>b.classList.remove('selected'));
+  Object.keys(gilAnswers).forEach(k=>delete gilAnswers[k]);
+  gilAnswers['noise']=0;noiseScore=0;
+  document.getElementById('divineBtn').disabled=true;
+  document.getElementById('g-result').style.display='none';
+  window.scrollTo({top:0,behavior:'smooth'});
 }
-
-function renderHistory() {
-  const history = JSON.parse(localStorage.getItem('gil-history') || '[]');
-  const el = document.getElementById('gil-history');
-  if (history.length === 0) { el.innerHTML = '<div class="no-history">記録なし</div>'; return; }
-  el.innerHTML = history.map(h => `<div class="g-hitem"><span class="h-date">${h.date}</span><span class="h-mood">${h.icon} ${h.title}</span><span class="h-score">${h.score > 0 ? '+' : ''}${h.score}pt</span></div>`).join('');
+function renderHistory(){
+  const history=JSON.parse(localStorage.getItem('gil-history')||'[]');
+  const el=document.getElementById('gil-history');
+  if(history.length===0){el.innerHTML='<div class="no-history">記録なし</div>';return;}
+  el.innerHTML=history.map(h=>`<div class="g-hitem"><span class="h-date">${h.date}</span><span class="h-mood">${h.icon} ${h.title}</span><span class="h-score">${h.score>0?'+':''}${h.score}pt</span></div>`).join('');
 }
-
 renderHistory();
 </script>
 </body>
