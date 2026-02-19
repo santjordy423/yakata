@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>タスク粉砕機 — 怠惰な雑種と王の館</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700;900&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Noto Sans JP', sans-serif; }
 body { min-height: 100vh; background: #0f172a; color: #f1f5f9; overflow: auto; }
@@ -101,7 +102,6 @@ select:focus { border-color: #3b82f6; }
 <a href="index.html" class="back-link">← もどる</a>
 
 <div id="app">
-  <!-- 入力画面 -->
   <div id="input-screen" class="screen">
     <div style="margin-bottom: 32px;">
       <h1 class="main-title">💥 Task Crusher</h1>
@@ -131,7 +131,6 @@ select:focus { border-color: #3b82f6; }
     <p class="note">※ 机に座ってPC立ち上げるところまでは済んでいる前提です</p>
   </div>
 
-  <!-- 実行画面 -->
   <div id="exec-screen" class="screen hidden">
     <div style="margin-bottom: 24px;">
       <p class="task-label">現在のタスク</p>
@@ -157,7 +156,6 @@ select:focus { border-color: #3b82f6; }
     <button id="skip-btn" class="btn-skip">このステップをスキップ</button>
   </div>
 
-  <!-- 完了画面 -->
   <div id="complete-screen" class="screen hidden">
     <div style="margin-bottom: 32px; animation: float 3s ease-in-out infinite;">
       <span class="complete-emoji">🎉</span>
@@ -182,7 +180,7 @@ const taskSteps = {
   doc_check: {
     name: '書類チェック',
     steps: ['対象の書類ファイルを開く','まず全体をざっと眺める（30秒）','宛先・日付が正しいか確認','数字（金額・数量）を1つずつ確認','計算が必要な箇所を電卓で検算','固有名詞（社名・人名）を確認','誤字脱字を1ページ目だけチェック','残りのページも誤字脱字チェック','フォーマットの崩れがないか確認','添付資料との整合性を確認','指摘箇所があればメモする','メモを整理して報告準備','チェック完了の印をつける'],
-    taunts: ['まず開く。それだけ。','眺めるだけ。まだ何もしなくていい','宛先間違い、一番恥ずかしいやつ','数字は嘘をつかない。君もつくな','電卓叩くの、ちょっと楽しいよね？','名前間違えたら終わり。慎重に。','1ページだけ！集中！','あと少し！目を皿にしろ！','見た目も大事。細部に神は宿る。','添付忘れ、あるあるだから確認','メモ魔になれ','整理整頓、できる人の証','チェック完了！偉い！']
+    taunts: ['まず開く。それだけ。','眺めるだけ。まだ何もしなくていい','宛先間違い、一番恥かしいやつ','数字は嘘をつかない。君もつくな','電卓叩くの、ちょっと楽しいよね？','名前間違えたら終わり。慎重に。','1ページだけ！集中！','あと少し！目を皿にしろ！','見た目も大事。細部に神は宿る。','添付忘れ、あるあるだから確認','メモ魔になれ','整理整頓、できる人の証','チェック完了！偉い！']
   },
   doc_fix: {
     name: '書類修正',
@@ -283,9 +281,33 @@ function showStep() {
   setTimeout(() => tauntBox.classList.remove('shake'), 500);
 }
 
+// 派手なパーティクルを実行する関数
+function fireConfetti() {
+  const duration = 3 * 1000;
+  const animationEnd = Date.now() + duration;
+  const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0 };
+
+  function randomInRange(min, max) {
+    return Math.random() * (max - min) + min;
+  }
+
+  const interval = setInterval(function() {
+    const timeLeft = animationEnd - Date.now();
+
+    if (timeLeft <= 0) {
+      return clearInterval(interval);
+    }
+
+    const particleCount = 50 * (timeLeft / duration);
+    confetti(Object.assign({}, defaults, { particleCount, origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 } }));
+    confetti(Object.assign({}, defaults, { particleCount, origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } }));
+  }, 250);
+}
+
 function showComplete() {
   showScreen(completeScreen);
   document.getElementById('final-message').textContent = completionMessages[Math.floor(Math.random() * completionMessages.length)];
+  fireConfetti(); // 完了時にパーティクルを放出
 }
 
 taskSelect.addEventListener('change', () => { startBtn.disabled = !taskSelect.value; });
@@ -299,6 +321,14 @@ startBtn.addEventListener('click', () => {
 });
 
 document.getElementById('complete-btn').addEventListener('click', () => {
+  // ステップごとの軽いお祝い（小さなクラッカー風）
+  confetti({
+    particleCount: 40,
+    spread: 70,
+    origin: { y: 0.8 },
+    colors: ['#60a5fa', '#22d3ee', '#34d399']
+  });
+
   document.body.classList.add('flash-effect');
   setTimeout(() => document.body.classList.remove('flash-effect'), 300);
   currentStepIndex++;
