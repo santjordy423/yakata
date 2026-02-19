@@ -3,17 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>怠惰と王の館</title>
+<title>怠惰な雑種と王の館</title>
 <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700&family=Noto+Serif+JP:wght@300;400;600&display=swap" rel="stylesheet">
 <style>
-/* ===== SHARED ===== */
 :root {
   --gold: #c9a84c;
   --gold-light: #f0d080;
   --gold-dim: #7a6030;
   --black: #06060a;
-  --dark2: #161420;
-  --red: #8b1a1a;
   --text: #e8dcc0;
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -34,36 +31,12 @@ body::before {
   pointer-events: none;
   z-index: 0;
 }
-
-/* ===== SCREENS ===== */
-.screen { display: none; position: relative; z-index: 1; }
-.screen.active { display: block; }
-
-/* ===== BACK BUTTON ===== */
-.back-btn {
-  position: fixed;
-  top: 16px;
-  left: 16px;
-  z-index: 100;
-  background: rgba(6,6,10,0.85);
-  border: 1px solid #2a2520;
-  color: var(--gold-dim);
-  font-family: 'Noto Serif JP', serif;
-  font-size: 0.75rem;
-  letter-spacing: 0.15em;
-  padding: 7px 14px;
-  cursor: pointer;
-  transition: all 0.2s;
-  backdrop-filter: blur(4px);
-}
-.back-btn:hover { border-color: var(--gold); color: var(--gold); }
-.back-btn.hidden { display: none; }
-
-/* ===== TOP PAGE ===== */
 .top-container {
   max-width: 540px;
   margin: 0 auto;
   padding: 60px 20px 80px;
+  position: relative;
+  z-index: 1;
 }
 .header { text-align: center; margin-bottom: 56px; }
 .header-icon {
@@ -93,8 +66,7 @@ h1.site-title {
   text-shadow: 0 0 30px rgba(201,168,76,0.35);
   margin-bottom: 10px;
 }
-.header-desc { font-size: 0.75rem; color: #555; letter-spacing: 0.15em; line-height: 1.8; }
-
+.header-desc { font-size: 0.75rem; color: #555; letter-spacing: 0.1em; line-height: 1.8; }
 .divider {
   display: flex;
   align-items: center;
@@ -108,7 +80,6 @@ h1.site-title {
   background: linear-gradient(90deg, transparent, var(--gold-dim), transparent);
 }
 .divider span { color: var(--gold); font-size: 0.65rem; letter-spacing: 0.25em; white-space: nowrap; }
-
 .cards {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -125,10 +96,7 @@ h1.site-title {
   position: relative;
   overflow: hidden;
   transition: all 0.3s;
-  cursor: pointer;
   text-align: left;
-  width: 100%;
-  font-family: 'Noto Serif JP', serif;
 }
 .card::before {
   content: '';
@@ -140,497 +108,62 @@ h1.site-title {
 }
 .card:hover { border-color: var(--gold-dim); transform: translateY(-3px); box-shadow: 0 8px 32px rgba(0,0,0,0.5), 0 0 20px rgba(201,168,76,0.08); }
 .card:hover::before { opacity: 1; }
-.card.soon { opacity: 0.4; cursor: default; pointer-events: none; }
 .card-icon { font-size: 2.2rem; display: block; margin-bottom: 12px; filter: drop-shadow(0 0 8px rgba(201,168,76,0.3)); }
 .card-title { font-size: 0.9rem; font-weight: 600; color: var(--gold-light); letter-spacing: 0.08em; margin-bottom: 6px; line-height: 1.4; }
 .card-desc { font-size: 0.72rem; color: #666; line-height: 1.7; letter-spacing: 0.04em; }
 .card-tag { display: inline-block; margin-top: 12px; padding: 3px 8px; border: 1px solid #2a2520; border-radius: 10px; font-size: 0.62rem; color: var(--gold-dim); letter-spacing: 0.1em; }
-.soon-badge { position: absolute; top: 10px; right: 10px; font-size: 0.55rem; color: #444; letter-spacing: 0.1em; border: 1px solid #2a2520; padding: 2px 6px; border-radius: 4px; }
 .site-footer { text-align: center; margin-top: 56px; font-size: 0.65rem; color: #333; letter-spacing: 0.15em; line-height: 2; }
 .site-footer span { color: var(--gold-dim); }
-
-/* ===== LAZY SCOREBOARD ===== */
-.lazy-container {
-  max-width: 480px;
-  margin: 0 auto;
-  padding: 72px 20px 60px;
-  font-family: 'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif;
-}
-.lazy-container h2 { text-align: center; font-size: 1.6rem; margin-bottom: 4px; color: #c9b8ff; letter-spacing: 0.1em; }
-.lazy-subtitle { text-align: center; font-size: 0.75rem; color: #666; margin-bottom: 24px; }
-.lcard { background: #1a1a2e; border-radius: 16px; padding: 20px; margin-bottom: 16px; border: 1px solid #2a2a4a; }
-.questions label { display: block; font-size: 0.85rem; color: #aaa; margin-bottom: 6px; margin-top: 14px; }
-.questions label:first-child { margin-top: 0; }
-.slider-row { display: flex; align-items: center; gap: 10px; }
-input[type=range] { flex: 1; accent-color: #9b7fff; height: 6px; }
-.slider-val { font-size: 0.9rem; color: #c9b8ff; width: 28px; text-align: right; }
-.checkboxes { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
-.checkboxes label { background: #252540; border: 1px solid #3a3a6a; border-radius: 20px; padding: 5px 12px; font-size: 0.8rem; cursor: pointer; transition: all 0.15s; margin: 0; color: #ccc; }
-.checkboxes input { display: none; }
-.checkboxes label:has(input:checked) { background: #3d2d7a; border-color: #9b7fff; color: #fff; }
-.lazy-btn { width: 100%; padding: 14px; background: linear-gradient(135deg, #6a4fc8, #9b7fff); border: none; border-radius: 12px; color: white; font-size: 1rem; font-weight: bold; cursor: pointer; letter-spacing: 0.05em; transition: opacity 0.2s; font-family: inherit; }
-.lazy-btn:hover { opacity: 0.85; }
-.result-box { display: none; text-align: center; padding: 24px 16px; }
-.rank-emoji { font-size: 3.5rem; margin-bottom: 8px; }
-.rank-title { font-size: 1.5rem; font-weight: bold; color: #c9b8ff; margin-bottom: 6px; }
-.rank-desc { font-size: 0.85rem; color: #999; margin-bottom: 16px; line-height: 1.6; white-space: pre-line; }
-.score-display { font-size: 2.5rem; font-weight: bold; color: #fff; margin-bottom: 4px; }
-.score-label { font-size: 0.75rem; color: #666; margin-bottom: 20px; }
-.history-title { font-size: 0.85rem; color: #888; margin-bottom: 10px; text-align: left; }
-.history-list { list-style: none; }
-.history-item { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #222; font-size: 0.8rem; }
-.history-item:last-child { border-bottom: none; }
-.history-date { color: #666; }
-.history-rank { color: #c9b8ff; }
-.history-score { color: #fff; font-weight: bold; }
-.empty-history { color: #555; font-size: 0.8rem; text-align: center; padding: 12px; }
-.lmeter { width: 100%; height: 8px; background: #252540; border-radius: 4px; margin: 12px 0; overflow: hidden; }
-.lmeter-fill { height: 100%; border-radius: 4px; background: linear-gradient(90deg, #4a90ff, #9b7fff, #ff6b9d); transition: width 0.6s ease; }
-
-/* ===== GILGAMESH ===== */
-.gil-container {
-  max-width: 480px;
-  margin: 0 auto;
-  padding: 72px 20px 60px;
-}
-.gil-header { text-align: center; margin-bottom: 40px; }
-.crown { font-size: 2.4rem; display: block; margin-bottom: 8px; filter: drop-shadow(0 0 12px rgba(201,168,76,0.6)); animation: float 3s ease-in-out infinite; }
-.g-title { font-family: 'Cinzel Decorative', serif; font-size: 0.85rem; letter-spacing: 0.3em; color: var(--gold); text-transform: uppercase; margin-bottom: 4px; }
-h2.g-h2 { font-size: 1.7rem; font-weight: 600; color: var(--gold-light); letter-spacing: 0.15em; text-shadow: 0 0 30px rgba(201,168,76,0.4); }
-.g-subtitle { font-size: 0.7rem; color: var(--gold-dim); margin-top: 6px; letter-spacing: 0.2em; }
-.g-divider { display: flex; align-items: center; gap: 12px; margin: 28px 0; }
-.g-divider::before, .g-divider::after { content: ''; flex: 1; height: 1px; background: linear-gradient(90deg, transparent, var(--gold-dim), transparent); }
-.g-divider span { color: var(--gold); font-size: 0.7rem; letter-spacing: 0.2em; white-space: nowrap; }
-.q-block { margin-bottom: 22px; }
-.q-label { font-size: 0.78rem; color: var(--gold-dim); letter-spacing: 0.15em; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
-.q-label::before { content: '◆'; color: var(--gold); font-size: 0.5rem; }
-.q-hint { font-size: 0.65rem; color: #444; letter-spacing: 0.05em; }
-.opts { display: flex; flex-direction: column; gap: 6px; }
-.opts.multi { flex-direction: row; flex-wrap: wrap; gap: 6px; }
-.gopt {
-  background: var(--dark2); border: 1px solid #2a2520; border-radius: 4px;
-  padding: 10px 14px; font-size: 0.82rem; font-family: 'Noto Serif JP', serif;
-  color: #888; cursor: pointer; transition: all 0.2s; text-align: left; letter-spacing: 0.05em;
-}
-.opts.multi .gopt { padding: 7px 12px; font-size: 0.78rem; border-radius: 20px; }
-.gopt:hover { border-color: var(--gold-dim); color: var(--text); background: #1a1810; }
-.gopt.selected { border-color: var(--gold); color: var(--gold-light); background: linear-gradient(90deg, #1e1a0a, #1a1810); box-shadow: 0 0 10px rgba(201,168,76,0.15); }
-.divine-btn {
-  width: 100%; margin-top: 32px; padding: 16px; background: transparent;
-  border: 1px solid var(--gold); color: var(--gold-light); font-family: 'Noto Serif JP', serif;
-  font-size: 0.95rem; letter-spacing: 0.3em; cursor: pointer; position: relative;
-  overflow: hidden; transition: all 0.3s;
-}
-.divine-btn::before { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, transparent, rgba(201,168,76,0.08), transparent); transform: translateX(-100%); transition: transform 0.5s; }
-.divine-btn:hover::before { transform: translateX(100%); }
-.divine-btn:hover { background: rgba(201,168,76,0.06); box-shadow: 0 0 20px rgba(201,168,76,0.2); }
-.divine-btn:disabled { border-color: #333; color: #444; cursor: not-allowed; }
-.divine-btn:disabled::before { display: none; }
-.g-result { display: none; margin-top: 40px; }
-.g-frame { border: 1px solid var(--gold-dim); position: relative; padding: 32px 24px; background: linear-gradient(160deg, #100e08, #0e0d10); }
-.g-frame::before, .g-frame::after { content: '◈'; position: absolute; color: var(--gold); font-size: 0.8rem; }
-.g-frame::before { top: -8px; left: -4px; }
-.g-frame::after { bottom: -8px; right: -4px; }
-.mood-icon { font-size: 3.8rem; display: block; text-align: center; margin-bottom: 12px; animation: gappear 0.5s ease-out; filter: drop-shadow(0 0 16px rgba(201,168,76,0.5)); }
-@keyframes gappear { from { transform: scale(0.5) rotate(-10deg); opacity: 0; } to { transform: scale(1) rotate(0); opacity: 1; } }
-.mood-title { text-align: center; font-size: 1.4rem; font-weight: 600; color: var(--gold-light); letter-spacing: 0.2em; margin-bottom: 6px; text-shadow: 0 0 20px rgba(201,168,76,0.4); }
-.mood-level { text-align: center; font-family: 'Cinzel Decorative', serif; font-size: 0.65rem; color: var(--gold-dim); letter-spacing: 0.3em; margin-bottom: 20px; }
-.mood-meter { display: flex; gap: 4px; justify-content: center; margin-bottom: 16px; }
-.mpip { width: 20px; height: 4px; background: #222; border-radius: 2px; }
-.mpip.on { background: var(--gold); box-shadow: 0 0 6px rgba(201,168,76,0.5); }
-.mpip.danger { background: var(--red); box-shadow: 0 0 6px rgba(139,26,26,0.6); }
-.random-note { text-align: center; font-size: 0.68rem; color: #4a3f28; margin-bottom: 18px; letter-spacing: 0.08em; font-style: italic; }
-.verdict { font-size: 0.88rem; line-height: 2; color: var(--text); text-align: center; margin-bottom: 18px; letter-spacing: 0.05em; white-space: pre-line; }
-.gil-quote { border-top: 1px solid #2a2520; padding-top: 16px; font-size: 0.78rem; color: var(--gold-dim); text-align: center; line-height: 1.8; font-style: italic; letter-spacing: 0.1em; }
-.gil-quote::before { content: '「'; }
-.gil-quote::after { content: '」'; }
-.today-tip { margin-top: 16px; padding: 12px; background: rgba(201,168,76,0.04); border-left: 2px solid var(--gold-dim); font-size: 0.78rem; color: #999; line-height: 1.7; letter-spacing: 0.05em; }
-.retry-btn { display: block; width: 100%; margin-top: 20px; padding: 10px; background: transparent; border: 1px solid #2a2520; color: #555; font-family: 'Noto Serif JP', serif; font-size: 0.75rem; letter-spacing: 0.2em; cursor: pointer; transition: all 0.2s; }
-.retry-btn:hover { border-color: var(--gold-dim); color: var(--gold-dim); }
-.g-hist { margin-top: 36px; }
-.g-hitem { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #141210; font-size: 0.75rem; }
-.g-hitem:last-child { border-bottom: none; }
-.h-date { color: #444; }
-.h-mood { color: var(--gold-dim); }
-.h-score { color: var(--gold); font-size: 0.7rem; }
-.no-history { font-size: 0.75rem; color: #333; text-align: center; padding: 12px 0; letter-spacing: 0.1em; }
 </style>
 </head>
 <body>
-
-<button class="back-btn hidden" id="backBtn" onclick="showTop()">← もどる</button>
-
-<!-- TOP PAGE -->
-<div class="screen active" id="screen-top">
-  <div class="top-container">
-    <div class="header">
-      <span class="header-icon">🏛️</span>
-      <div class="site-label">My Tiny App Collection</div>
-      <h1 class="site-title">怠惰と王の館</h1>
-      <p class="header-desc">在宅勤務と推し活のためのツール集<br>随時更新予定</p>
-    </div>
-    <div class="divider"><span>◆ APPS ◆</span></div>
-    <div class="cards">
-      <button class="card" onclick="showScreen('lazy')">
-        <span class="card-icon">😴</span>
-        <div class="card-title">怠惰スコアボード</div>
-        <div class="card-desc">今日のサボり具合を診断して称号をもらう</div>
-        <span class="card-tag">在宅勤務</span>
-      </button>
-      <button class="card" onclick="showScreen('gil')">
-        <span class="card-icon">👑</span>
-        <div class="card-title">王の機嫌予報</div>
-        <div class="card-desc">今日のギルガメッシュの機嫌を理不尽に占う</div>
-        <span class="card-tag">推し活</span>
-      </button>
-      <a class="card" href="https://santjordy.my.canva.site" target="_blank" style="text-decoration:none;">
-        <span class="card-icon">🍅</span>
-        <div class="card-title">勝手にポモドーロ</div>
-        <div class="card-desc">ポモドーロタイマー、勝手にやってくれる</div>
-        <span class="card-tag">集中</span>
-      </a>
-      <a class="card" href="https://santjordy.my.canva.site/c20q8y605r5mw6n1" target="_blank" style="text-decoration:none;">
-        <span class="card-icon">💥</span>
-        <div class="card-title">タスク粉砕機</div>
-        <div class="card-desc">大きなタスクを極小ステップに分解する</div>
-        <span class="card-tag">仕事</span>
-      </a>
-    </div>
-    <div class="site-footer"><span>怠惰と王の館</span> — a collection of useless but necessary tools</div>
+<div class="top-container">
+  <div class="header">
+    <span class="header-icon">🏛️</span>
+    <div class="site-label">My Tiny App Collection</div>
+    <h1 class="site-title">怠惰な雑種と王の館</h1>
+    <p class="header-desc">雑種のための使えるような使えないような道具集</p>
   </div>
-</div>
-
-<!-- LAZY SCOREBOARD -->
-<div class="screen" id="screen-lazy">
-  <div class="lazy-container">
-    <h2>😴 怠惰スコアボード</h2>
-    <p class="lazy-subtitle">今日のサボり具合を正直に申告してください</p>
-    <div class="lcard">
-      <div class="questions">
-        <label>仕事してた割合（0 = 完全無職モード、10 = 真面目に働いた）</label>
-        <div class="slider-row">
-          <input type="range" id="work" min="0" max="10" value="5" oninput="document.getElementById('work-val').textContent=this.value">
-          <span class="slider-val" id="work-val">5</span>
-        </div>
-        <label>今日やらかしたこと（複数選択可）</label>
-        <div class="checkboxes">
-          <label><input type="checkbox" class="sin" value="15"><span>布団から出るのに1時間以上かかった</span></label>
-          <label><input type="checkbox" class="sin" value="10"><span>Twitterで溶けた</span></label>
-          <label><input type="checkbox" class="sin" value="12"><span>会議中に別タブ見てた</span></label>
-          <label><input type="checkbox" class="sin" value="8"><span>昼ごはんが夕方だった</span></label>
-          <label><input type="checkbox" class="sin" value="10"><span>予定を明日に持ち越した</span></label>
-          <label><input type="checkbox" class="sin" value="15"><span>仕事中にAIと雑談した</span></label>
-          <label><input type="checkbox" class="sin" value="7"><span>着替えなかった</span></label>
-          <label><input type="checkbox" class="sin" value="9"><span>同人活動してた（業務時間中に）</span></label>
-          <label><input type="checkbox" class="sin" value="5"><span>間食が止まらなかった</span></label>
-          <label><input type="checkbox" class="sin" value="20"><span>気づいたら夜だった</span></label>
-        </div>
-        <label>今の自己評価</label>
-        <div class="slider-row">
-          <input type="range" id="self" min="0" max="10" value="5" oninput="document.getElementById('self-val').textContent=this.value">
-          <span class="slider-val" id="self-val">5</span>
-        </div>
-        <div style="display:flex;justify-content:space-between;font-size:0.7rem;color:#555;margin-top:2px;">
-          <span>まあええやろ</span><span>反省している</span>
-        </div>
-      </div>
-    </div>
-    <button class="lazy-btn" onclick="calcScore()">🔮 今日の怠惰を診断する</button>
-    <div class="lcard result-box" id="result">
-      <div class="rank-emoji" id="r-emoji"></div>
-      <div class="rank-title" id="r-title"></div>
-      <div class="rank-desc" id="r-desc"></div>
-      <div class="score-display" id="r-score"></div>
-      <div class="score-label">怠惰ポイント</div>
-      <div class="lmeter"><div class="lmeter-fill" id="r-meter"></div></div>
-    </div>
-    <div class="lcard">
-      <div class="history-title">📜 怠惰の歴史</div>
-      <ul class="history-list" id="lazy-history"></ul>
-    </div>
+  <div class="divider"><span>◆ APPS ◆</span></div>
+  <div class="cards">
+    <a class="card" href="lazy-scoreboard.html">
+      <span class="card-icon">😴</span>
+      <div class="card-title">怠惰スコアボード</div>
+      <div class="card-desc">今日のサボり具合を診断して称号をもらう</div>
+      <span class="card-tag">在宅勤務</span>
+    </a>
+    <a class="card" href="king-mood.html">
+      <span class="card-icon">👑</span>
+      <div class="card-title">王の機嫌予報</div>
+      <div class="card-desc">今日のギルガメッシュの機嫌を理不尽に占う</div>
+      <span class="card-tag">推し活</span>
+    </a>
+    <a class="card" href="https://santjordy.my.canva.site" target="_blank">
+      <span class="card-icon">🍅</span>
+      <div class="card-title">勝手にポモドーロ</div>
+      <div class="card-desc">ポモドーロタイマー、勝手にやってくれる</div>
+      <span class="card-tag">集中</span>
+    </a>
+    <a class="card" href="https://santjordy.my.canva.site/c20q8y605r5mw6n1" target="_blank">
+      <span class="card-icon">💥</span>
+      <div class="card-title">タスク粉砕機</div>
+      <div class="card-desc">大きなタスクを極小ステップに分解する</div>
+      <span class="card-tag">仕事</span>
+    </a>
+    <a class="card" href="roulette.html">
+      <span class="card-icon">🎡</span>
+      <div class="card-title">昼ごはんルーレット</div>
+      <div class="card-desc">今日のランチを運命に委ねる</div>
+      <span class="card-tag">ごはん</span>
+    </a>
+    <a class="card" href="storage-tracker.html">
+      <span class="card-icon">📦</span>
+      <div class="card-title">保存食管理</div>
+      <div class="card-desc">非常食の賞味期限と在庫をまとめて管理する</div>
+      <span class="card-tag">備蓄</span>
+    </a>
   </div>
+  <div class="site-footer"><span>怠惰な雑種と王の館</span> — a collection of useless but necessary tools</div>
 </div>
-
-<!-- GILGAMESH -->
-<div class="screen" id="screen-gil">
-  <div class="gil-container">
-    <div class="gil-header">
-      <span class="crown">♛</span>
-      <div class="g-title">King's Mood Oracle</div>
-      <h2 class="g-h2">王の機嫌予報</h2>
-      <div class="g-subtitle">— 今日の王はご機嫌斜めか、それとも —</div>
-    </div>
-    <div class="g-divider"><span>◆ 現在の状況を申告せよ ◆</span></div>
-
-    <div class="q-block">
-      <div class="q-label">今日の天気</div>
-      <div class="opts single" data-q="weather">
-        <button class="gopt" data-v="2">☀️ 晴れ（王の黄金の如し）</button>
-        <button class="gopt" data-v="1">⛅ 曇り</button>
-        <button class="gopt" data-v="-1">🌧️ 雨（鬱陶しい）</button>
-        <button class="gopt" data-v="0">🌩️ 嵐（王は嵐を好む）</button>
-      </div>
-    </div>
-    <div class="q-block">
-      <div class="q-label">今日の自分の出来栄え</div>
-      <div class="opts single" data-q="self">
-        <button class="gopt" data-v="3">完璧だった（王に近い）</button>
-        <button class="gopt" data-v="1">まあまあだった</button>
-        <button class="gopt" data-v="-1">だめだめだった</button>
-        <button class="gopt" data-v="-3">聞くな</button>
-      </div>
-    </div>
-    <div class="q-block">
-      <div class="q-label">今日の雑念 <span class="q-hint">（複数選択可）</span></div>
-      <div class="opts multi" data-q="noise">
-        <button class="gopt" data-v="3">Twitterで推しの供給があった</button>
-        <button class="gopt" data-v="-2">SNSで不毛な議論を見た</button>
-        <button class="gopt" data-v="-1">嫌なことがあった</button>
-        <button class="gopt" data-v="1">静かな一日だった</button>
-        <button class="gopt" data-v="-3">地雷を踏んだ</button>
-        <button class="gopt" data-v="2">良いご飯を食べた</button>
-        <button class="gopt" data-v="-1">眠い</button>
-        <button class="gopt" data-v="2">創作が捗った</button>
-        <button class="gopt" data-v="-2">推しが公式で雑に扱われていた</button>
-        <button class="gopt" data-v="1">いい夢を見た</button>
-        <button class="gopt" data-v="-1">頭痛がする</button>
-        <button class="gopt" data-v="3">神絵師の神絵を見た</button>
-        <button class="gopt" data-v="-2">課金した（後悔あり）</button>
-        <button class="gopt" data-v="2">課金した（後悔なし）</button>
-        <button class="gopt" data-v="-1">なんか虚無</button>
-        <button class="gopt" data-v="1">コーヒーがうまかった</button>
-        <button class="gopt" data-v="-2">推しカプのNLが流れてきた</button>
-        <button class="gopt" data-v="2">布団が気持ちよかった</button>
-        <button class="gopt" data-v="-1">誤字した</button>
-        <button class="gopt" data-v="1">良いBGMを見つけた</button>
-      </div>
-    </div>
-    <div class="q-block">
-      <div class="q-label">今日の王（ギルガメッシュ）への貢ぎ物</div>
-      <div class="opts single" data-q="tribute">
-        <button class="gopt" data-v="4">同人誌・グッズを作った or 見た</button>
-        <button class="gopt" data-v="2">二次創作をTwitterで掘った</button>
-        <button class="gopt" data-v="0">存在を思い出した程度</button>
-        <button class="gopt" data-v="-2">今日は他の推しに浮気した</button>
-      </div>
-    </div>
-    <div class="q-block">
-      <div class="q-label">今の時間帯</div>
-      <div class="opts single" data-q="time">
-        <button class="gopt" data-v="1">朝（王は夜明けを嫌う）</button>
-        <button class="gopt" data-v="2">昼（黄金の時）</button>
-        <button class="gopt" data-v="1">夕方</button>
-        <button class="gopt" data-v="3">深夜（真の王は夜に語る）</button>
-      </div>
-    </div>
-
-    <button class="divine-btn" id="divineBtn" onclick="divine()" disabled>◆ &nbsp;王の機嫌を占う&nbsp; ◆</button>
-
-    <div class="g-result" id="g-result">
-      <div class="g-frame">
-        <span class="mood-icon" id="moodIcon"></span>
-        <div class="mood-title" id="moodTitle"></div>
-        <div class="mood-level" id="moodLevel"></div>
-        <div class="mood-meter" id="moodMeter"></div>
-        <div class="random-note" id="randomNote"></div>
-        <div class="verdict" id="verdict"></div>
-        <div class="gil-quote" id="gilQuote"></div>
-        <div class="today-tip" id="todayTip"></div>
-      </div>
-      <button class="retry-btn" onclick="resetGil()">— もう一度占う —</button>
-    </div>
-
-    <div class="g-hist">
-      <div class="g-divider"><span>◆ 過去の御機嫌 ◆</span></div>
-      <div id="gil-history"></div>
-    </div>
-  </div>
-</div>
-
-<script>
-// ===== NAVIGATION =====
-function showScreen(name) {
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-  document.getElementById('screen-' + name).classList.add('active');
-  document.getElementById('backBtn').classList.remove('hidden');
-  window.scrollTo(0, 0);
-  if (name === 'lazy') renderLazyHistory();
-  if (name === 'gil') renderGilHistory();
-}
-function showTop() {
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-  document.getElementById('screen-top').classList.add('active');
-  document.getElementById('backBtn').classList.add('hidden');
-  window.scrollTo(0, 0);
-}
-
-// ===== LAZY SCOREBOARD =====
-const ranks = [
-  { min: 0,  max: 20,  emoji: '💼', title: '勤勉市民',     desc: '今日はちゃんとしてたんですね。\nなんか怖いですね。' },
-  { min: 21, max: 40,  emoji: '😏', title: '小狡い社会人', desc: '上手いことやってますね。\n生き方として正しいかもしれない。' },
-  { min: 41, max: 60,  emoji: '🛋️', title: '在宅の申し子', desc: '在宅勤務の本来の姿がここに。\nリビングはあなたのもの。' },
-  { min: 61, max: 80,  emoji: '🌫️', title: '時間溶解者',   desc: '気づいたら夕方、よくある。\n時間の概念が薄れてきている。' },
-  { min: 81, max: 100, emoji: '👑', title: '怠惰の賢者',   desc: 'これはもう才能です。\nサボることへの全力投球を感じる。' },
-  { min: 101,max: 999, emoji: '🌌', title: '怠惰の神',     desc: '測定不能な領域に達しました。\n今日あなたは何かを超えた。' },
-];
-
-function calcScore() {
-  const work = 10 - parseInt(document.getElementById('work').value);
-  const self = parseInt(document.getElementById('self').value);
-  const sins = [...document.querySelectorAll('.sin:checked')].reduce((a, el) => a + parseInt(el.value), 0);
-  const score = Math.round(work * 3 + self * 2 + sins);
-  const rank = ranks.find(r => score >= r.min && score <= r.max) || ranks[ranks.length - 1];
-  document.getElementById('r-emoji').textContent = rank.emoji;
-  document.getElementById('r-title').textContent = rank.title;
-  document.getElementById('r-desc').textContent = rank.desc;
-  document.getElementById('r-score').textContent = score;
-  document.getElementById('r-meter').style.width = Math.min(score, 100) + '%';
-  const result = document.getElementById('result');
-  result.style.display = 'block';
-  result.scrollIntoView({ behavior: 'smooth' });
-  const history = JSON.parse(localStorage.getItem('lazy-history') || '[]');
-  const today = new Date().toLocaleDateString('ja-JP', { month: 'numeric', day: 'numeric' });
-  history.unshift({ date: today, score, title: rank.title, emoji: rank.emoji });
-  if (history.length > 10) history.pop();
-  localStorage.setItem('lazy-history', JSON.stringify(history));
-  renderLazyHistory();
-}
-
-function renderLazyHistory() {
-  const history = JSON.parse(localStorage.getItem('lazy-history') || '[]');
-  const el = document.getElementById('lazy-history');
-  if (history.length === 0) { el.innerHTML = '<div class="empty-history">まだ記録がありません</div>'; return; }
-  el.innerHTML = history.map(h => `<li class="history-item"><span class="history-date">${h.date}</span><span class="history-rank">${h.emoji} ${h.title}</span><span class="history-score">${h.score}pt</span></li>`).join('');
-}
-
-// ===== GILGAMESH =====
-const randomEvents = [
-  { text: '今日は月が欠けている', delta: -3 },
-  { text: '王の気分が宇宙の法則に従い悪化した', delta: -5 },
-  { text: '誰かが王の名を呼び捨てにした（どこかで）', delta: -4 },
-  { text: '空気の湿度が王の好みではない', delta: -2 },
-  { text: '神々が今日の王に微笑んだ', delta: +4 },
-  { text: '王の財宝庫が今日も完璧である', delta: +3 },
-  { text: '英雄が一人どこかで戦いを挑んでいる（王は興味なし）', delta: -1 },
-  { text: '特に何もない。だからこそ退屈', delta: -2 },
-  { text: '王は今日、己の完璧さを再確認した', delta: +5 },
-  { text: 'エルキドゥの夢を見た（王は否定する）', delta: -3 },
-  { text: '雑種どもが騒がしい', delta: -3 },
-  { text: '今日の星の並びが王を讃えている', delta: +4 },
-  { text: '誰かが王を「ギルくん」と呼んだ', delta: -6 },
-  { text: '王の食事が今日は特に豪勢だった', delta: +3 },
-  { text: '何者かが王の前世を詮索した', delta: -4 },
-  { text: '風が今日は気持ちよかった', delta: +2 },
-  { text: '王の黄金鎧の輝きが増した（気がする）', delta: +3 },
-  { text: 'バビロンが今日も美しい', delta: +2 },
-  { text: '誰かが英雄王の功績を「意外と知らない」と言った', delta: -5 },
-  { text: '今日はなぜか全てがどうでもよい', delta: -4 },
-];
-
-const moods = [
-  { min: -999, max: -5, icon: '⚔️', title: '烈火の怒り', level: 'WRATH MODE', pips: 10, danger: true,
-    verdicts: ['王は今日、地上の全てに飽いておられる。\n存在するだけで気に障るらしい。','近寄るな。王の怒りは今日、宇宙規模である。','機嫌が悪いというレベルではない。\n王が「世界ごと終わらせよう」と思っている顔をしている。'],
-    quotes: ['雑種め、その程度で我に話しかけるとは笑止','今日の我に話しかけることは死に等しい','この世の全てが気に食わない。当然だが'],
-    tips: ['⚠ 今日は絶対に近づかないこと。推し活は明日にしろ。'] },
-  { min: -4, max: 2, icon: '😒', title: '不機嫌', level: 'LOW TOLERANCE', pips: 3, danger: true,
-    verdicts: ['王は不満足の状態にある。\n何かが足りない。貢ぎ物が足りない。','王の眉間にしわが寄っている。\n今日は何をやっても褒められない日だ。','まずい。王が「つまらぬ」と言い始めた。'],
-    quotes: ['我を楽しませてみよ、できるならば','貢ぎ物が足りぬ','この程度か'],
-    tips: ['⚡ 良い二次創作を見るか、推し語りをするか。とにかく何かを捧げよ。'] },
-  { min: 3, max: 9, icon: '😐', title: 'やや退屈', level: 'MILD BOREDOM', pips: 5, danger: false,
-    verdicts: ['悪くはないが、良くもない。\n王の基準では「普通」以下である。','王は今日、退屈している。\n退屈な王は危険だが、まだ爆発はしない。','凪の状態。\n嵐の前なのか、ただの無風なのかは王のみぞ知る。'],
-    quotes: ['まあ、悪くはないな','面白いものを連れてこい','ふむ…'],
-    tips: ['📜 普通の日。推しのことを考えながら過ごすと吉。'] },
-  { min: 10, max: 16, icon: '😏', title: 'まずまず', level: 'ACCEPTABLE', pips: 7, danger: false,
-    verdicts: ['王は今日、比較的穏やかである。\nこれは千載一遇のチャンスかもしれない。','王の口角がわずかに上がっている。\n今日は推し活に絶好の日だ。','上機嫌とは言えないが、不機嫌でもない。\n王のご加護が薄くかかっている状態。'],
-    quotes: ['今日の我は気分がいい。感謝するがいい','ふ、よくやった','悪くない。続けよ'],
-    tips: ['✨ チャンスの日！創作活動や推し活に向いている。'] },
-  { min: 17, max: 999, icon: '👑', title: '絶好調・王者の風格', level: 'MAXIMUM GILGAMESH', pips: 10, danger: false,
-    verdicts: ['王は今日、全てを肯定している。\n世界は王のために存在していると確信している。','完璧な機嫌。\n王が笑っている。この光景は千年に一度しか見られない。','今日の王は無敵だ。\n太陽も王を讃えるために輝いている（王談）。'],
-    quotes: ['フハハ、今日の我は完璧だ。当然だが','世界よ、これが王の機嫌というものだ','我が笑っているうちに、何でも申してみよ'],
-    tips: ['🌟 最高の日！何をやっても王の加護がある。重い二次創作も萌え萌えな同人も全部OK。'] },
-];
-
-function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
-
-const gilAnswers = {};
-let noiseScore = 0;
-
-function initGil() {
-  document.querySelectorAll('.opts.single').forEach(group => {
-    group.querySelectorAll('.gopt').forEach(btn => {
-      btn.addEventListener('click', () => {
-        group.querySelectorAll('.gopt').forEach(b => b.classList.remove('selected'));
-        btn.classList.add('selected');
-        gilAnswers[group.dataset.q] = parseInt(btn.dataset.v);
-        checkGilReady();
-      });
-    });
-  });
-  document.querySelector('.opts.multi').querySelectorAll('.gopt').forEach(btn => {
-    btn.addEventListener('click', () => {
-      btn.classList.toggle('selected');
-      noiseScore = [...document.querySelectorAll('.opts.multi .gopt.selected')].reduce((s, b) => s + parseInt(b.dataset.v), 0);
-      gilAnswers['noise'] = noiseScore;
-      checkGilReady();
-    });
-  });
-  gilAnswers['noise'] = 0;
-}
-
-function checkGilReady() {
-  const ready = ['weather','self','tribute','time'].every(q => gilAnswers[q] !== undefined);
-  document.getElementById('divineBtn').disabled = !ready;
-}
-
-function divine() {
-  const event = pick(randomEvents);
-  const base = Object.values(gilAnswers).reduce((a,b) => a+b, 0);
-  const final = base + event.delta;
-  const mood = moods.find(m => final >= m.min && final <= m.max);
-  document.getElementById('moodIcon').textContent = mood.icon;
-  document.getElementById('moodTitle').textContent = mood.title;
-  document.getElementById('moodLevel').textContent = mood.level;
-  document.getElementById('verdict').textContent = pick(mood.verdicts);
-  document.getElementById('gilQuote').textContent = pick(mood.quotes);
-  document.getElementById('todayTip').textContent = pick(mood.tips);
-  document.getElementById('randomNote').textContent = `※ 理不尽な補正：「${event.text}」(${event.delta > 0 ? '+' : ''}${event.delta})`;
-  const meter = document.getElementById('moodMeter');
-  meter.innerHTML = '';
-  for (let i = 0; i < 10; i++) {
-    const pip = document.createElement('div');
-    pip.className = 'mpip' + (i < mood.pips ? (mood.danger ? ' danger' : ' on') : '');
-    meter.appendChild(pip);
-  }
-  const gr = document.getElementById('g-result');
-  gr.style.display = 'block';
-  gr.scrollIntoView({ behavior: 'smooth' });
-  const history = JSON.parse(localStorage.getItem('gil-history') || '[]');
-  const now = new Date();
-  const date = now.toLocaleDateString('ja-JP', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' });
-  history.unshift({ date, title: mood.title, icon: mood.icon, score: final });
-  if (history.length > 7) history.pop();
-  localStorage.setItem('gil-history', JSON.stringify(history));
-  renderGilHistory();
-}
-
-function resetGil() {
-  document.querySelectorAll('.gopt').forEach(b => b.classList.remove('selected'));
-  Object.keys(gilAnswers).forEach(k => delete gilAnswers[k]);
-  gilAnswers['noise'] = 0;
-  noiseScore = 0;
-  document.getElementById('divineBtn').disabled = true;
-  document.getElementById('g-result').style.display = 'none';
-  window.scrollTo({ top: 0, behavior: 'smooth' });
-}
-
-function renderGilHistory() {
-  const history = JSON.parse(localStorage.getItem('gil-history') || '[]');
-  const el = document.getElementById('gil-history');
-  if (history.length === 0) { el.innerHTML = '<div class="no-history">記録なし</div>'; return; }
-  el.innerHTML = history.map(h => `<div class="g-hitem"><span class="h-date">${h.date}</span><span class="h-mood">${h.icon} ${h.title}</span><span class="h-score">${h.score > 0 ? '+' : ''}${h.score}pt</span></div>`).join('');
-}
-
-initGil();
-</script>
 </body>
 </html>
