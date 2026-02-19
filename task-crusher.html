@@ -4,31 +4,17 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>タスク粉砕機 — 怠惰な雑種と王の館</title>
-
-<link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;700;900&family=Yusei+Magic&display=swap" rel="stylesheet">
-
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700;900&display=swap" rel="stylesheet">
 <style>
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-  font-family: 'Zen Maru Gothic', sans-serif;
-}
+* { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Noto Sans JP', sans-serif; }
+body { min-height: 100vh; background: #0f172a; color: #f1f5f9; overflow: auto; }
 
-body {
-  min-height: 100vh;
-  background: linear-gradient(-45deg, #0f172a, #1e3a8a, #0f172a, #1e293b);
-  background-size: 400% 400%;
-  animation: gradientMove 18s ease infinite;
-  color: #f1f5f9;
-  overflow: hidden;
+.back-link {
+  position: fixed; top: 16px; left: 16px; z-index: 100;
+  color: rgba(96,165,250,0.5); font-size: 0.75rem; text-decoration: none;
+  letter-spacing: 0.1em; transition: color 0.2s;
 }
-
-@keyframes gradientMove {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
-}
+.back-link:hover { color: #60a5fa; }
 
 #app {
   min-height: 100vh;
@@ -36,205 +22,298 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 64px 24px;
-  text-align: center;
-  max-width: 520px;
-  margin: auto;
+  padding: 64px 24px 24px;
 }
 
+.screen { width: 100%; max-width: 512px; text-align: center; }
 .hidden { display: none; }
 
-.main-title {
-  font-family: 'Yusei Magic', sans-serif;
-  font-size: 2rem;
-  color: #60a5fa;
-  margin-bottom: 12px;
-  letter-spacing: 0.05em;
-}
-
-.subtitle {
-  color: #94a3b8;
-  margin-bottom: 28px;
-}
-
+/* 入力画面 */
+.main-title { font-size: 1.875rem; font-weight: 900; color: #60a5fa; margin-bottom: 8px; }
+.subtitle { color: #94a3b8; font-size: 0.875rem; margin-bottom: 32px; }
+.label { display: block; text-align: left; color: #cbd5e1; margin-bottom: 12px; font-size: 1.125rem; font-weight: 700; }
 select {
-  width: 100%;
-  background: #1e293b;
-  border: 2px solid #475569;
-  border-radius: 12px;
-  padding: 14px;
-  font-size: 1rem;
-  color: #f1f5f9;
-  margin-bottom: 20px;
+  width: 100%; background: #1e293b; border: 2px solid #475569;
+  border-radius: 12px; padding: 16px; font-size: 1.125rem; color: #f1f5f9;
+  transition: border-color 0.2s; outline: none; margin-bottom: 24px;
+  font-family: inherit;
 }
-
-button {
-  width: 100%;
-  padding: 18px;
-  border: none;
-  border-radius: 14px;
-  font-weight: 900;
-  font-size: 1.1rem;
-  cursor: pointer;
-  transition: 0.2s;
-}
+select:focus { border-color: #3b82f6; }
 
 .btn-start {
-  background: linear-gradient(to right, #2563eb, #3b82f6);
-  color: white;
-  box-shadow: 0 0 20px rgba(59,130,246,0.6);
+  width: 100%; background: linear-gradient(to right, #2563eb, #3b82f6);
+  color: white; font-weight: 900; font-size: 1.25rem;
+  padding: 20px 32px; border: none; border-radius: 16px; cursor: pointer;
+  transition: all 0.15s; font-family: inherit;
+  box-shadow: 0 0 20px rgba(59,130,246,0.5);
 }
+.btn-start:hover { background: linear-gradient(to right, #3b82f6, #60a5fa); transform: scale(1.03); }
+.btn-start:active { transform: scale(0.97); }
+.btn-start:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+.note { margin-top: 16px; color: #64748b; font-size: 0.75rem; }
 
-.btn-start:hover { transform: scale(1.05); }
-
+/* 実行画面 */
+.task-label { color: #94a3b8; font-size: 0.875rem; margin-bottom: 4px; }
+.task-name { font-size: 1.25rem; font-weight: 700; color: #60a5fa; margin-bottom: 24px; }
+.progress-header { display: flex; justify-content: space-between; font-size: 0.875rem; color: #94a3b8; margin-bottom: 8px; }
+.progress-track { width: 100%; height: 12px; background: #334155; border-radius: 9999px; overflow: hidden; margin-bottom: 32px; }
+.progress-fill { height: 100%; background: linear-gradient(to right, #2563eb, #22d3ee); border-radius: 9999px; transition: width 0.5s ease-out; }
+.taunt-box { background: rgba(30,41,59,0.5); border: 1px solid #334155; border-radius: 12px; padding: 16px; margin-bottom: 24px; }
+.taunt-text { color: #fbbf24; font-size: 1.125rem; font-weight: 700; }
+.step-box { background: #1e293b; border: 2px solid rgba(59,130,246,0.3); border-radius: 16px; padding: 32px; margin-bottom: 32px; }
+.step-hint { color: #94a3b8; font-size: 0.875rem; margin-bottom: 8px; }
+.step-text { font-size: 1.5rem; font-weight: 900; color: white; line-height: 1.6; }
 .btn-complete {
-  background: linear-gradient(to right, #059669, #10b981);
-  color: white;
-  box-shadow: 0 0 20px rgba(16,185,129,0.6);
+  width: 100%; background: linear-gradient(to right, #059669, #10b981);
+  color: white; font-weight: 900; font-size: 1.5rem;
+  padding: 32px; border: none; border-radius: 16px; cursor: pointer;
+  transition: all 0.1s; font-family: inherit;
+  box-shadow: 0 8px 24px rgba(16,185,129,0.3);
 }
+.btn-complete:hover { background: linear-gradient(to right, #10b981, #34d399); transform: scale(1.03); }
+.btn-complete:active { transform: scale(0.95); }
+.btn-skip { margin-top: 16px; color: #64748b; font-size: 0.875rem; background: none; border: none; cursor: pointer; text-decoration: underline; transition: color 0.2s; font-family: inherit; }
+.btn-skip:hover { color: #cbd5e1; }
 
-.btn-complete:hover { transform: scale(1.05); }
-
-.progress-track {
-  width: 100%;
-  height: 12px;
-  background: #334155;
-  border-radius: 9999px;
-  margin: 20px 0;
-  overflow: hidden;
+/* 完了画面 */
+.complete-emoji { font-size: 6rem; margin-bottom: 16px; display: block; animation: float 3s ease-in-out infinite; }
+.complete-title { font-size: 1.875rem; font-weight: 900; color: #34d399; margin-bottom: 16px; }
+.complete-msg { font-size: 1.25rem; color: #e2e8f0; margin-bottom: 8px; }
+.complete-sub { color: #94a3b8; margin-bottom: 32px; }
+.final-box { background: rgba(30,41,59,0.5); border: 1px solid rgba(52,211,153,0.3); border-radius: 12px; padding: 24px; margin-bottom: 32px; }
+.final-text { color: #34d399; font-size: 1.125rem; font-weight: 700; }
+.btn-restart {
+  width: 100%; background: linear-gradient(to right, #2563eb, #3b82f6);
+  color: white; font-weight: 900; font-size: 1.25rem;
+  padding: 20px 32px; border: none; border-radius: 16px; cursor: pointer;
+  transition: all 0.15s; font-family: inherit;
 }
+.btn-restart:hover { transform: scale(1.03); }
 
-.progress-fill {
-  height: 100%;
-  background: linear-gradient(to right, #2563eb, #22d3ee);
-  transition: width 0.4s ease;
-}
-
-.step-text {
-  font-size: 1.4rem;
-  font-weight: 900;
-  margin: 30px 0;
-}
-
-.complete-emoji {
-  font-size: 5rem;
-  animation: float 3s ease-in-out infinite;
-}
-
-@keyframes float {
-  0%,100% { transform: translateY(0); }
-  50% { transform: translateY(-12px); }
-}
-
-/* パーティクル */
-.particle {
-  position: fixed;
-  border-radius: 50%;
-  pointer-events: none;
-  animation: explode 900ms ease-out forwards;
-}
-
-@keyframes explode {
-  0% { transform: translate(0,0) scale(1); opacity:1; }
-  100% { transform: translate(var(--x), var(--y)) scale(0); opacity:0; }
-}
+@keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+@keyframes shake { 0%,100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
+@keyframes flash { 0%,100% { background: #0f172a; } 50% { background: #1e3a8a; } }
+.shake { animation: shake 0.5s ease-in-out; }
+.flash-effect { animation: flash 0.3s ease-out; }
 </style>
 </head>
 <body>
+<a href="index.html" class="back-link">← もどる</a>
 
 <div id="app">
-
-<div id="input-screen">
-  <h1 class="main-title">💥 Task Crusher</h1>
-  <p class="subtitle">タスクを極小ステップに粉砕する</p>
-
-  <select id="task-select">
-    <option value="">タスクを選んでください...</option>
-    <option value="cleaning">🧹 掃除</option>
-    <option value="email">📧 メール</option>
-  </select>
-
-  <button id="start-btn" class="btn-start">⚡ 分解開始</button>
-</div>
-
-<div id="exec-screen" class="hidden">
-  <div class="progress-track">
-    <div id="progress-bar" class="progress-fill"></div>
+  <!-- 入力画面 -->
+  <div id="input-screen" class="screen">
+    <div style="margin-bottom: 32px;">
+      <h1 class="main-title">💥 Task Crusher</h1>
+      <p class="subtitle">大きなタスクを極小ステップに粉砕する</p>
+    </div>
+    <div style="margin-bottom: 24px;">
+      <label class="label">🎯 今から何を終わらせたい？</label>
+      <select id="task-select">
+        <option value="">タスクを選んでください...</option>
+        <option value="doc_new">📄 書類作成（新規）</option>
+        <option value="doc_check">🔍 書類チェック</option>
+        <option value="doc_fix">✏️ 書類修正</option>
+        <option value="cleaning">🧹 掃除</option>
+        <option value="email_send">📤 メール送信</option>
+        <option value="email_reply">📩 メール返信</option>
+        <option value="design_check">🎨 デザインの確認</option>
+        <option value="material">📋 資料作成（指定紙作成）</option>
+        <option value="proofread">📖 校正</option>
+        <option value="redline">🔴 赤字作成</option>
+        <option value="folder">📁 フォルダ整理</option>
+        <option value="expense">💰 経費精算</option>
+        <option value="payment">💳 支払処理</option>
+        <option value="inquiry">💬 問い合わせ対応</option>
+      </select>
+    </div>
+    <button id="start-btn" class="btn-start" disabled>⚡ 分解開始</button>
+    <p class="note">※ 机に座ってPC立ち上げるところまでは済んでいる前提です</p>
   </div>
-  <div id="step-text" class="step-text"></div>
-  <button id="complete-btn" class="btn-complete">✅ 完了！</button>
-</div>
 
-<div id="complete-screen" class="hidden">
-  <div class="complete-emoji">🎉</div>
-  <h2>お疲れ様！</h2>
-  <button onclick="location.reload()" class="btn-start">🔄 もう一度</button>
-</div>
+  <!-- 実行画面 -->
+  <div id="exec-screen" class="screen hidden">
+    <div style="margin-bottom: 24px;">
+      <p class="task-label">現在のタスク</p>
+      <h2 id="current-task-name" class="task-name"></h2>
+    </div>
+    <div style="margin-bottom: 32px;">
+      <div class="progress-header">
+        <span id="step-counter">ステップ 1/10</span>
+        <span id="percent">0%</span>
+      </div>
+      <div class="progress-track">
+        <div id="progress-bar" class="progress-fill" style="width: 0%"></div>
+      </div>
+    </div>
+    <div id="taunt-box" class="taunt-box">
+      <p id="taunt-message" class="taunt-text"></p>
+    </div>
+    <div class="step-box">
+      <p class="step-hint">今やること、これだけ👇</p>
+      <p id="current-step" class="step-text"></p>
+    </div>
+    <button id="complete-btn" class="btn-complete">✅ 完了！次へ</button>
+    <button id="skip-btn" class="btn-skip">このステップをスキップ</button>
+  </div>
 
+  <!-- 完了画面 -->
+  <div id="complete-screen" class="screen hidden">
+    <div style="margin-bottom: 32px; animation: float 3s ease-in-out infinite;">
+      <span class="complete-emoji">🎉</span>
+      <h2 class="complete-title">お疲れ様！</h2>
+      <p class="complete-msg">タスク完了！</p>
+      <p class="complete-sub">自分を褒めてください。マジで。</p>
+    </div>
+    <div class="final-box">
+      <p id="final-message" class="final-text"></p>
+    </div>
+    <button id="restart-btn" class="btn-restart">🔄 次のタスクへ</button>
+  </div>
 </div>
 
 <script>
-const tasks = {
-  cleaning: ["立ち上がる","机を片付ける","机を拭く","ゴミを捨てる"],
-  email: ["メールを開く","件名を書く","本文を書く","送信する"]
-};
-
-let currentSteps = [];
-let stepIndex = 0;
-
-const inputScreen = document.getElementById("input-screen");
-const execScreen = document.getElementById("exec-screen");
-const completeScreen = document.getElementById("complete-screen");
-const progressBar = document.getElementById("progress-bar");
-const stepText = document.getElementById("step-text");
-
-document.getElementById("start-btn").onclick = () => {
-  const val = document.getElementById("task-select").value;
-  if(!val) return;
-  currentSteps = tasks[val];
-  stepIndex = 0;
-  inputScreen.classList.add("hidden");
-  execScreen.classList.remove("hidden");
-  showStep();
-};
-
-document.getElementById("complete-btn").onclick = () => {
-  createParticles();
-  stepIndex++;
-  if(stepIndex >= currentSteps.length){
-    execScreen.classList.add("hidden");
-    completeScreen.classList.remove("hidden");
-    setInterval(createParticles, 800);
-  } else {
-    showStep();
+const taskSteps = {
+  doc_new: {
+    name: '書類作成（新規）',
+    steps: ['ファイルを新規作成して名前をつける','テンプレートがあるか確認する（あれば開く）','書類の目的を1行でメモする','宛先・日付など基本情報を入力','見出しだけ先に全部書き出す','最初の見出しの内容を3行だけ書く','次の見出しの内容を3行だけ書く','残りの見出しも同様に埋める','全体を流し読みして違和感チェック','誤字脱字を最初から最後まで確認','数字・日付が正しいか確認','フォーマット（フォント・余白）を整える','一度保存する','印刷プレビューで確認','完成！提出先を確認する'],
+    taunts: ['とりあえずファイル作るだけ。簡単でしょ？','白紙が怖い？大丈夫、みんなそう','目的書くだけ。1行でいい。','機械的作業タイム。脳使わなくてOK','見出しだけ！中身はまだ書かなくていい','3行だけ。3行。それ以上は禁止。','この調子この調子','半分超えた！天才か？','読むだけ。修正はまだしなくていい','誤字探しゲーム開始','数字ミスは致命傷。ここ大事。','見た目整えるの、ちょっと楽しくない？','Ctrl+S！これ大事！','あと一歩！','君、仕事できるじゃん（本気）']
+  },
+  doc_check: {
+    name: '書類チェック',
+    steps: ['対象の書類ファイルを開く','まず全体をざっと眺める（30秒）','宛先・日付が正しいか確認','数字（金額・数量）を1つずつ確認','計算が必要な箇所を電卓で検算','固有名詞（社名・人名）を確認','誤字脱字を1ページ目だけチェック','残りのページも誤字脱字チェック','フォーマットの崩れがないか確認','添付資料との整合性を確認','指摘箇所があればメモする','メモを整理して報告準備','チェック完了の印をつける'],
+    taunts: ['まず開く。それだけ。','眺めるだけ。まだ何もしなくていい','宛先間違い、一番恥ずかしいやつ','数字は嘘をつかない。君もつくな','電卓叩くの、ちょっと楽しいよね？','名前間違えたら終わり。慎重に。','1ページだけ！集中！','あと少し！目を皿にしろ！','見た目も大事。細部に神は宿る。','添付忘れ、あるあるだから確認','メモ魔になれ','整理整頓、できる人の証','チェック完了！偉い！']
+  },
+  doc_fix: {
+    name: '書類修正',
+    steps: ['修正対象のファイルを開く','修正指示書・メモを横に並べる','修正箇所を上から順に確認','1つ目の修正を実施','修正が正しいか見直す','2つ目の修正を実施','残りの修正も1つずつ実施','全ての修正が完了したか指示書と照合','修正により他の箇所に影響がないか確認','全体を通して読み直す','保存して修正前と比較（可能なら）','修正完了報告の準備','提出先へ送信/共有'],
+    taunts: ['まずファイルを開け。話はそれからだ。','指示書どこ？探すのも仕事のうち','全体把握！焦るな焦るな','1個だけ。1個だけ直す。','直したら確認。基本中の基本。','2個目！この調子！','モグラ叩きみたいなもん','漏れチェック！抜けがちなとこ','修正したら別のとこ壊れがち','読み直し！新鮮な目で！','比較できると安心するよね','報告準備！ゴール見えてきた！','送信！完了！天才！']
+  },
+  cleaning: {
+    name: '掃除',
+    steps: ['まず立ち上がる','掃除道具を準備する（雑巾orクイックルワイパー）','机の上のものを全部どかす','机を拭く','どかしたものを戻す（不要なものは捨てる）','キーボードの隙間を掃除','モニターを拭く','足元のゴミを拾う','ゴミ箱の中身を確認','床を軽く掃除（見える範囲だけ）','椅子を拭く','掃除道具を片付ける','手を洗う'],
+    taunts: ['立つだけ！立つだけでいい！','道具探しも運動のうち','どかすの面倒だけど、やれ','拭くの気持ちいいでしょ？','断捨離チャンス！いらないもの捨てろ！','キーボード、めっちゃ汚いよ知ってた？','モニター綺麗だと目に優しい','足元、見て見ぬふりしてたでしょ','ゴミ箱パンパンじゃない？','見える範囲だけ！完璧主義禁止！','椅子も生きてる。労われ。','お片付けお片付け','清潔な手で仕事再開！偉い！']
+  },
+  email_send: {
+    name: 'メール送信',
+    steps: ['メールソフトを開く','新規メール作成画面を開く','宛先を入力（CC/BCCも確認）','件名を入力','挨拶文を書く（定型文OK）','本文の要点を1行で書く','詳細を箇条書きで書く','締めの挨拶を書く','添付ファイルがあれば添付','宛先をもう一度確認','件名と本文を読み返す','添付ファイルが正しいか確認','深呼吸して送信ボタンを押す'],
+    taunts: ['メールソフト開くだけ。怖くない。','新規作成！白紙のメール！','宛先間違い、社会的に死ぬやつ','件名大事。開封率に関わる。','お世話になっております（脳死）','要点1行！ダラダラ禁止！','箇条書きは正義','よろしくお願いいたします（脳死）','添付忘れ、やりがち中のやりがち','宛先確認！3回見ろ！','誤字あったら恥ずかしいぞ','添付ファイル、本当にそれ？','送信！勇気！完了！']
+  },
+  email_reply: {
+    name: 'メール返信',
+    steps: ['返信するメールを開く','相手のメールを最後まで読む','何を求められているか確認','返信ボタンを押す','挨拶文を書く','相手の質問/依頼に対する回答を書く','追加で伝えることがあれば書く','締めの挨拶を書く','引用部分を整理（不要なら削除）','全体を読み返す','宛先が正しいか確認','送信'],
+    taunts: ['まず開く。既読つけるだけでも進歩。','最後まで読め。斜め読み禁止。','何求められてる？理解してから返信！','返信ボタンポチッ','お世話になっております（お約束）','質問には答える。それがマナー。','追加情報、あれば親切','よろしくお願いいたします（お約束2）','引用地獄を整理しよう','読み返し！恥ずかしいミス防止！','宛先確認！全員に返信になってない？','送信完了！返信早いね！偉い！']
+  },
+  design_check: {
+    name: 'デザインの確認',
+    steps: ['デザインファイルを開く','デザイン指示書があれば横に並べる','全体の第一印象を確認（3秒）','レイアウトが指示通りか確認','色が指定通りか確認','フォント・文字サイズを確認','テキストの誤字脱字を確認','画像・イラストの配置を確認','余白・間隔のバランスを確認','複数サイズある場合は全て確認','修正点をメモする','メモを優先度順に整理','フィードバックを伝える準備'],
+    taunts: ['ファイルを開け。デザイナーの魂を見ろ。','指示書とにらめっこタイム','第一印象、大事。直感を信じろ。','レイアウト崩れてない？','色、ブランドガイドライン守ってる？','フォント警察出動','誤字あったらデザイン台無し','画像の解像度も見てね','余白は呼吸。詰め込みすぎ注意。','レスポンシブ確認！スマホも見た？','メモ魔になれ（2回目）','優先度つけると伝わりやすい','フィードバックは愛。頑張れ。']
+  },
+  material: {
+    name: '資料作成（指定紙作成）',
+    steps: ['指定紙のテンプレートを開く/用意する','記入が必要な項目を確認','必要な情報を集める（別資料など）','基本情報（日付・名前等）を記入','1つ目の項目を記入','2つ目の項目を記入','残りの項目を1つずつ記入','空欄がないか確認','記入内容に誤りがないか確認','押印が必要か確認','添付書類が必要か確認','提出先・提出方法を確認','提出準備完了'],
+    taunts: ['テンプレどこ？探せ探せ','何書くか確認。白紙で出すなよ。','情報収集！探偵ごっこ！','基本情報は脳死で書ける','1個目！スタートダッシュ！','2個目！勢いに乗れ！','モグラ叩き状態！どんどん埋めろ！','空欄は敵。許すな。','誤記入、やり直しコース','ハンコ押す？押さない？','添付忘れ、あるあるすぎる','提出先確認！迷子にさせるな！','準備完了！あとは出すだけ！']
+  },
+  proofread: {
+    name: '校正',
+    steps: ['校正対象のファイルを開く','校正記号表・ルールを確認','1ページ目を音読する（心の中で）','誤字を見つけたらマーク','脱字を見つけたらマーク','表記ゆれを確認（統一されているか）','数字・日付を確認','固有名詞を確認','句読点の使い方を確認','改行・段落の位置を確認','2ページ目以降も同様に確認','全体を通して最終確認','校正結果をまとめる'],
+    taunts: ['ファイル開く。目を凝らせ。','ルール確認！校正にもルールがある','音読、マジで効く。騙されたと思って。','誤字発見！赤ペン先生出動！','脱字も見逃すな！','表記ゆれ、地味にストレス','数字ミスは致命的（2回目）','名前間違えたら謝罪案件','句読点、意外と難しい','改行位置で読みやすさ変わる','まだ続く！集中！','最終確認！ラストスパート！','校正完了！目、お疲れ様！']
+  },
+  redline: {
+    name: '赤字作成',
+    steps: ['修正対象のファイルを開く','赤字を入れるツールを準備（ペン/コメント機能）','修正が必要な箇所を最初から確認','1つ目の修正箇所に赤字を入れる','修正内容が明確か確認','2つ目の修正箇所に赤字を入れる','残りの修正箇所にも赤字を入れる','赤字の優先度をつける（必須/推奨など）','赤字の量が適切か確認','全体を見直して追加修正がないか確認','赤字ファイルを保存','相手にわかりやすいか最終確認'],
+    taunts: ['ファイル開く。添削開始。','赤ペン準備！デジタルでもOK！','全体把握！どこ直す？','1つ目！ビシッと指摘！','伝わる赤字、大事。','2つ目！この調子！','どんどん入れろ！遠慮するな！','優先度つけると親切','赤字だらけすぎない？','追加修正ない？見落としない？','保存！データ飛んだら泣く！','相手が理解できる赤字か確認！完了！']
+  },
+  folder: {
+    name: 'フォルダ整理',
+    steps: ['整理するフォルダを開く','中身を全て確認（スクロールして把握）','明らかにいらないファイルを削除','フォルダ分けのルールを決める（日付/種類など）','新しいフォルダを必要な分だけ作成','ファイルを1つ移動する','残りのファイルも適切なフォルダへ移動','どこにも属さないファイルを確認','ファイル名を統一（必要なら）','空のフォルダがないか確認','整理後のフォルダ構成を確認','ゴミ箱を空にする（任意）'],
+    taunts: ['カオスフォルダを開け。現実を見ろ。','把握！まずは敵を知れ！','いらないもの、サヨナラ！','ルール決めが9割','フォルダ作成！秩序の始まり！','1つ移動！始まった！','どんどん片付く！気持ちいい！','迷子ファイル、どうする？','ファイル名は未来の自分への手紙','空フォルダ、削除！','構成確認！美しい！','ゴミ箱空にしてスッキリ！']
+  },
+  expense: {
+    name: '経費精算',
+    steps: ['経費精算システム/フォームを開く','精算する領収書を全て集める','領収書を日付順に並べる','1枚目の領収書情報を入力','2枚目の領収書情報を入力','残りの領収書も1枚ずつ入力','合計金額を確認','入力内容と領収書を照合','領収書の添付/提出準備','承認者を確認','申請内容を最終確認','申請ボタンを押す'],
+    taunts: ['システム開く。億劫だけど開け。','領収書どこ？財布の中？','日付順！整理整頓！','1枚目入力！スタート！','2枚目！慣れてきた？','ひたすら入力！無心で！','合計金額、合ってる？','照合！ミスったら自腹！','領収書添付忘れずに！','承認者誰？確認！','最終確認！申請前ラストチェック！','申請完了！お金戻ってくる！']
+  },
+  payment: {
+    name: '支払処理',
+    steps: ['支払い対象の請求書を確認','支払いシステム/オンラインバンキングを開く','請求書の支払先情報を確認','振込先を入力/選択','金額を入力','振込名義を確認','支払い日を設定','入力内容を請求書と照合','承認が必要なら承認依頼','最終確認画面で内容チェック','実行ボタンを押す','支払い完了を記録','請求書に支払済みマークをつける'],
+    taunts: ['請求書確認！金額見て震えるな！','システムログイン！パスワード覚えてる？','支払先情報、間違えたら大事故','振込先入力！慎重に！','金額入力！0の数、数えろ！','振込名義、会社名？個人名？','支払日、遅延ダメ絶対','照合！ダブルチェック！','承認依頼！上司を動かせ！','最終確認！本当に合ってる？','実行！ドキドキの瞬間！','記録！後で困らないように！','済マーク！二重払い防止！完了！']
+  },
+  inquiry: {
+    name: '問い合わせ対応',
+    steps: ['問い合わせ内容を確認','相手が何を求めているか整理','過去の類似対応を確認（あれば）','回答に必要な情報を集める','担当者への確認が必要か判断','必要なら担当者に確認','回答文のドラフトを作成','回答内容が質問に沿っているか確認','敬語・文体を整える','上長の確認が必要か判断','必要なら上長に確認','返信を送信','対応履歴を記録'],
+    taunts: ['問い合わせ確認。何言ってる？','整理整理。何を求めてる？','過去事例、あると楽','情報収集！調べ物タイム！','自分で答えられる？無理なら聞け！','確認中...待機...','ドラフト作成！まず書く！','質問に答えてる？ちゃんと？','敬語警察出動','上長確認いる？いらない？','確認中...もう少し...','送信！対応完了！','記録！次に活かせ！']
   }
 };
 
-function showStep(){
-  stepText.textContent = currentSteps[stepIndex];
-  progressBar.style.width = ((stepIndex/currentSteps.length)*100) + "%";
+const genericTaunts = ['早くしろ。','君ならできる（適当）','やればできる子なんだから','その調子その調子','集中集中〜','まだ終わってないの？','あと少しだって','休憩は終わってからな','スマホ見てない？見てないよな？','サボるな働け','天才じゃん（お世辞）','意外とやるじゃん','この作業、5分で終わる（多分）','考えるな、手を動かせ','完璧じゃなくていい、終わらせろ'];
+const completionMessages = ['本当にお疲れ様。偉い。マジで偉い。','終わった！自分へのご褒美タイムだ！','タスク完了！今日の自分に拍手！','やればできるじゃん。知ってた。','素晴らしい！次も頑張ろう（でも今は休め）','完了！この調子で世界征服だ！','お疲れ！今日はもう頑張らなくていいよ','ミッションコンプリート！君は最高だ！'];
+
+let currentSteps = [], currentTaunts = [], currentStepIndex = 0;
+
+const inputScreen = document.getElementById('input-screen');
+const execScreen = document.getElementById('exec-screen');
+const completeScreen = document.getElementById('complete-screen');
+const taskSelect = document.getElementById('task-select');
+const startBtn = document.getElementById('start-btn');
+
+function showScreen(screen) {
+  [inputScreen, execScreen, completeScreen].forEach(s => s.classList.add('hidden'));
+  screen.classList.remove('hidden');
 }
 
-function createParticles(){
-  const colors = ["#60a5fa","#22d3ee","#34d399","#fbbf24","#ffffff"];
-  for(let i=0;i<35;i++){
-    const p = document.createElement("div");
-    p.className = "particle";
-    const size = Math.random()*8+4;
-    p.style.width = size+"px";
-    p.style.height = size+"px";
-    p.style.background = colors[Math.floor(Math.random()*colors.length)];
-    p.style.left = "50%";
-    p.style.top = "50%";
-    const angle = Math.random()*2*Math.PI;
-    const distance = Math.random()*160+60;
-    p.style.setProperty("--x", Math.cos(angle)*distance+"px");
-    p.style.setProperty("--y", Math.sin(angle)*distance+"px");
-    document.body.appendChild(p);
-    setTimeout(()=>p.remove(),900);
-  }
+function updateProgress() {
+  const progress = (currentStepIndex / currentSteps.length) * 100;
+  document.getElementById('progress-bar').style.width = `${progress}%`;
+  document.getElementById('step-counter').textContent = `ステップ ${currentStepIndex + 1}/${currentSteps.length}`;
+  document.getElementById('percent').textContent = `${Math.round(progress)}%`;
 }
+
+function getTaunt(index) {
+  return currentTaunts[index] || genericTaunts[Math.floor(Math.random() * genericTaunts.length)];
+}
+
+function showStep() {
+  if (currentStepIndex >= currentSteps.length) { showComplete(); return; }
+  document.getElementById('current-step').textContent = currentSteps[currentStepIndex];
+  document.getElementById('taunt-message').textContent = getTaunt(currentStepIndex);
+  updateProgress();
+  const tauntBox = document.getElementById('taunt-box');
+  tauntBox.classList.add('shake');
+  setTimeout(() => tauntBox.classList.remove('shake'), 500);
+}
+
+function showComplete() {
+  showScreen(completeScreen);
+  document.getElementById('final-message').textContent = completionMessages[Math.floor(Math.random() * completionMessages.length)];
+}
+
+taskSelect.addEventListener('change', () => { startBtn.disabled = !taskSelect.value; });
+
+startBtn.addEventListener('click', () => {
+  if (!taskSelect.value) { taskSelect.classList.add('shake'); setTimeout(() => taskSelect.classList.remove('shake'), 500); return; }
+  const task = taskSteps[taskSelect.value];
+  currentSteps = task.steps; currentTaunts = task.taunts; currentStepIndex = 0;
+  document.getElementById('current-task-name').textContent = task.name;
+  showScreen(execScreen); showStep();
+});
+
+document.getElementById('complete-btn').addEventListener('click', () => {
+  document.body.classList.add('flash-effect');
+  setTimeout(() => document.body.classList.remove('flash-effect'), 300);
+  currentStepIndex++;
+  if (currentStepIndex >= currentSteps.length) showComplete(); else showStep();
+});
+
+document.getElementById('skip-btn').addEventListener('click', () => {
+  currentStepIndex++;
+  if (currentStepIndex >= currentSteps.length) showComplete(); else showStep();
+});
+
+document.getElementById('restart-btn').addEventListener('click', () => {
+  taskSelect.value = ''; currentSteps = []; currentTaunts = []; currentStepIndex = 0;
+  startBtn.disabled = true; showScreen(inputScreen);
+});
 </script>
-
 </body>
 </html>
