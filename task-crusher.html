@@ -3,56 +3,134 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>タスク粉砕機 — 怠惰な雑種と王の館</title>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700;900&display=swap" rel="stylesheet">
+<title>Task Crusher</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;700;900&family=Yusei+Magic&display=swap" rel="stylesheet">
+
 <style>
-* { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Noto Sans JP', sans-serif; }
-body { min-height: 100vh; background: #0f172a; color: #f1f5f9; overflow: auto; }
-
-.back-link {
-  position: fixed; top: 16px; left: 16px; z-index: 100;
-  color: rgba(96,165,250,0.5); font-size: 0.75rem; text-decoration: none;
-  letter-spacing: 0.1em; transition: color 0.2s;
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: 'Zen Maru Gothic', sans-serif;
 }
-.back-link:hover { color: #60a5fa; }
 
-#app {
+body {
   min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 64px 24px 24px;
+  background: linear-gradient(-45deg, #0f172a, #1e3a8a, #0f172a, #1e293b);
+  background-size: 400% 400%;
+  animation: gradientMove 18s ease infinite;
+  color: #f1f5f9;
+  overflow: hidden;
 }
 
-.screen { width: 100%; max-width: 512px; text-align: center; }
+@keyframes gradientMove {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
 .hidden { display: none; }
 
-/* 入力画面 */
-.main-title { font-size: 1.875rem; font-weight: 900; color: #60a5fa; margin-bottom: 8px; }
-.subtitle { color: #94a3b8; font-size: 0.875rem; margin-bottom: 32px; }
-.label { display: block; text-align: left; color: #cbd5e1; margin-bottom: 12px; font-size: 1.125rem; font-weight: 700; }
-select {
-  width: 100%; background: #1e293b; border: 2px solid #475569;
-  border-radius: 12px; padding: 16px; font-size: 1.125rem; color: #f1f5f9;
-  transition: border-color 0.2s; outline: none; margin-bottom: 24px;
-  font-family: inherit;
+.main-title {
+  font-family: 'Yusei Magic', sans-serif;
+  font-size: 2rem;
+  color: #60a5fa;
+  margin-bottom: 10px;
+  letter-spacing: 0.05em;
 }
-select:focus { border-color: #3b82f6; }
 
-.btn-start {
-  width: 100%; background: linear-gradient(to right, #2563eb, #3b82f6);
-  color: white; font-weight: 900; font-size: 1.25rem;
-  padding: 20px 32px; border: none; border-radius: 16px; cursor: pointer;
-  transition: all 0.15s; font-family: inherit;
-  box-shadow: 0 0 20px rgba(59,130,246,0.5);
+button {
+  padding: 16px;
+  border-radius: 14px;
+  border: none;
+  font-size: 1.1rem;
+  font-weight: 900;
+  cursor: pointer;
+  background: linear-gradient(to right, #2563eb, #3b82f6);
+  color: white;
+  box-shadow: 0 0 20px rgba(59,130,246,0.6);
 }
-.btn-start:hover { background: linear-gradient(to right, #3b82f6, #60a5fa); transform: scale(1.03); }
-.btn-start:active { transform: scale(0.97); }
-.btn-start:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
-.note { margin-top: 16px; color: #64748b; font-size: 0.75rem; }
 
-/* 実行画面 */
+button:hover {
+  transform: scale(1.05);
+}
+
+.progress-track {
+  width: 100%;
+  height: 12px;
+  background: #334155;
+  border-radius: 9999px;
+  margin: 20px 0;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(to right, #2563eb, #22d3ee);
+  transition: width 0.4s ease;
+}
+
+.step-text {
+  font-size: 1.4rem;
+  font-weight: 900;
+  margin: 30px 0;
+}
+
+/* パーティクル */
+.particle {
+  position: fixed;
+  pointer-events: none;
+  border-radius: 50%;
+  animation: explode 900ms ease-out forwards;
+}
+
+@keyframes explode {
+  0% { transform: translate(0,0) scale(1); opacity:1; }
+  100% { transform: translate(var(--x), var(--y)) scale(0); opacity:0; }
+}
+</style>
+</head>
+
+<body>
+
+<div id="app">
+
+  <h1 class="main-title">💥 Task Crusher</h1>
+
+  <div class="progress-track">
+    <div id="progress-bar" class="progress-fill"></div>
+  </div>
+
+  <div id="step-text" class="step-text"></div>
+
+  <button id="complete-btn">✅ 完了！</button>
+
+</div>
+
+<script>
+/* ===== パーティクル ===== */
+function createParticles() {
+  const colors = ["#60a5fa","#22d3ee","#34d399","#fbbf24","#ffffff"];
+  for (let i = 0; i < 40; i++) {
+    const p = document.createElement("div");
+    p.className = "particle";
+    const size = Math.random()*8+4;
+    p.style.width = size+"px";
+    p.style.height = size+"px";
+    p.style.background = colors[Math.floor(Math.random()*colors.length)];
+    p.style.left = "50%";
+    p.style.top = "50%";
+    const angle = Math.random()*2*Math.PI;
+    const dist = Math.random()*160+60;
+    p.style.setProperty("--x", Math.cos(angle)*dist+"px");
+    p.style.setProperty("--y", Math.sin(angle)*dist+"px");
+    document.body.appendChild(p);
+    setTimeout(()=>p.remove(),900);
+  }
+}
+
+/* ===== 元のタスク定義（そのまま） ===== */
 .task-label { color: #94a3b8; font-size: 0.875rem; margin-bottom: 4px; }
 .task-name { font-size: 1.25rem; font-weight: 700; color: #60a5fa; margin-bottom: 24px; }
 .progress-header { display: flex; justify-content: space-between; font-size: 0.875rem; color: #94a3b8; margin-bottom: 8px; }
@@ -197,7 +275,7 @@ const taskSteps = {
   email_send: {
     name: 'メール送信',
     steps: ['メールソフトを開く','新規メール作成画面を開く','宛先を入力（CC/BCCも確認）','件名を入力','挨拶文を書く（定型文OK）','本文の要点を1行で書く','詳細を箇条書きで書く','締めの挨拶を書く','添付ファイルがあれば添付','宛先をもう一度確認','件名と本文を読み返す','添付ファイルが正しいか確認','深呼吸して送信ボタンを押す'],
-    taunts: ['メールソフト開くだけ。怖くない。','新規作成！白紙のメール！','宛先間違い、社会的に死ぬやつ','件名大事。開封率に関わる。','お世話になっております（脳死）','要点1行！ダラダラ禁止！','箇条書きは正義','よろしくお願いいたします（脳死）','添付忘れ、やりがち中のやりがち','宛先確認！3回見ろ！','誤字あったら恥ずかしいぞ','添付ファイル、本当にそれ？','送信！勇気！完了！']
+    taunts: ['メールソフト開くだけ。怖くない。','新規作成！白紙のメール！','宛先間違い、社会的に死ぬやつ','件名大事。開封率に関わる。','お世話になっております（お約束）','要点1行！ダラダラ禁止！','箇条書きは正義','よろしくお願いいたします（お約束２）','添付忘れ、やりがち中のやりがち','宛先確認！3回見ろ！','誤字あったら恥ずかしいぞ','添付ファイル、本当にそれ？','送信！勇気！完了！']
   },
   email_reply: {
     name: 'メール返信',
