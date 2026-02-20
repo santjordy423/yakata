@@ -1,0 +1,1548 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IGWR — 銀河間記録登録機構</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap');
+
+  :root {
+    --bg: #0a0a0f;
+    --surface: #111118;
+    --border: #2a2a3a;
+    --accent: #c8a96e;
+    --accent2: #6e8fc8;
+    --text: #e8e4d8;
+    --text-dim: #8a8478;
+    --text-dimmer: #4a4640;
+    --red: #c86e6e;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Crimson Pro', Georgia, serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* 星空背景 */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      radial-gradient(1px 1px at 20% 30%, rgba(255,255,255,0.4) 0%, transparent 100%),
+      radial-gradient(1px 1px at 60% 10%, rgba(255,255,255,0.3) 0%, transparent 100%),
+      radial-gradient(1px 1px at 80% 50%, rgba(255,255,255,0.2) 0%, transparent 100%),
+      radial-gradient(1px 1px at 40% 70%, rgba(255,255,255,0.3) 0%, transparent 100%),
+      radial-gradient(1px 1px at 90% 20%, rgba(255,255,255,0.4) 0%, transparent 100%),
+      radial-gradient(1px 1px at 10% 80%, rgba(255,255,255,0.2) 0%, transparent 100%),
+      radial-gradient(1px 1px at 55% 85%, rgba(255,255,255,0.3) 0%, transparent 100%),
+      radial-gradient(1px 1px at 30% 50%, rgba(255,255,255,0.15) 0%, transparent 100%),
+      radial-gradient(1px 1px at 70% 65%, rgba(255,255,255,0.25) 0%, transparent 100%),
+      radial-gradient(2px 2px at 15% 40%, rgba(200,169,110,0.15) 0%, transparent 100%),
+      radial-gradient(2px 2px at 85% 75%, rgba(110,143,200,0.15) 0%, transparent 100%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  header {
+    position: relative;
+    z-index: 1;
+    border-bottom: 1px solid var(--border);
+    padding: 2rem 2rem 1.5rem;
+    background: linear-gradient(to bottom, rgba(10,10,15,0.95), rgba(10,10,15,0.7));
+  }
+
+  .header-top {
+    display: flex;
+    align-items: baseline;
+    gap: 1.5rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .org-name {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.2em;
+    color: var(--accent);
+    text-transform: uppercase;
+  }
+
+  h1 {
+    font-family: 'Crimson Pro', serif;
+    font-weight: 300;
+    font-size: clamp(1.8rem, 4vw, 2.8rem);
+    letter-spacing: -0.01em;
+    line-height: 1.1;
+  }
+
+  h1 em {
+    font-style: italic;
+    color: var(--accent);
+  }
+
+  .header-sub {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.6rem;
+    color: var(--text-dim);
+    letter-spacing: 0.1em;
+    margin-top: 0.75rem;
+  }
+
+  .controls {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    gap: 1rem;
+    padding: 1.25rem 2rem;
+    border-bottom: 1px solid var(--border);
+    flex-wrap: wrap;
+    align-items: center;
+    background: rgba(10,10,15,0.5);
+  }
+
+  button {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.1em;
+    padding: 0.6rem 1.2rem;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text-dim);
+    cursor: pointer;
+    text-transform: uppercase;
+    transition: all 0.2s;
+  }
+
+  button:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  button.active {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: var(--bg);
+  }
+
+  button#random-btn {
+    border-color: var(--accent2);
+    color: var(--accent2);
+  }
+
+  button#random-btn:hover {
+    background: var(--accent2);
+    color: var(--bg);
+  }
+
+  .record-count {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.6rem;
+    color: var(--text-dimmer);
+    margin-left: auto;
+  }
+
+  main {
+    position: relative;
+    z-index: 1;
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 2rem;
+  }
+
+  .featured {
+    margin-bottom: 3rem;
+    animation: fadeIn 0.6s ease;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .featured-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.55rem;
+    letter-spacing: 0.25em;
+    color: var(--accent2);
+    text-transform: uppercase;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .featured-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  .record-card {
+    border: 1px solid var(--border);
+    padding: 2rem;
+    background: var(--surface);
+    position: relative;
+    cursor: pointer;
+    transition: border-color 0.2s;
+  }
+
+  .record-card:hover {
+    border-color: rgba(200,169,110,0.4);
+  }
+
+  .record-card.disputed::before {
+    content: '⚑ 現在争われています';
+    position: absolute;
+    top: -1px;
+    right: 1.5rem;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.55rem;
+    letter-spacing: 0.1em;
+    background: var(--red);
+    color: white;
+    padding: 0.25rem 0.6rem;
+    text-transform: uppercase;
+  }
+
+  .record-id {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.6rem;
+    color: var(--text-dimmer);
+    margin-bottom: 0.75rem;
+    letter-spacing: 0.05em;
+  }
+
+  .record-category {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.55rem;
+    color: var(--accent);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-bottom: 0.5rem;
+  }
+
+  .record-title {
+    font-size: 1.4rem;
+    font-weight: 600;
+    line-height: 1.3;
+    margin-bottom: 1.25rem;
+    color: var(--text);
+  }
+
+  .record-body {
+    font-size: 1.05rem;
+    line-height: 1.8;
+    color: var(--text);
+    font-weight: 300;
+  }
+
+  .record-body strong {
+    font-weight: 600;
+    color: var(--accent);
+  }
+
+  .record-body em {
+    font-style: italic;
+    color: var(--text-dim);
+  }
+
+  .record-meta {
+    margin-top: 1.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border);
+    display: flex;
+    gap: 2rem;
+    flex-wrap: wrap;
+  }
+
+  .meta-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+  }
+
+  .meta-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.5rem;
+    color: var(--text-dimmer);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+  }
+
+  .meta-value {
+    font-size: 0.9rem;
+    color: var(--text-dim);
+  }
+
+  .records-grid {
+    display: grid;
+    gap: 1rem;
+  }
+
+  .record-card.small {
+    padding: 1.25rem 1.5rem;
+  }
+
+  .record-card.small .record-title {
+    font-size: 1.05rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .record-card.small .record-body {
+    font-size: 0.95rem;
+    line-height: 1.7;
+  }
+
+  .record-card.small .record-meta {
+    margin-top: 1rem;
+  }
+
+  .section-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.55rem;
+    letter-spacing: 0.25em;
+    color: var(--text-dimmer);
+    text-transform: uppercase;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .section-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  footer {
+    position: relative;
+    z-index: 1;
+    border-top: 1px solid var(--border);
+    padding: 2rem;
+    text-align: center;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.55rem;
+    color: var(--text-dimmer);
+    letter-spacing: 0.1em;
+    line-height: 2;
+  }
+
+  /* expanded modal */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(5,5,10,0.9);
+    z-index: 100;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+  }
+
+  .modal-overlay.open {
+    display: flex;
+    animation: fadeIn 0.2s ease;
+  }
+
+  .modal {
+    background: var(--surface);
+    border: 1px solid var(--accent);
+    max-width: 700px;
+    width: 100%;
+    max-height: 80vh;
+    overflow-y: auto;
+    padding: 2.5rem;
+    position: relative;
+  }
+
+  .modal-close {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background: transparent;
+    border: none;
+    color: var(--text-dim);
+    font-size: 1.2rem;
+    cursor: pointer;
+    padding: 0.25rem 0.5rem;
+    font-family: 'Space Mono', monospace;
+  }
+
+  .modal-close:hover {
+    color: var(--accent);
+    border: none;
+  }
+
+  .modal .record-title {
+    font-size: 1.6rem;
+  }
+
+  .modal .record-body {
+    font-size: 1.1rem;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="org-name">IGWR — Intergalactic World Record Registry</div>
+  <h1>銀河間<em>記録</em>登録機構<br>公式データベース</h1>
+  <div class="header-sub">地球時間換算 / 翻訳版 / 閲覧専用 / 登録件数：100件（第14分類群まで）</div>
+</header>
+
+<div class="controls">
+  <button class="active" data-filter="all">全記録</button>
+  <button data-filter="食">摂食</button>
+  <button data-filter="社会">社会・関係</button>
+  <button data-filter="身体">身体</button>
+  <button data-filter="建築">建築・構造</button>
+  <button data-filter="移動">移動</button>
+  <button data-filter="精神">精神・知覚</button>
+  <button data-filter="その他">その他</button>
+  <button data-filter="音">音楽・音</button>
+  <button id="random-btn">ランダム表示</button>
+  <div class="record-count" id="count-display">50件</div>
+</div>
+
+<main>
+  <div class="featured-label">本日の注目記録</div>
+  <div class="featured" id="featured-record"></div>
+
+  <div class="section-label" id="list-label">全記録一覧</div>
+  <div class="records-grid" id="records-list"></div>
+</main>
+
+<footer>
+  IGWR — Intergalactic World Record Registry<br>
+  本データベースは銀河標準語から日本語への自動翻訳を含みます。一部概念は地球語に対応する語彙が存在しないため意訳されています。<br>
+  記録の正確性について当機構は一切の責任を負いません。<br>
+  © IGWR 第14銀河標準暦 / 地球時間換算 非対応
+</footer>
+
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal" id="modal-content">
+    <button class="modal-close" id="modal-close">✕</button>
+  </div>
+</div>
+
+<script>
+const records = [
+  {
+    id: "IGWR-0012-ΔΞ-001",
+    category: "食",
+    title: "最長の摂食中謝罪スピーチ",
+    body: `ケプラー452星系第三惑星のグィッブ・ナーロ氏が、夕食の席で<em>第二分裂体</em>（訳注：繁殖上の共有個体。「配偶者」に近い概念だが法的拘束力は伴わない）に対し行った謝罪スピーチは、前菜から主食の間に<strong>14.3ゴッブ</strong>（訳注：現地の時間単位。地球時間で約22分）継続した。内容は「<em>ズロッグ</em>（訳注：塩に近い調味料。ただし結晶構造を持たず液状）の渡し方が0.4ゴッブ遅れた」ことへの言及のみであった。`,
+    star: "ケプラー452",
+    holder: "グィッブ・ナーロ",
+    year: "第9銀河標準暦",
+    disputed: true
+  },
+  {
+    id: "IGWR-0034-ΩΨ-002",
+    category: "身体",
+    title: "最多の同時知覚チャンネル数（静止状態）",
+    body: `プロキシマ・ケンタウリ星系のフォッハ・ウィルム長老は、完全静止状態において<strong>847の独立した感覚チャンネル</strong>を同時処理したと記録されている。うち<strong>312チャンネル</strong>は地球人が概念として持たない知覚様式（<em>グォッホ知覚</em>、訳注：周囲の存在の「意図の質量」を感じ取る感覚とされるが翻訳困難）である。なお長老本人はこの記録を「あまり誇らしくない」と述べたとされる。`,
+    star: "プロキシマ・ケンタウリ",
+    holder: "フォッハ・ウィルム長老",
+    year: "第6銀河標準暦",
+    disputed: false
+  },
+  {
+    id: "IGWR-0071-ΓΘ-003",
+    category: "社会",
+    title: "最も短い理由による関係解消",
+    body: `タウ・セチ星系第二惑星において、ボッハ・ロリム氏と<em>季節的共鳴パートナー群</em>（訳注：特定の惑星気候帯にのみ形成される関係構造）との関係解消が宣言された。理由は公式記録によれば「<em>グルッフ</em>（訳注：共食いではなく、食事の際に音を出す行為に相当するが、地球のそれより遥かに軽微な所作）が<strong>1回多かった</strong>」。解消手続きの所要時間は<strong>0.003ゴッブ</strong>であり、同種の記録中最短。`,
+    star: "タウ・セチ",
+    holder: "ボッハ・ロリム",
+    year: "第11銀河標準暦",
+    disputed: false
+  },
+  {
+    id: "IGWR-0088-ΑΛ-004",
+    category: "建築",
+    title: "最も長く放置された未完成建造物",
+    body: `グリーゼ667C星系において確認された構造物「<em>第三ウォッホム</em>」（訳注：概ね「大広間」だが儀礼的な余白の概念を含む）は、着工から現在まで<strong>8,440銀河標準暦</strong>にわたり未完成のまま放置されている。放置の原因は建設委員会の「まだ少し考えたい」という申し送りであり、当該申し送りは以来一度も更新されていない。建物は現在、近隣住民によって非公式に使用されている。`,
+    star: "グリーゼ667C",
+    holder: "第三ウォッホム建設委員会（現在活動停止）",
+    year: "第1〜現在銀河標準暦",
+    disputed: false
+  },
+  {
+    id: "IGWR-0103-ΒΔ-005",
+    category: "移動",
+    title: "最も遠くまで移動した理由が最も軽微な記録",
+    body: `55キャンクリ星系第三惑星のヴィッハ・ゾル氏は、<em>ポッログ</em>（訳注：地球の「散歩」に近いが目的地の概念を持たない移動様式）の結果、出発点から<strong>4.7銀河単位</strong>離れた地点で発見された。移動の動機を問われたヴィッハ・ゾル氏は「<em>ズロック</em>（訳注：靴に近い着用物だが足を持たない生物も使用する）の左側がやや窮屈だった」と回答している。`,
+    star: "55キャンクリ",
+    holder: "ヴィッハ・ゾル",
+    year: "第8銀河標準暦",
+    disputed: true
+  },
+  {
+    id: "IGWR-0117-ΞΠ-006",
+    category: "精神",
+    title: "最長の「考え中」状態",
+    body: `トラピスト-1星系第四惑星のウムボ・クリフ氏は、ある問いに対して「考え中である」と宣言してから現在まで<strong>230銀河標準暦</strong>が経過している。問いの内容は「<em>ヴォッホ</em>（訳注：夕方に食べる主食。ただし「夕方」の概念は当該惑星では不定期に発生する）を<strong>温めるか否か</strong>」であった。周囲はすでに誰も気にしていない。`,
+    star: "トラピスト-1",
+    holder: "ウムボ・クリフ",
+    year: "第3銀河標準暦〜現在",
+    disputed: false
+  },
+  {
+    id: "IGWR-0135-ΣΤ-007",
+    category: "食",
+    title: "最も多くの工程を経た最終的に不評だった料理",
+    body: `ハビタブルゾーン星系HD40307gのホッブ・ナリナ氏が<em>卵管理集合体</em>（訳注：親子・きょうだいに相当するが血縁ではなく卵の共同管理により形成される集団）のために準備した料理は、<strong>2,341の調理工程</strong>と<strong>17種の架空単位の計量</strong>を経て完成した。試食後の評価は全員から「<em>フロッグ</em>（訳注：「まあまあ」より若干下の評価。地球語に完全な対訳なし）」であった。`,
+    star: "HD40307g",
+    holder: "ホッブ・ナリナ",
+    year: "第12銀河標準暦",
+    disputed: false
+  },
+  {
+    id: "IGWR-0152-ΗΘ-008",
+    category: "社会",
+    title: "最長の挨拶儀礼（偶発的）",
+    body: `ケプラー22b星系において、互いに面識のないグォッホ・ビリ氏とルッホ・ガン氏が路上で行った挨拶は、いずれも先に挨拶を終えることを遠慮したため<strong>14.7ゴッブ</strong>継続した。途中から第三者が加わり三者の挨拶となったが、第三者の参加により状況はさらに悪化した。最終的に解決したのは、全員が同時に別の方向を向くことによってであった。`,
+    star: "ケプラー22b",
+    holder: "グォッホ・ビリ、ルッホ・ガン（および第三者：記録上匿名）",
+    year: "第7銀河標準暦",
+    disputed: false
+  },
+  {
+    id: "IGWR-0168-ΚΛ-009",
+    category: "身体",
+    title: "最も多く脱皮した個体（自発的でない）",
+    body: `グリーゼ581g星系のトリム・ウォッハ氏は、自身の意思によらず<em>驚き</em>（訳注：当該種において驚きは皮膚の外層を剥離させる生理反応を引き起こす）により<strong>1銀河標準暦に47回</strong>の脱皮を記録した。トリム・ウォッハ氏本人は「特に驚くようなことは何も起きていない」と一貫して主張しており、この証言は記録の信憑性をめぐる議論に使用されている。`,
+    star: "グリーゼ581g",
+    holder: "トリム・ウォッハ",
+    year: "第10銀河標準暦",
+    disputed: true
+  },
+  {
+    id: "IGWR-0179-ΝΞ-010",
+    category: "建築",
+    title: "最も薄い壁による最大の建造物",
+    body: `オメガ・ケンタウリ球状星団内の第44惑星群において確認された構造体は、壁の厚さ<strong>0.00003ブラークル</strong>（訳注：長さの単位。地球単位に換算不可能だが「とても薄い」は確かである）にもかかわらず、内部空間が<strong>当該惑星の総表面積を超える</strong>という記録を保持している。この矛盾について建築担当者は「<em>ヴォルッホ理論</em>（訳注：空間は測定しなければ節約できるという建築哲学）を適用した」と説明した。`,
+    star: "オメガ・ケンタウリ第44惑星群",
+    holder: "建築集団ヴォルッホ工房",
+    year: "第2銀河標準暦",
+    disputed: true
+  },
+  {
+    id: "IGWR-0191-ΟΠ-011",
+    category: "移動",
+    title: "最も速く戻ってきた移住者",
+    body: `51ペガサスb星系からの移住記録によれば、フォッホ・ナグ氏は新天地への移住を宣言し、出発から<strong>0.2ゴッブ</strong>後に元の居住地へ戻った。理由は「<em>グルッハ</em>（訳注：居住空間の匂い。当該種にとって強い帰属感の根拠となる感覚）が違う」であった。フォッホ・ナグ氏はその後17回移住を試みており、最長滞在記録は<strong>0.8ゴッブ</strong>である。`,
+    star: "51ペガサスb",
+    holder: "フォッホ・ナグ",
+    year: "第13銀河標準暦",
+    disputed: false
+  },
+  {
+    id: "IGWR-0203-ΡΣ-012",
+    category: "精神",
+    title: "最長の夢（検証済み）",
+    body: `トラピスト-1星系第六惑星のゾッホ・ウィン氏が経験した夢は、覚醒後の証言と記録装置の照合により<strong>1,200銀河標準暦相当</strong>の主観時間を持つことが確認された。夢の内容は「<em>ゴッブ計算</em>（訳注：時間の単位計算作業。当該惑星では退屈の象徴として使われる表現）をひたすら行った」というものであった。ゾッホ・ウィン氏は覚醒後、夢の中の計算は全て間違っていたと報告した。`,
+    star: "トラピスト-1",
+    holder: "ゾッホ・ウィン",
+    year: "第5銀河標準暦",
+    disputed: false
+  },
+  {
+    id: "IGWR-0218-ΥΦ-013",
+    category: "食",
+    title: "最も長い名前を持つ料理（日常的に注文されるもの）",
+    body: `ケプラー186f星系の大衆食堂「<em>第三フォッハム</em>」において日常的に注文されている料理の正式名称は<strong>382音節</strong>からなる。略称は存在するが、略称自体も<strong>89音節</strong>ある。常連客の多くはメニューを指差して注文しており、店主は指差し注文を「<em>ヴィッホ</em>（訳注：礼儀を欠く行為とされるが現在は黙認されている）」と述べつつも対応している。`,
+    star: "ケプラー186f",
+    holder: "第三フォッハム食堂（料理名は非公表）",
+    year: "第9銀河標準暦〜現在",
+    disputed: false
+  },
+  {
+    id: "IGWR-0234-ΧΨ-014",
+    category: "社会",
+    title: "最も多くの個体が同意した内容が最も曖昧だった合意",
+    body: `グリーゼ667C星系の惑星議会において、<strong>全議員・全市民（2,847,000個体）</strong>が署名した合意文書の内容は「<em>ヴォッホム的な方向へ</em>」の7音節のみであった。「ヴォッホム的」の定義について委員会は「<em>それぞれが解釈してよい</em>」と付記した。合意は現在も有効であり、以来すべての政策はこの合意に準拠していると宣言されている。`,
+    star: "グリーゼ667C",
+    holder: "惑星議会全体",
+    year: "第11銀河標準暦",
+    disputed: false
+  },
+  {
+    id: "IGWR-0247-ΩΑ-015",
+    category: "身体",
+    title: "最も多くの眼を持ちながら最も視力の低い個体",
+    body: `HD 209458b星系のブッホ・フォリ氏は<strong>1,247個の眼</strong>を有しており、これは当該種の平均の約12倍である。しかしながらブッホ・フォリ氏の総合視力は<strong>当該種の平均の0.03倍</strong>であり、眼の数が視力に比例しない典型例として記録されている。ブッホ・フォリ氏は自身の眼について「<em>数が多いということはそれだけ多く疲れる</em>」と述べた。`,
+    star: "HD 209458b",
+    holder: "ブッホ・フォリ",
+    year: "第4銀河標準暦",
+    disputed: false
+  },
+  {
+    id: "IGWR-0261-ΒΓ-016",
+    category: "建築",
+    title: "最も多くの出口を持つ入口のない建造物",
+    body: `55キャンクリe星系において確認された構造物は、<strong>4,412個の出口</strong>を持つ一方で入口が公式記録上存在しない。内部に入った記録のある個体は<strong>0</strong>であるが、出口から出た記録のある個体は<strong>3</strong>である。当該3個体への聞き取りはいずれも「気がついたら出ていた」という証言のみであり、内部の様子についての説明は一切なされなかった。`,
+    star: "55キャンクリe",
+    holder: "不明（建設記録なし）",
+    year: "発見：第7銀河標準暦",
+    disputed: true
+  },
+  {
+    id: "IGWR-0279-ΔΕ-017",
+    category: "移動",
+    title: "最も多く道に迷ったが最終的に目的地に到達した記録",
+    body: `タウ・セチe星系のホッブ・ウィリム氏は、目的地（自宅から<strong>0.003銀河単位</strong>の距離にある<em>ズロッグム</em>（訳注：食料品の調達所に相当する場所））へ向かう途中、<strong>847回道に迷い</strong>、最終的に<strong>出発から1,440ゴッブ後</strong>に到達した。到達時、目的地はすでに閉店していた。`,
+    star: "タウ・セチe",
+    holder: "ホッブ・ウィリム",
+    year: "第12銀河標準暦",
+    disputed: false
+  },
+  {
+    id: "IGWR-0293-ΖΗ-018",
+    category: "精神",
+    title: "最も多くの個体が同時に同じ誤解をした記録",
+    body: `ケプラー62e星系の人口<strong>全体（推定8億4千万個体）</strong>が、<em>ズォッハ</em>（訳注：惑星規模の気象現象。「嵐」に相当するが感情的な意味も持つ）を「来週来る予定のズォッハ代表団」と誤解したことが確認されている。誤解の発生から解消まで<strong>44ゴッブ</strong>を要した。この間、8億4千万個体全員が代表団のために部屋を片付けるなどの準備を行った。`,
+    star: "ケプラー62e",
+    holder: "ケプラー62e星系全住民",
+    year: "第6銀河標準暦",
+    disputed: false
+  },
+  {
+    id: "IGWR-0307-ΘΙ-019",
+    category: "食",
+    title: "最も多くの食材を使用して最終的に最も単純な味になった料理",
+    body: `プロキシマb星系の料理研究家ロッフ・ヴィン氏は<strong>4,891種の食材</strong>（うち<strong>1,200種は未分類</strong>）を使用して料理を完成させた。試食した審査委員会全員の評価は「<em>ゴッホ</em>（訳注：「塩だけの味」に相当するが否定的な意味ではない）」であった。ロッフ・ヴィン氏は「<em>究極のシンプルは複雑さの向こうにある</em>」と述べたが、委員会は「単に塩を入れすぎた可能性が高い」と付記した。`,
+    star: "プロキシマb",
+    holder: "ロッフ・ヴィン",
+    year: "第9銀河標準暦",
+    disputed: true
+  },
+  {
+    id: "IGWR-0321-ΚΛ-020",
+    category: "社会",
+    title: "最短の法律（かつ最も広く解釈されている）",
+    body: `グリーゼ667Cb星系惑星議会が制定した法律は全文<strong>1音節</strong>（「<em>ヴォ</em>」）からなる。この法律の解釈は個体ごとに異なり、現在<strong>847,000種の異なる解釈</strong>が記録されている。法廷においては「ヴォ」の解釈が一致しないまま判決が下された例が<strong>3,200件</strong>以上あり、うち全員が「ヴォに基づく正当な判決である」と主張した。`,
+    star: "グリーゼ667Cb",
+    holder: "惑星議会第3委員会",
+    year: "第2銀河標準暦",
+    disputed: false
+  },
+  {
+    id: "IGWR-0338-ΜΝ-021",
+    category: "身体",
+    title: "最も長く眠り続けた記録（自発的）",
+    body: `ケプラー442b星系のウィッボ・ロム氏は、自らの意思で<strong>340銀河標準暦</strong>の連続睡眠に入った。覚醒後、ウィッボ・ロム氏は「<em>もう少し眠れた気がする</em>」と述べた。睡眠中の身体管理は<em>繁殖補助集団</em>（訳注：子育てに近い役割を担う集団だが血縁関係は伴わない）が行ったが、うち<strong>2個体</strong>はウィッボ・ロム氏が覚醒する前に自然寿命を終えた。`,
+    star: "ケプラー442b",
+    holder: "ウィッボ・ロム",
+    year: "第3〜7銀河標準暦",
+    disputed: false
+  },
+  {
+    id: "IGWR-0351-ΟΠ-022",
+    category: "建築",
+    title: "最も多くの場所に同時に存在したとされる建造物",
+    body: `タウ・セチf星系において「<em>ヴォッホム・センター</em>」と呼ばれる施設は、公式記録上<strong>同時に14カ所に存在</strong>していたとされている。14カ所全てで「ここが本物のヴォッホム・センターである」という表示が確認されている。利用者の満足度調査では全14施設が<strong>同一の高評価</strong>を得ており、どの施設が本物であるかの調査は「<em>不必要</em>」と判断され打ち切られた。`,
+    star: "タウ・セチf",
+    holder: "ヴォッホム・センター運営委員会",
+    year: "第10銀河標準暦",
+    disputed: true
+  },
+  {
+    id: "IGWR-0364-ΡΣ-023",
+    category: "移動",
+    title: "最も目的なく最も遠くまで移動した団体記録",
+    body: `ケプラー69c星系の<em>ブォッホ・ウォーキング同好会</em>（会員数：4万7千個体）は、「<em>ブォッホ</em>（訳注：方向を決めずに歩くこと。ただし「散歩」と異なり帰宅の意図を含まない）」を実施した結果、出発から<strong>2.3銀河標準暦</strong>後に出発点から<strong>280銀河単位</strong>の地点で発見された。同好会は現在も活動中であり、目的地については「<em>それは問いとして適切でない</em>」との声明を発表している。`,
+    star: "ケプラー69c",
+    holder: "ブォッホ・ウォーキング同好会",
+    year: "第8銀河標準暦〜現在",
+    disputed: false
+  },
+  {
+    id: "IGWR-0378-ΤΥ-024",
+    category: "精神",
+    title: "最も深く謝罪したが謝罪内容が最も曖昧だった記録",
+    body: `51ペガサスb星系の外交官ゾッブ・ウィン氏が隣星系に送付した謝罪文は<strong>84,000音節</strong>からなり、謝罪の誠意の深さはIGWR史上最高点を記録した。しかしながら文書の審査委員会は「<em>何について謝罪しているかが全文を通じて不明</em>」と結論した。受信した隣星系側は「<em>誠意は伝わった。内容は不問</em>」と回答し外交関係は改善した。`,
+    star: "51ペガサスb",
+    holder: "ゾッブ・ウィン外交官",
+    year: "第13銀河標準暦",
+    disputed: false
+  },
+  {
+    id: "IGWR-0391-ΦΧ-025",
+    category: "食",
+    title: "最も多くの個体が同時に「美味しくない」と評価した料理",
+    body: `HD 40307b星系の祭典において提供された料理は、出席した<strong>全1,200万個体</strong>が同時に「<em>ウォッボ</em>（訳注：「美味しくない」の意だが呪いの言葉に近い強さを持つ表現）」と発声した。この発声は惑星全土に響き渡り、震度に換算すると<strong>3.2</strong>に相当した。料理を担当した集団は記録達成を喜び、翌年も同じ料理を提供すると発表した。`,
+    star: "HD 40307b",
+    holder: "祭典料理担当集団（名称非公表）",
+    year: "第11銀河標準暦",
+    disputed: false
+  },
+  {
+    id: "IGWR-0403-ΨΩ-026",
+    category: "社会",
+    title: "最も長く存続した委員会（一度も会合を開かなかった）",
+    body: `グリーゼ832c星系において設置された「<em>ヴォッホム調査委員会</em>」は、設置から<strong>1,200銀河標準暦</strong>にわたり一度も会合を開かないまま存続している。委員会の構成員は世代交代を経ており、現在の構成員のほとんどは自分が委員会に所属していることを知らない。委員会の目的については「<em>設置当時の記録が紛失している</em>」と事務局が説明した。`,
+    star: "グリーゼ832c",
+    holder: "ヴォッホム調査委員会",
+    year: "第1銀河標準暦〜現在",
+    disputed: false
+  },
+  {
+    id: "IGWR-0418-ΑΒ-027",
+    category: "身体",
+    title: "最も多く色が変化した個体（感情による）",
+    body: `ケプラー186e星系のフォッボ・リム氏は、単一の会話（所要時間<strong>3.2ゴッブ</strong>）において<strong>4,441回の体色変化</strong>を記録した。会話の相手は「<em>特に何も話していない</em>」と証言しており、フォッボ・リム氏は「<em>特に感情的ではなかった</em>」と述べた。当該種において体色変化は主に消化状態を反映するものであり、感情との関連については学説が分かれている。`,
+    star: "ケプラー186e",
+    holder: "フォッボ・リム",
+    year: "第7銀河標準暦",
+    disputed: true
+  },
+  {
+    id: "IGWR-0432-ΓΔ-028",
+    category: "その他",
+    title: "最も長く観測された何もない場所",
+    body: `プロキシマ・ケンタウリb星系の観測局は、特定の座標における「<em>何もなさ</em>」を<strong>3,400銀河標準暦</strong>にわたり連続観測した。この記録は「<em>ヴォッホ・プログラム</em>」（訳注：無を測定することで宇宙の構造を理解しようとする研究手法）に基づくもので、得られた結論は「<em>そこには確かに何もない</em>」であった。研究成果は学術誌に掲載され、引用数<strong>0</strong>を記録している。`,
+    star: "プロキシマ・ケンタウリb",
+    holder: "ヴォッホ観測局第3部門",
+    year: "第1〜現在銀河標準暦",
+    disputed: false
+  },
+  {
+    id: "IGWR-0447-ΕΖ-029",
+    category: "移動",
+    title: "最も多くの乗り物を乗り換えた単一の移動",
+    body: `ケプラー62f星系のホッブ・ゾリ氏は、目的地まで<strong>0.001銀河単位</strong>の距離を移動するために<strong>847種の異なる乗り物</strong>を乗り継いだ。乗り換えの理由は「乗り物の<em>グルッフ</em>（訳注：乗り心地・座り心地に相当するが皮膚感覚に強く依存する概念）が合わなかった」である。総所要時間は<strong>220ゴッブ</strong>であり、徒歩であれば<strong>0.2ゴッブ</strong>の距離であった。`,
+    star: "ケプラー62f",
+    holder: "ホッブ・ゾリ",
+    year: "第12銀河標準暦",
+    disputed: false
+  },
+  {
+    id: "IGWR-0461-ΗΘ-030",
+    category: "精神",
+    title: "最も多くの個体が参加した集団記憶の喪失",
+    body: `タウ・セチd星系において、<strong>全人口の92%（約44億個体）</strong>が同一の出来事を同時に忘れた記録がある。忘れた内容は「<em>ヴォッボ祭</em>（訳注：惑星全体で行われる最大の祝祭）が今年あったかどうか」であった。調査の結果、祭は確かに開催されていたことが記録から確認されたが、参加した記憶を持つ個体は<strong>0</strong>であった。`,
+    star: "タウ・セチd",
+    holder: "タウ・セチd星系全住民（92%）",
+    year: "第9銀河標準暦",
+    disputed: true
+  },
+  {
+    id: "IGWR-0475-ΙΚ-031",
+    category: "食",
+    title: "最も長い食事（非連続）",
+    body: `グリーゼ667Cc星系のヴィン・ロッブ氏の「<em>第7食事期</em>」（訳注：当該種においては断続的な摂食期間の総計を「食事」と呼ぶ文化がある）は、最初の摂食から最後の摂食まで<strong>88銀河標準暦</strong>にわたった。この間の非摂食期間は合計<strong>87.3銀河標準暦</strong>であり、実際の食事時間は全体の<strong>0.8%</strong>に過ぎない。ヴィン・ロッブ氏は「食事は始まりと終わりの間に存在する」との哲学的見解を記録に残した。`,
+    star: "グリーゼ667Cc",
+    holder: "ヴィン・ロッブ",
+    year: "第4〜7銀河標準暦",
+    disputed: false
+  },
+  {
+    id: "IGWR-0489-ΛΜ-032",
+    category: "社会",
+    title: "最も多くの名前を持つ個体（うち本人が覚えているのは一つ）",
+    body: `55キャンクリf星系のボッボ・ウィン氏（本人が覚えている名前）は、公式記録上<strong>44,000の名前</strong>を保有している。名前の大半は<em>名付け集会</em>（訳注：当該文化において個体に名前を贈る社会的行為で参加者全員が名前を付けることができる）で付与されたものである。ボッボ・ウィン氏は自分の他の名前を一つも知らないが、「<em>それはそれで良い</em>」と述べた。`,
+    star: "55キャンクリf",
+    holder: "ボッボ・ウィン（他44,000の名前）",
+    year: "第10銀河標準暦",
+    disputed: false
+  },
+  {
+    id: "IGWR-0502-ΝΞ-033",
+    category: "身体",
+    title: "最も多くの器官を持ちながら最も健康な個体",
+    body: `ケプラー22b星系のグォッホ・リナ氏は、同種の平均の<strong>12倍の器官数</strong>（総数<strong>4,447個</strong>）を持つが、全器官が完全に機能しており健康状態は「<em>ヴォッボム最良</em>（訳注：当該種の健康評価で最高値）」を記録している。医療機関はグォッホ・リナ氏の器官の多くが「何をしているか不明」と報告したが、「機能していることは確か」と付記した。`,
+    star: "ケプラー22b",
+    holder: "グォッホ・リナ",
+    year: "第6銀河標準暦",
+    disputed: false
+  },
+  {
+    id: "IGWR-0516-ΟΠ-034",
+    category: "建築",
+    title: "最も多くの建築賞を受賞した未着工の建物",
+    body: `HD209458b星系の建築家ウォッボ・フィン氏が設計した「<em>第44フォッホム・コンプレックス</em>」は、設計図のみで<strong>2,847の建築賞</strong>を受賞した。ウォッボ・フィン氏は「建物は建てた瞬間に設計の純粋性を失う」との哲学に基づき着工を拒否しており、設計図は<strong>340銀河標準暦</strong>にわたり更新され続けている。建設を希望する自治体からの申請は<strong>84件</strong>あるが全て却下されている。`,
+    star: "HD 209458b",
+    holder: "ウォッボ・フィン",
+    year: "第3銀河標準暦〜現在",
+    disputed: false
+  },
+  {
+    id: "IGWR-0531-ΡΣ-035",
+    category: "移動",
+    title: "最も多くの個体が同時に逆方向へ移動した集団記録",
+    body: `グリーゼ581d星系の都市部において、<em>ヴォッホム・フェスティバル</em>への参加者<strong>全員（約300万個体）</strong>が会場とは逆方向へ移動したことが確認されている。原因の調査により、フェスティバルの告知に「<em>矢印が反対向きに印刷されていた</em>」ことが判明した。なお、参加者全員が同じ方向に移動したため、別の場所で偶発的に別のイベントが発生した。`,
+    star: "グリーゼ581d",
+    holder: "ヴォッホム・フェスティバル参加者全員",
+    year: "第8銀河標準暦",
+    disputed: false
+  },
+  {
+    id: "IGWR-0545-ΤΥ-036",
+    category: "精神",
+    title: "最も高い確率で正解し続けた予言（当人は予言と思っていない）",
+    body: `ケプラー452b星系のウムボ・ゾリ氏は、<em>朝の独り言</em>として述べた内容が<strong>2,000銀河標準暦にわたり92%の確率で的中</strong>している。ウムボ・ゾリ氏は予言をしているとは一切思っておらず、「<em>ただ思ったことを言っているだけだ</em>」と述べた。研究機関はウムボ・ゾリ氏の独り言を学術誌に掲載しているが、本人は読んでいない。`,
+    star: "ケプラー452b",
+    holder: "ウムボ・ゾリ",
+    year: "第1〜現在銀河標準暦",
+    disputed: false
+  },
+  {
+    id: "IGWR-0558-ΦΧ-037",
+    category: "その他",
+    title: "最も多く翻訳されたが最も意味が変わった文書",
+    body: `プロキシマb星系で発見された古文書「<em>ヴォッホ・テキスト</em>」は<strong>8,441言語</strong>に翻訳されており、これはIGWR史上最多である。しかしながら翻訳ごとの内容比較調査では、全翻訳の間に共通する意味を持つ記述は<strong>0%</strong>であった。原文との比較も試みられたが、原文の言語を解読できる個体がすでに存在しないため「<em>原文が正しいかどうか不明</em>」の状態にある。`,
+    star: "プロキシマb",
+    holder: "不明（文書発見者：ロッブ・ウィン調査隊）",
+    year: "発見：第2銀河標準暦",
+    disputed: true
+  },
+  {
+    id: "IGWR-0572-ΨΩ-038",
+    category: "食",
+    title: "最も多くの警告表示を持つ食品（日常的に販売されている）",
+    body: `タウ・セチb星系の大衆食品「<em>ヴィッホ・スナック</em>」（訳注：間食に相当する食品）は、パッケージに<strong>4,881の警告表示</strong>を記載している。警告の内容は「摂取前に読むこと」から始まり、最後の警告は「<em>この警告を読んだことによる視覚疲労について当社は責任を負わない</em>」で終わる。販売数は星系内で<strong>毎ゴッブ2,000万個</strong>を記録しており、最も売れている食品の一つである。`,
+    star: "タウ・セチb",
+    holder: "ヴィッホ・フード社（製造元）",
+    year: "第11銀河標準暦〜現在",
+    disputed: false
+  },
+  {
+    id: "IGWR-0587-ΑΓ-039",
+    category: "社会",
+    title: "最も長く続いた誤った家名（指摘されなかった）",
+    body: `グリーゼ667Ca星系の<em>ヴォッボ家</em>は、<strong>4,400銀河標準暦</strong>にわたり家名を「ヴォッボ」として記録してきたが、第14代当主による調査で本来の家名が「<em>ヴォッバ</em>」であることが判明した。誤りの発生原因は「<em>第一代当主の筆跡が読みにくかった</em>」ことであり、指摘されなかった理由は「<em>誰も古い記録を読まなかった</em>」ことであった。家名変更の手続きは現在も審議中である。`,
+    star: "グリーゼ667Ca",
+    holder: "ヴォッボ家（旧称：ヴォッバ家）",
+    year: "第1〜14銀河標準暦",
+    disputed: false
+  },
+  {
+    id: "IGWR-0601-ΔΕ-040",
+    category: "身体",
+    title: "最も長く続いたくしゃみ（単発）",
+    body: `ケプラー62b星系のボッホ・グォリ氏のくしゃみは<strong>44.7ゴッブ</strong>継続した。当該種においてくしゃみは感情の放出と関連する生理反応であり、記録的な長さは「<em>蓄積された感情量の多さを示す</em>」と医療機関は説明した。ボッホ・グォリ氏は「<em>特に感情的な時期ではなかった</em>」と述べた。くしゃみの終了後、半径<strong>12メートル</strong>以内の全個体が自然と拍手をしたことも記録されている。`,
+    star: "ケプラー62b",
+    holder: "ボッホ・グォリ",
+    year: "第5銀河標準暦",
+    disputed: false
+  },
+  {
+    id: "IGWR-0615-ΗΙ-041",
+    category: "建築",
+    title: "最も深く地下に建設されたが地上に出た建物",
+    body: `51ペガサスb星系において地下<strong>44,000ブラークル</strong>に建設された施設「<em>第三地下ヴォッホム</em>」は、建設完了後に調査したところ地表から<strong>220ブラークル上方</strong>に位置していることが確認された。建設チームは「<em>地下という概念の解釈が星系標準と異なっていた</em>」と説明した。施設は現在「空中建造物」として再登録されており、地下施設部門と地上施設部門の両方に記録されている。`,
+    star: "51ペガサスb",
+    holder: "地下建設集団ヴォッホム工務",
+    year: "第13銀河標準暦",
+    disputed: true
+  },
+  {
+    id: "IGWR-0629-ΚΛ-042",
+    category: "その他",
+    title: "最も多くの個体が目撃したが記録に残らなかった出来事",
+    body: `グリーゼ832c星系において<strong>推定1億2千万個体</strong>が目撃したとされる出来事は、記録装置、記録担当者、および目撃者の記憶のいずれにも残っていない。目撃者全員が「<em>確かに何かを見た</em>」と主張しているが、内容については「<em>なんというか……ヴォッホム的な何か</em>」としか説明できない。当該出来事の調査は「<em>記録すべき内容がない</em>」という理由で終了した。`,
+    star: "グリーゼ832c",
+    holder: "目撃者全員（名前記録なし）",
+    year: "第7銀河標準暦",
+    disputed: true
+  },
+  {
+    id: "IGWR-0643-ΜΝ-043",
+    category: "食",
+    title: "最も多くの個体が分け合った最小の食事",
+    body: `ケプラー186f星系において、<em>ズロッグム</em>（訳注：食料調達所）の特売品「<em>小型ヴィッホ</em>」（訳注：地球の「一口サイズの菓子」に相当）<strong>1個</strong>を<strong>4万7千個体</strong>が分け合った。各個体に渡った量は計算上<strong>0.0000213ブラークル</strong>（訳注：質量単位）であり、感知不可能な量であった。しかし参加者全員が「<em>美味しかった</em>」と評価しており、当該記録は「<em>共食の文化的意義</em>」の研究資料として引用されている。`,
+    star: "ケプラー186f",
+    holder: "特売参加者全員（名前記録なし）",
+    year: "第9銀河標準暦",
+    disputed: false
+  },
+  {
+    id: "IGWR-0657-ΟΠ-044",
+    category: "精神",
+    title: "最も長く同じ夢を見続けた複数個体（同一の夢）",
+    body: `トラピスト-1星系第七惑星の<strong>3個体</strong>（ロッブ・ウィン、ホッボ・グォリ、ウムボ・リナ）が<strong>220銀河標準暦にわたり同一の夢を共有</strong>していることが確認された。夢の内容は「<em>どこかへ行こうとしているが場所が思い出せない</em>」という内容であり、3個体は互いを夢の中で認識しているが夢内での会話は「<em>なぜかうまく伝わらない</em>」という状態が続いている。`,
+    star: "トラピスト-1",
+    holder: "ロッブ・ウィン、ホッボ・グォリ、ウムボ・リナ",
+    year: "第3〜現在銀河標準暦",
+    disputed: false
+  },
+  {
+    id: "IGWR-0671-ΡΣ-045",
+    category: "社会",
+    title: "最も多くの構成員を持つ最も活動のない組織",
+    body: `ケプラー69c星系の「<em>ヴォッボム・アソシエーション</em>」は構成員<strong>8億4千万個体</strong>を擁するが、設立以来<strong>1,400銀河標準暦</strong>にわたり活動記録が存在しない。会費の徴収も行われておらず、構成員の大半は自分が会員であることを知らない。事務局は「<em>活動しないことが活動方針である</em>」と説明したが、事務局がいつ設置されたかの記録も存在しない。`,
+    star: "ケプラー69c",
+    holder: "ヴォッボム・アソシエーション（事務局）",
+    year: "第1銀河標準暦〜現在",
+    disputed: false
+  },
+  {
+    id: "IGWR-0685-ΤΥ-046",
+    category: "その他",
+    title: "最も多く引用されたが誰も読んでいない論文",
+    body: `グリーゼ581g星系の研究者ウィン・ボッボ氏が発表した論文「<em>ヴォッホム・ダイナミクスの第7相転移について</em>」は、銀河間学術データベースにおいて<strong>440万回引用</strong>されている。しかし著者本人を含む全引用者への調査では、全員が「<em>読んだことはないが重要そうなので引用した</em>」と回答した。論文の内容については「<em>タイトルが興味深い</em>」という評価が最多であった。`,
+    star: "グリーゼ581g",
+    holder: "ウィン・ボッボ",
+    year: "第10銀河標準暦",
+    disputed: false
+  },
+  {
+    id: "IGWR-0699-ΦΧ-047",
+    category: "身体",
+    title: "最も多くの個体に間違えられた個体",
+    body: `ケプラー22b星系のグォッボ・ウィリム氏は、生涯において<strong>4,400個の別個体と間違えられた</strong>記録を持つ。間違えた個体の一部はグォッボ・ウィリム氏と<em>外見的共通点が皆無</em>であったことが記録されている。グォッボ・ウィリム氏本人は「<em>もはや自分が誰であるかについて確信が持てない</em>」と述べたが、これが哲学的発言か医学的問題かについては見解が分かれている。`,
+    star: "ケプラー22b",
+    holder: "グォッボ・ウィリム",
+    year: "第7銀河標準暦",
+    disputed: true
+  },
+  {
+    id: "IGWR-0714-ΨΩ-048",
+    category: "建築",
+    title: "最も多くの「立入禁止」表示を持つ自由に入れる建物",
+    body: `HD40307g星系の公共施設「<em>第一ヴォッホム・プラザ</em>」には<strong>8,881枚の立入禁止表示</strong>が設置されているが、当該施設は24時間無制限に誰でも入ることができる。施設管理者によれば「<em>立入禁止表示は装飾の一種であり、規制の意味は持たない</em>」とのことである。来場者の多くは表示を撮影することを目的に訪れており、年間来場者数は<strong>2億個体</strong>を超える。`,
+    star: "HD 40307g",
+    holder: "第一ヴォッホム・プラザ管理局",
+    year: "第12銀河標準暦",
+    disputed: false
+  },
+  {
+    id: "IGWR-0728-ΑΒ-049",
+    category: "移動",
+    title: "最も短い距離を最長時間かけて移動した記録（自発的）",
+    body: `ケプラー452b星系の哲学者ヴィッホ・ロム氏は、<strong>0.0001ブラークル</strong>（訳注：極めて短い距離単位）の移動に<strong>440銀河標準暦</strong>を費やした。ヴィッホ・ロム氏は「<em>移動とは距離ではなく思索の量によって測られるべきである</em>」という哲学に基づいてこの移動を行った。移動完了後に発表した論文「<em>最小移動の哲学</em>」は銀河間で広く読まれたが、実践者は現在のところ<strong>0</strong>である。`,
+    star: "ケプラー452b",
+    holder: "ヴィッホ・ロム",
+    year: "第2〜6銀河標準暦",
+    disputed: false
+  },
+  {
+    id: "IGWR-0742-ΓΔ-050",
+    category: "その他",
+    title: "最も長く争われている記録（この記録自体が記録である）",
+    body: `プロキシマ・ケンタウリb星系の「<em>第一ヴォッホム記録</em>」は、<strong>8,800銀河標準暦</strong>にわたり「記録として認定されるべきか否か」が争われている。争いの論点は時代とともに変化しており、現在の争点は「<em>争い自体が記録に値するかどうか</em>」である。IGWRはこの争いを「最長の記録争い」として登録しようとしているが、その登録についても新たな争いが発生している。`,
+    star: "プロキシマ・ケンタウリb",
+    holder: "IGWRおよび反IGWR連合（現在も交渉中）",
+    year: "第1〜現在銀河標準暦",
+    disputed: true
+  },
+  {
+    id: "IGWR-0756-ΑΒ-051",
+    category: "音",
+    title: "最も長く続いた沈黙（公式演奏として記録されたもの）",
+    body: `ケプラー442b星系の演奏家集団「<em>第九ヴォッボム・アンサンブル</em>」による作品『完全なる休止』は、<strong>440銀河標準暦</strong>にわたる無音の演奏として登録されている。聴衆は世代交代を経ながら鑑賞を続けており、現在の聴衆の多くは作品の開始を知らない。批評家による評価は「<em>冒頭が最も緊張感があった</em>」（訳注：冒頭を経験した批評家は現在存命でない）であった。`,
+    star: "ケプラー442b",
+    holder: "第九ヴォッボム・アンサンブル",
+    year: "第3〜現在銀河標準暦",
+    disputed: false
+  },
+  {
+    id: "IGWR-0769-ΓΔ-052",
+    category: "社会",
+    title: "最も多くの世代にわたって受け継がれた誤った情報（善意による）",
+    body: `グリーゼ581c星系の<em>ゾッホ家</em>において、「<em>ヴォッボの実</em>（訳注：果実に相当する食品だが植物由来でない）を就寝前に食べると翌朝の判断力が上がる」という情報が<strong>2,200銀河標準暦</strong>にわたり子孫に伝えられてきた。調査の結果、当該食品に判断力向上効果はないことが確認されたが、ゾッホ家全員の睡眠の質は銀河平均の<strong>3.7倍</strong>であることも同時に判明した。原因は不明。`,
+    star: "グリーゼ581c",
+    holder: "ゾッホ家（全88代）",
+    year: "第1〜現在銀河標準暦",
+    disputed: false
+  },
+  {
+    id: "IGWR-0783-ΕΖ-053",
+    category: "身体",
+    title: "最も多くの個体が同時に同じ場所をかいた記録",
+    body: `ハビタブルゾーン星系HD40307gにおける公開集会の参加者<strong>全員（220万個体）</strong>が、講演開始から<strong>3.2ゴッブ後</strong>に同時に背中の同一部位をかく行動を示した。行動の伝播速度と方向性の分析から、原因は講演者の「<em>ヴォッボム的な話題転換</em>」（訳注：聴衆に軽微な違和感を与える話法）であると推定された。講演者はこの結果に「<em>大変光栄である</em>」と述べた。`,
+    star: "HD 40307g",
+    holder: "公開集会参加者全員",
+    year: "第12銀河標準暦",
+    disputed: false
+  },
+  {
+    id: "IGWR-0797-ΗΘ-054",
+    category: "建築",
+    title: "最も多く改築された結果元の建物が0%残っている建物（同一建物として登録）",
+    body: `タウ・セチe星系の「<em>古ヴォッホム館</em>」は、<strong>8,800銀河標準暦</strong>の間に<strong>44,000回の改築</strong>を経ており、現在の構造体に創建当初の素材は一切含まれていない。法的には同一建物として認定されており、「建物の同一性は素材ではなく<em>継続する改築意志</em>にある」という判例が適用されている。内部には改築の歴史を展示するコーナーがあり、これ自体が<strong>220回改築</strong>されている。`,
+    star: "タウ・セチe",
+    holder: "古ヴォッホム館保存委員会",
+    year: "第1〜現在銀河標準暦",
+    disputed: false
+  },
+  {
+    id: "IGWR-0811-ΙΚ-055",
+    category: "移動",
+    title: "最も多くの個体が出口を間違えた交通施設",
+    body: `ケプラー186f星系の交通ターミナル「<em>中央ヴィッホム・ハブ</em>」では、開業以来<strong>全利用者の99.7%</strong>が目的の出口とは異なる出口から退出していることが記録されている。施設設計者は「<em>出口の概念は個体によって異なるため、全出口が正解である</em>」と設計思想を説明した。利用者の満足度調査では「<em>思いがけない場所に着いて良かった</em>」という回答が最多であった。`,
+    star: "ケプラー186f",
+    holder: "中央ヴィッホム・ハブ（設計：ウォッボ・フィン工房）",
+    year: "第9銀河標準暦〜現在",
+    disputed: false
+  },
+  {
+    id: "IGWR-0825-ΛΜ-056",
+    category: "精神",
+    title: "最も多くの個体が同時に「なんとなく嫌な予感」を報告した記録",
+    body: `プロキシマb星系の全人口<strong>約12億個体</strong>が同一の銀河標準暦日に「<em>グォッボム感覚</em>（訳注：根拠のない不安感。地球語の「虫の知らせ」に相当するが身体的感覚を伴う）」を報告した。当日および前後<strong>44ゴッブ</strong>以内に特記すべき出来事は一切記録されていない。当該感覚の原因については現在も調査中だが、調査担当者全員も「<em>なんとなく嫌な予感がする</em>」と報告している。`,
+    star: "プロキシマb",
+    holder: "プロキシマb星系全住民",
+    year: "第6銀河標準暦",
+    disputed: true
+  },
+  {
+    id: "IGWR-0839-ΝΞ-057",
+    category: "食",
+    title: "最も多く「食べてはいけない」と言われ続けて最も広く食べられた食品",
+    body: `グリーゼ667Ca星系の食品「<em>ウォッボム・チップ</em>」（訳注：軽食に相当するが栄養素を持たない）は、食品安全委員会から<strong>4,400回の摂取禁止勧告</strong>を受けながらも星系内で最も消費量の多い食品として<strong>2,800銀河標準暦</strong>連続で記録されている。摂取による健康被害の報告は<strong>0件</strong>であり、食品安全委員会は「<em>なぜ禁止勧告を出し続けているのかが現在不明</em>」と発表した。`,
+    star: "グリーゼ667Ca",
+    holder: "グリーゼ667Ca星系全消費者",
+    year: "第1〜現在銀河標準暦",
+    disputed: false
+  },
+  {
+    id: "IGWR-0852-ΟΠ-058",
+    category: "社会",
+    title: "最も長く使われ続けた間違った敬称",
+    body: `ケプラー22b星系において、指導者ヴォッホ・ウィン氏への敬称「<em>上位発光体</em>」（訳注：「閣下」に相当するが発光する生物に用いる表現であり、ヴォッホ・ウィン氏は発光しない）が使われ始めてから<strong>1,100銀河標準暦</strong>が経過した。指摘は複数回なされたが、そのたびに「<em>すでに定着しているため変更は混乱を招く</em>」と却下された。現在の使用者の多くは当該敬称の意味を知らない。`,
+    star: "ケプラー22b",
+    holder: "ヴォッホ・ウィン行政府",
+    year: "第3〜現在銀河標準暦",
+    disputed: false
+  },
+  {
+    id: "IGWR-0866-ΡΣ-059",
+    category: "その他",
+    title: "最も多くの賞を受賞した存在しないもの",
+    body: `55キャンクリb星系において、架空の芸術家「<em>ヴォッボ・リナリム</em>」は実在が確認されないまま<strong>2,200件の芸術賞</strong>を受賞した。作品は全て匿名で発表されたものが事後的に帰属されており、ヴォッボ・リナリムが実在するかどうかの調査は「<em>実在の有無は芸術の価値に影響しない</em>」として打ち切られた。代理受賞者が毎回異なる個体であることは記録されている。`,
+    star: "55キャンクリb",
+    holder: "ヴォッボ・リナリム（実在確認なし）",
+    year: "第4〜現在銀河標準暦",
+    disputed: true
+  },
+  {
+    id: "IGWR-0879-ΤΥ-060",
+    category: "身体",
+    title: "最も多く再生した器官（同一個体・同一器官）",
+    body: `トラピスト-1星系第五惑星のウォッホ・グォリ氏は、<em>第三消化器</em>（訳注：消化器官の一種だが当該種は複数持つ）を生涯で<strong>847回再生</strong>した。再生の原因の大半は「<em>ズロッグム</em>（訳注：食料調達所）の特売品の過剰摂取」によるものとされる。ウォッホ・グォリ氏は「<em>毎回また少し良くなっている気がする</em>」と述べており、医療記録はこれを否定も肯定もしていない。`,
+    star: "トラピスト-1",
+    holder: "ウォッホ・グォリ",
+    year: "第8銀河標準暦",
+    disputed: false
+  },
+  {
+    id: "IGWR-0893-ΦΧ-061",
+    category: "音",
+    title: "最も小さい音で最も遠くに届いた発声",
+    body: `ケプラー452b星系のヴィン・フォッブ氏が発した「<em>ゥ</em>」（訳注：当該種における最小の発声単位。感嘆でも疑問でもない中間的音声）は、測定上<strong>0.0003ブラークル単位の音量</strong>でありながら<strong>2.4銀河単位</strong>離れた地点で受信された。伝達経路は現在も解明されていない。受信地点の個体は「<em>何かが届いた気がした</em>」と報告したが内容は聞き取れなかった。`,
+    star: "ケプラー452b",
+    holder: "ヴィン・フォッブ",
+    year: "第6銀河標準暦",
+    disputed: true
+  },
+  {
+    id: "IGWR-0907-ΨΩ-062",
+    category: "移動",
+    title: "最も多くの個体を巻き込んだ自発的でない集団移動",
+    body: `グリーゼ832c星系において、ボッホ・ウォリム氏が「<em>ちょっとそこまで</em>」と述べて移動を開始したところ、その発言を聞いた個体が順次同行を決め、最終的に<strong>880万個体</strong>が同行した。ボッホ・ウォリム氏の目的地は自宅から<strong>0.002銀河単位</strong>の場所であり、到達後ボッホ・ウォリム氏は「<em>一人で来るつもりだった</em>」と述べた。同行者のうち<strong>4万個体</strong>はその場に移住した。`,
+    star: "グリーゼ832c",
+    holder: "ボッホ・ウォリム（および880万個体）",
+    year: "第7銀河標準暦",
+    disputed: false
+  },
+  {
+    id: "IGWR-0921-ΑΓ-063",
+    category: "精神",
+    title: "最も長く「あとで考える」状態にある問題",
+    body: `51ペガサスb星系の哲学評議会が「<em>あとで考える</em>」として棚上げにした問題「<em>ヴォッホムとは何か</em>」は、棚上げから<strong>6,600銀河標準暦</strong>が経過している。評議会は世代交代を経て現在の構成員はいずれも問題の存在を知らなかったが、記録の発見後に「<em>まだ考え中である</em>」との声明を発表した。問題の重要性については「<em>棚上げになっているということは重要なのだろう</em>」と推定されている。`,
+    star: "51ペガサスb",
+    holder: "哲学評議会（歴代）",
+    year: "第1〜現在銀河標準暦",
+    disputed: false
+  },
+  {
+    id: "IGWR-0934-ΔΕ-064",
+    category: "建築",
+    title: "最も多くの扉を持ち最も使われない建物",
+    body: `ケプラー62f星系の「<em>扉の館</em>」は<strong>88,000枚の扉</strong>を持つ。すべての扉は正常に機能するが、館内に進むべき部屋が存在しないため扉を開けると別の扉が現れる。設計者の記録には「<em>扉は到達の道具ではなく選択の体験である</em>」とある。年間訪問者数は<strong>4億個体</strong>を超えるが、全員が扉の一枚目を開けて引き返す。滞在時間の中央値は<strong>0.7ゴッブ</strong>。`,
+    star: "ケプラー62f",
+    holder: "扉の館管理財団",
+    year: "第11銀河標準暦",
+    disputed: false
+  },
+  {
+    id: "IGWR-0948-ΖΗ-065",
+    category: "社会",
+    title: "最も丁寧に断られた申請（申請者が最も満足した）",
+    body: `タウ・セチd星系のホッボ・ゾリ氏が提出した「<em>惑星名変更申請</em>」は、担当機関から<strong>44,000音節</strong>の拒否文書を受け取った。拒否の理由は丁寧に説明され、拒否文書自体が<strong>3つの銀河間文書賞</strong>を受賞した。ホッボ・ゾリ氏は「<em>申請が通るより良い結果になった</em>」と述べ、以後毎年申請を提出している。現在の拒否文書コレクションは<strong>220点</strong>。`,
+    star: "タウ・セチd",
+    holder: "ホッボ・ゾリ",
+    year: "第9銀河標準暦〜現在",
+    disputed: false
+  },
+  {
+    id: "IGWR-0962-ΘΙ-066",
+    category: "食",
+    title: "最も多くの別名を持つ料理（全て正式名称）",
+    body: `グリーゼ667Cc星系の料理「<em>ヴォッボム煮</em>（第一名称）」は公式記録上<strong>2,847の正式名称</strong>を持つ。各名称は異なる地域・時代・文脈で付与されたものであり、全て法的に有効である。注文の際にどの名称を使うかで料理の温度が変わるという説があるが、調査の結果<strong>変化しないことが確認</strong>された。しかし信者は現在も<strong>440万個体</strong>存在する。`,
+    star: "グリーゼ667Cc",
+    holder: "ヴォッボム料理文化保存協会",
+    year: "第2〜現在銀河標準暦",
+    disputed: false
+  },
+  {
+    id: "IGWR-0976-ΚΛ-067",
+    category: "音",
+    title: "最も多くの言語で「わからない」を意味する音が同一だった記録",
+    body: `銀河間言語調査によれば、<strong>44,000の調査対象言語</strong>のうち<strong>38,441言語</strong>において「わからない」に相当する音声表現が「<em>ヴォ</em>」またはそれに類する音であることが確認された。調査担当者は「<em>この結果が何を意味するかはわからない</em>」と報告書に記したが、その発言自体が38,441言語において「ヴォ」に相当すると指摘されている。`,
+    star: "複数星系（銀河間調査）",
+    holder: "銀河間言語調査機構",
+    year: "第5銀河標準暦",
+    disputed: false
+  },
+  {
+    id: "IGWR-0989-ΜΝ-068",
+    category: "身体",
+    title: "最も多くの個体から同時に「大丈夫ですか」と問われた個体",
+    body: `ケプラー69c星系のグォッボ・ナリム氏は、公共の場で静止していたところ<strong>4万4千個体</strong>から同時に「<em>ウォッボ？</em>（訳注：安否を問う表現。「大丈夫ですか」に相当）」と声をかけられた。グォッボ・ナリム氏は「<em>ただ立っていただけ</em>」と述べた。当該種において完全な静止は「<em>深刻な内部状態の表れ</em>」と解釈される文化があることが後の調査で判明した。`,
+    star: "ケプラー69c",
+    holder: "グォッボ・ナリム",
+    year: "第10銀河標準暦",
+    disputed: false
+  },
+  {
+    id: "IGWR-1003-ΟΠ-069",
+    category: "その他",
+    title: "最も多くの機関が同時に「自分たちが担当ではない」と表明した問題",
+    body: `ケプラー186e星系において発生した「<em>ヴォッボム問題</em>」（訳注：問題の内容は記録に残っていない）に対し、<strong>4,400の行政機関・研究機関・民間団体</strong>が同日に「担当外である」との声明を発表した。声明の発表に要した総コストは問題の推定解決コストの<strong>44倍</strong>であった。問題は現在も未解決だが、「担当外声明の同時発表数」として本記録が登録されたことで全機関が「記録の管理」を担当外と表明した。`,
+    star: "ケプラー186e",
+    holder: "4,400機関（連名）",
+    year: "第8銀河標準暦",
+    disputed: false
+  },
+  {
+    id: "IGWR-1017-ΡΣ-070",
+    category: "移動",
+    title: "最も多くの個体が同時に「迷子である」と認識した集団",
+    body: `トラピスト-1星系第二惑星において実施された<em>ヴォッホム・ツアー</em>の参加者<strong>全員（88万個体）</strong>が、ツアー開始から<strong>2.2ゴッブ後</strong>に同時に自分が迷子であると認識した。ガイドも同様に迷子であることが確認されている。全員が同じ場所にいたため、集団としては迷子ではなかったが、個体単位では全員が迷子であった。ツアーは「<em>予定外の探索体験</em>」として好評を博した。`,
+    star: "トラピスト-1",
+    holder: "ヴォッホム・ツアー参加者全員",
+    year: "第4銀河標準暦",
+    disputed: false
+  },
+  {
+    id: "IGWR-1031-ΤΥ-071",
+    category: "精神",
+    title: "最も長く続いた「もうすぐ終わる」状態",
+    body: `グリーゼ581g星系の芸術作品「<em>終わりへの接近</em>」は、創作者ウィン・ゾッブ氏が「<em>もうすぐ完成する</em>」と宣言してから<strong>880銀河標準暦</strong>が経過している。ウィン・ゾッブ氏は現在も存命であり、現在の進捗について「<em>かなり近い</em>」と述べている。作品の現状は「<em>空白のキャンバス</em>」であるが、「完成していない状態そのものが作品である」という評価も複数の批評家から提出されている。`,
+    star: "グリーゼ581g",
+    holder: "ウィン・ゾッブ",
+    year: "第3〜現在銀河標準暦",
+    disputed: true
+  },
+  {
+    id: "IGWR-1045-ΦΧ-072",
+    category: "社会",
+    title: "最も多くの個体が参加した「何もしない」イベント",
+    body: `ケプラー452b星系で開催された「<em>第一回ヴォッホム・フォーラム</em>」は、参加者<strong>2億2千万個体</strong>が集まり、プログラムに従って<strong>44ゴッブ間何もしない</strong>という内容であった。参加者の事後アンケートでは<strong>99.2%</strong>が「<em>参加して良かった</em>」と回答した。翌年の「第二回」には参加者が<strong>4.4倍</strong>に増加した。主催者は「<em>何もしないことの需要を過小評価していた</em>」とコメントした。`,
+    star: "ケプラー452b",
+    holder: "ヴォッホム・フォーラム実行委員会",
+    year: "第9〜現在銀河標準暦",
+    disputed: false
+  },
+  {
+    id: "IGWR-1059-ΨΩ-073",
+    category: "建築",
+    title: "最も多くの用途に使われた単一の建物（同時に）",
+    body: `55キャンクリe星系の「<em>多目的ヴォッホム棟</em>」は、<strong>同時に4,882の異なる用途</strong>に使用されていることが確認されている。公式登録されている用途には「図書館」「食料貯蔵庫」「裁判所」「保育施設」「温浴施設」「天文台」「養殖場」などが含まれるが、全用途が建物内のどこで行われているかは現在も不明確である。利用者は自分が利用している機能を特定できない場合が多いが、全員が「<em>目的を果たせた</em>」と報告している。`,
+    star: "55キャンクリe",
+    holder: "多目的ヴォッホム棟管理組合",
+    year: "第7銀河標準暦〜現在",
+    disputed: false
+  },
+  {
+    id: "IGWR-1073-ΑΒ-074",
+    category: "食",
+    title: "最も遠くから取り寄せた食材を使った最も地元らしい料理",
+    body: `タウ・セチb星系の郷土料理「<em>ヴォッボム鍋</em>」に使用される全食材の原産地が、実は<strong>平均4.8銀河単位</strong>離れた星系であることが調査により判明した。料理は「<em>この地にしかない味</em>」として1,200銀河標準暦にわたり地域のアイデンティティを形成してきた。食材の原産地判明後も郷土料理としての地位は維持されており、「<em>遠くから来た食材を地元の方法で調理することが郷土料理である</em>」という新定義が採用された。`,
+    star: "タウ・セチb",
+    holder: "ヴォッボム鍋文化保存会",
+    year: "第1〜現在銀河標準暦",
+    disputed: false
+  },
+  {
+    id: "IGWR-1087-ΓΔ-075",
+    category: "音",
+    title: "最も多くの楽器を使用して最も単純な音楽を演奏した記録",
+    body: `ケプラー62e星系の「<em>銀河交響楽団第三支部</em>」は<strong>44,000種の楽器</strong>（うち<strong>2,200種は演奏直前に発明されたもの</strong>）を使用して「<em>ヴォ</em>」（一音・一拍）を演奏した。演奏時間は<strong>0.0001ゴッブ</strong>であった。批評家の評価は「<em>楽器の数に対して音楽が少なすぎる</em>」と「<em>完璧な比率である</em>」に二分されており、両評価とも高い評点が付されている。`,
+    star: "ケプラー62e",
+    holder: "銀河交響楽団第三支部",
+    year: "第6銀河標準暦",
+    disputed: true
+  },
+  {
+    id: "IGWR-1101-ΕΖ-076",
+    category: "身体",
+    title: "最も速く成長したが最も遅く気づかれた個体",
+    body: `グリーゼ667Cb星系のロッホ・ヴィン氏は、<strong>0.3銀河標準暦で身長が4倍</strong>になったが、周囲の個体に変化が認識されるまで<strong>220銀河標準暦</strong>を要した。認識が遅れた原因は調査により「<em>周囲の個体が全員同様の変化を経験していたため比較基準がなかった</em>」ことが判明した。ロッホ・ヴィン氏本人も「<em>特に変化した実感はなかった</em>」と述べており、当該種全体の身長記録も同期間に<strong>4倍</strong>になっている。`,
+    star: "グリーゼ667Cb",
+    holder: "ロッホ・ヴィン（および当該種全個体）",
+    year: "第11銀河標準暦",
+    disputed: false
+  },
+  {
+    id: "IGWR-1115-ΗΘ-077",
+    category: "その他",
+    title: "最も多くの言語に翻訳された際に最も短くなったテキスト",
+    body: `プロキシマ・ケンタウリb星系で発表された<strong>44,000音節</strong>の詩「<em>ヴォッホムへの頌歌</em>」は、銀河標準語への翻訳時に<strong>3音節</strong>になった。翻訳者は「<em>意味は全て保持した</em>」と主張しており、原作者はその訳を読んで「<em>確かにそうかもしれない</em>」と述べた。その後の48言語への重訳では最短で<strong>1音節</strong>、最長で<strong>220,000音節</strong>になっており、翻訳の正確性については現在も学術論争が続いている。`,
+    star: "プロキシマ・ケンタウリb",
+    holder: "フォッホ・ウィン（原作者）",
+    year: "第3銀河標準暦",
+    disputed: true
+  },
+  {
+    id: "IGWR-1129-ΙΚ-078",
+    category: "移動",
+    title: "最も多くの個体が見送りに来た出発（当人は気づかなかった）",
+    body: `ケプラー442b星系のウォッボ・リナ氏が買い物に出かけた際、<strong>220万個体</strong>が沿道で見送った。ウォッボ・リナ氏は見送りに気づかないまま往復し、帰宅後も<strong>特に何も言及しなかった</strong>。見送り参加者への調査では「<em>なんとなく来た</em>」という回答が最多であった。この出来事をきっかけに当該星系では「<em>何でもない日の見送り</em>」という文化が形成された。`,
+    star: "ケプラー442b",
+    holder: "ウォッボ・リナ（当人申告なし）",
+    year: "第5銀河標準暦",
+    disputed: false
+  },
+  {
+    id: "IGWR-1143-ΛΜ-079",
+    category: "精神",
+    title: "最も多くの個体が「いい夢だった」と報告したが内容を覚えていなかった記録",
+    body: `HD40307b星系の特定地区において、<strong>同一の夜（地域時間）</strong>に当該地区の全住民<strong>88万個体</strong>が「<em>いい夢を見た</em>」と報告した。しかし夢の内容を報告できた個体は<strong>0</strong>であり、「何を見たか」という問いに対しては全員が「<em>ヴォッボム的な何か</em>」と回答した。翌朝の当該地区の気分指数は観測史上最高値を記録した。`,
+    star: "HD 40307b",
+    holder: "当該地区全住民",
+    year: "第12銀河標準暦",
+    disputed: false
+  },
+  {
+    id: "IGWR-1157-ΝΞ-080",
+    category: "社会",
+    title: "最も多くの個体が同時に謝罪した出来事（誰も何をしたか覚えていない）",
+    body: `グリーゼ581d星系において、<strong>4億4千万個体</strong>が同時に「<em>申し訳なかった</em>」との声明を発表した。声明の契機となった出来事については「<em>記録が残っていない</em>」が、謝罪の誠意は全個体において真正なものであったと評価されている。謝罪を受け取る対象についても不明であるが、謝罪後の星系全体の「関係満足度」は<strong>22%向上</strong>した。`,
+    star: "グリーゼ581d",
+    holder: "グリーゼ581d星系住民（4億4千万個体）",
+    year: "第8銀河標準暦",
+    disputed: false
+  },
+  {
+    id: "IGWR-1171-ΟΠ-081",
+    category: "建築",
+    title: "最も長い廊下を持つ最も小さい建物",
+    body: `ケプラー186f星系の「<em>ヴィッホム・コテージ</em>」は外寸<strong>2.2ブラークル×2.2ブラークル</strong>（訳注：非常に小さい）だが、内部の廊下の総延長は<strong>4,400銀河単位</strong>である。建設方法については設計者が「<em>それは説明できない</em>」とした記録のみが残っており、内部構造の調査は試みるたびに担当者が「<em>思ったより遠い</em>」と報告して戻ってくることで難航している。`,
+    star: "ケプラー186f",
+    holder: "ヴィッホム・コテージ所有者（記録上匿名）",
+    year: "第9銀河標準暦",
+    disputed: true
+  },
+  {
+    id: "IGWR-1185-ΡΣ-082",
+    category: "食",
+    title: "最も多くの調理法が存在する同一の料理（全て正統派を主張）",
+    body: `51ペガサスb星系の伝統料理「<em>ヴォッボム・スープ</em>」の正統な調理法は、現在<strong>4,447種</strong>が登録されており、それぞれが「唯一の正統派」を主張している。各流派の間では<strong>2,200銀河標準暦</strong>にわたり論争が続いているが、異なる流派のスープを飲み比べた個体の<strong>98.7%</strong>が「<em>全部同じ味がする</em>」と回答している。この回答は全流派から「<em>味覚が発達していない</em>」として却下された。`,
+    star: "51ペガサスb",
+    holder: "ヴォッボム・スープ正統協会（全4,447流派）",
+    year: "第1〜現在銀河標準暦",
+    disputed: true
+  },
+  {
+    id: "IGWR-1199-ΤΥ-083",
+    category: "音",
+    title: "最も多くの記録を保持する音（一つの音として）",
+    body: `「<em>ヴォ</em>」という音は銀河間記録データベースにおいて<strong>単一の音として最多の記録</strong>を保持している。最長の沈黙、最短の演奏、最も広く解釈された法律、最も多くの言語で「わからない」を意味する音など、合計<strong>2,847件の記録</strong>に登場する。IGWRはこれを新たな記録として登録したが、「ヴォ」自体がこの記録にも関与しているため、記録数は<strong>2,848件</strong>になった。`,
+    star: "銀河全域",
+    holder: "「ヴォ」（音）",
+    year: "全銀河標準暦",
+    disputed: false
+  },
+  {
+    id: "IGWR-1213-ΦΧ-084",
+    category: "社会",
+    title: "最も長く外出中の個体を待ち続けた記録（自発的）",
+    body: `ケプラー69c星系のヴォッボ・ゾリ氏は、<em>共食管理パートナー</em>（訳注：食事の準備と管理を共同で行う関係。「同居人」に相当するが義務の範囲が限定的）のグォッホ・ナン氏が「<em>すぐ戻る</em>」と言って外出してから<strong>440銀河標準暦</strong>待ち続けた。グォッホ・ナン氏は<strong>441銀河標準暦後に戻り</strong>、「<em>思ったより遠かった</em>」と述べた。ヴォッボ・ゾリ氏は特にコメントしなかった。`,
+    star: "ケプラー69c",
+    holder: "ヴォッボ・ゾリ",
+    year: "第2〜7銀河標準暦",
+    disputed: false
+  },
+  {
+    id: "IGWR-1227-ΨΩ-085",
+    category: "その他",
+    title: "最も多くの分野で同時に「革命的」と評された発見（内容は平凡）",
+    body: `グリーゼ832c星系の研究者ウォッボ・リム氏が発表した「<em>ヴォッホムは存在する</em>」という命題は、哲学・物理学・生物学・社会学・芸術批評など<strong>4,441の学術分野</strong>から同時に「革命的発見」と評された。内容の検討が行われた結果、命題は「<em>既知の事実を言い換えたもの</em>」と結論されたが、各分野での引用数は現在も増加し続けている。著者は「<em>正直、私も驚いている</em>」と述べた。`,
+    star: "グリーゼ832c",
+    holder: "ウォッボ・リム",
+    year: "第10銀河標準暦",
+    disputed: false
+  },
+  {
+    id: "IGWR-1241-ΑΒ-086",
+    category: "移動",
+    title: "最も多くの個体が同じ方向へ走ったが全員が異なる理由を持っていた記録",
+    body: `タウ・セチf星系の都市部において、<strong>88万個体</strong>が同時に同一方向へ走った。事後調査では全個体が異なる理由を報告しており、理由の内訳は「<em>良いものがある気がした</em>」から「<em>走っている個体が多かったので</em>」まで多岐にわたった。目的地に相当する場所には何もなかったが、<strong>4万個体</strong>がその場に留まり「<em>何かを待つ</em>」と述べた。現在も待機中の個体が<strong>2,200</strong>残っている。`,
+    star: "タウ・セチf",
+    holder: "88万個体（理由各自）",
+    year: "第13銀河標準暦",
+    disputed: false
+  },
+  {
+    id: "IGWR-1255-ΓΔ-087",
+    category: "精神",
+    title: "最も多くの個体が「そういえば」から始まる重大な事実を思い出した瞬間の記録",
+    body: `ケプラー452b星系において、<strong>2,200万個体</strong>が同時刻に「<em>そういえば</em>」と発声し、続けて各自にとって重要な事実を思い出したことが記録されている。思い出した内容の重要度は個体によって異なるが、平均的な重要度指数は「<em>かなり重要</em>」に分類された。思い出した内容の<strong>84%</strong>は「明日（地域時間）が何らかの締め切りである」という内容であった。`,
+    star: "ケプラー452b",
+    holder: "2,200万個体（内容各自）",
+    year: "第7銀河標準暦",
+    disputed: false
+  },
+  {
+    id: "IGWR-1269-ΕΖ-088",
+    category: "身体",
+    title: "最も多く転んだが最も怪我をしなかった個体",
+    body: `プロキシマb星系のボッボ・グォリ氏は生涯で<strong>44,000回転倒</strong>した記録を持つが、医療記録上の怪我は<strong>0件</strong>である。当該種の医療定義では「<em>自発的な立ち上がりが可能であれば怪我ではない</em>」とされており、ボッボ・グォリ氏は全44,000回において<strong>平均0.3ゴッブ以内</strong>に自発的に立ち上がった。ボッボ・グォリ氏は「<em>床の感触が好きなだけ</em>」と述べた。`,
+    star: "プロキシマb",
+    holder: "ボッボ・グォリ",
+    year: "第6銀河標準暦",
+    disputed: false
+  },
+  {
+    id: "IGWR-1283-ΗΘ-089",
+    category: "建築",
+    title: "最も多くの案内板を持つ最も迷いやすい施設",
+    body: `グリーゼ667Ca星系の「<em>ヴォッホム・コンプレックス第二棟</em>」には<strong>22,000枚の案内板</strong>が設置されているが、当該施設での迷子率は<strong>99.1%</strong>を記録しており、案内板を持つ施設の中で最高値である。調査の結果、案内板の<strong>88%が互いに矛盾する方向を示している</strong>ことが判明した。施設管理者は「<em>案内板の数を倍にする計画がある</em>」と発表した。`,
+    star: "グリーゼ667Ca",
+    holder: "ヴォッホム・コンプレックス管理局",
+    year: "第11銀河標準暦",
+    disputed: false
+  },
+  {
+    id: "IGWR-1297-ΙΚ-090",
+    category: "社会",
+    title: "最も短い時間で最も多くの法律が廃止された記録",
+    body: `ケプラー62b星系において、<strong>0.44ゴッブ</strong>の間に<strong>88,000件の法律</strong>が廃止された。廃止の契機は「<em>法律データベースの整理作業中に担当者がキーを押し間違えた</em>」ことであり、廃止された法律の内容は事後的にも確認できなかった。廃止後の星系の状態について市民の<strong>78%</strong>が「<em>特に何も変わっていない</em>」と回答したが、残り<strong>22%</strong>は「<em>少し軽くなった気がする</em>」と述べた。`,
+    star: "ケプラー62b",
+    holder: "ケプラー62b星系法務局（誤操作担当者：匿名）",
+    year: "第5銀河標準暦",
+    disputed: false
+  },
+  {
+    id: "IGWR-1311-ΛΜ-091",
+    category: "食",
+    title: "最も多くの個体が食べたが誰も名前を知らない料理",
+    body: `HD209458b星系において、<strong>推定44億個体</strong>が摂取したことが記録されている食品には公式名称が存在しない。当該食品の説明を求めると全個体が異なる名称を述べるが、提示された現物については全員が「<em>これだ</em>」と同意する。食品規制当局は名称の登録を試みているが、公聴会のたびに<strong>4,400種以上の異なる名称が提出</strong>されるため登録が完了していない。`,
+    star: "HD 209458b",
+    holder: "HD209458b星系全消費者",
+    year: "第4〜現在銀河標準暦",
+    disputed: false
+  },
+  {
+    id: "IGWR-1325-ΝΞ-092",
+    category: "音",
+    title: "最も多くの個体が「聴いた」と主張したが記録装置に残らなかった音楽",
+    body: `ケプラー22b星系のヴォッホ・ウィン氏による演奏会は<strong>88万個体</strong>が観覧したが、全ての記録装置には「<em>無音</em>」しか記録されていない。観覧者は全員が「<em>素晴らしい演奏だった</em>」と評しており、内容を尋ねると各自が異なる音楽を描写した。ヴォッホ・ウィン氏は「<em>確かに演奏した</em>」と述べたが、何を演奏したかについては「<em>それぞれが聴いたものが正しい</em>」とのみ回答した。`,
+    star: "ケプラー22b",
+    holder: "ヴォッホ・ウィン",
+    year: "第6銀河標準暦",
+    disputed: true
+  },
+  {
+    id: "IGWR-1339-ΟΠ-093",
+    category: "移動",
+    title: "最も多くの乗り物が同時に出発した結果最も静かだった記録",
+    body: `グリーゼ581c星系の交通ハブから<strong>同時に4,400台の乗り物</strong>が出発した際、観測された音量は<strong>通常の一台出発時の0.3倍</strong>であった。物理的説明は現在も得られていないが、当事者への調査では「<em>皆が遠慮したと思う</em>」という証言が最多であった。当該星系では以来、重要な出発はできるだけ多くの乗り物を同時に出発させる慣習が生まれた。`,
+    star: "グリーゼ581c",
+    holder: "4,400台の乗り物（乗務員全員）",
+    year: "第8銀河標準暦",
+    disputed: true
+  },
+  {
+    id: "IGWR-1353-ΡΣ-094",
+    category: "その他",
+    title: "最も多く「最後」と宣言されたが終わらなかったもの",
+    body: `タウ・セチe星系の「<em>ヴォッボム祭・最終回</em>」は、「最終回」と宣言されてから<strong>4,400銀河標準暦</strong>にわたり毎年開催されている。「最終回」宣言の総数は<strong>4,400回</strong>であり、宣言のたびに参加者数が増加する傾向がある。現在の主催者はイベントの開始時期を知らないが、「<em>最終回であることは伝統である</em>」との立場を維持している。`,
+    star: "タウ・セチe",
+    holder: "ヴォッボム祭実行委員会（歴代）",
+    year: "第1〜現在銀河標準暦",
+    disputed: false
+  },
+  {
+    id: "IGWR-1367-ΤΥ-095",
+    category: "精神",
+    title: "最も多くの個体が「あれ？」と同時に発声した記録",
+    body: `ケプラー186e星系の全人口<strong>約6億個体</strong>が、銀河標準暦の特定の瞬間に「<em>ヴィッ？</em>（訳注：「あれ？」に相当する短い疑問発声。困惑や小さな気づきを示す）」と発声した記録が残っている。発声の原因は不明であり、発声した個体も「<em>なんとなく言いたくなった</em>」としか説明できなかった。発声後<strong>0.001ゴッブ以内</strong>に全個体が通常の行動を再開した。`,
+    star: "ケプラー186e",
+    holder: "ケプラー186e星系全住民",
+    year: "第7銀河標準暦",
+    disputed: false
+  },
+  {
+    id: "IGWR-1381-ΦΧ-096",
+    category: "社会",
+    title: "最も多くの個体が自発的に参加した最も短い会議",
+    body: `55キャンクリf星系において<strong>22億個体</strong>が参加した会議は、開催から終了まで<strong>0.0002ゴッブ</strong>であった。議題は「<em>会議を開くかどうか</em>」であり、結論は「<em>開いた</em>」であった。議事録は後日配布されたが、内容は「<em>会議が開催された</em>」の一文のみであった。参加者の満足度は<strong>97.3%</strong>であり、「<em>これまでで最も有意義な会議だった</em>」という回答が多かった。`,
+    star: "55キャンクリf",
+    holder: "22億個体（全員）",
+    year: "第10銀河標準暦",
+    disputed: false
+  },
+  {
+    id: "IGWR-1395-ΨΩ-097",
+    category: "建築",
+    title: "最も多くの賞を受賞した建物の影",
+    body: `ケプラー442b星系の「<em>第七ヴォッホム・タワー</em>」が落とす影は、建物本体とは独立した芸術作品として<strong>2,200件の賞</strong>を受賞している。影は時刻と季節によって形状が変化し、批評家は「<em>建物よりも豊かな表現を持つ</em>」と評した。建物の設計者は影の存在を意図していなかったが、現在は影を意識して建物の位置調整を年<strong>44回</strong>実施している。`,
+    star: "ケプラー442b",
+    holder: "第七ヴォッホム・タワーの影",
+    year: "第3銀河標準暦〜現在",
+    disputed: false
+  },
+  {
+    id: "IGWR-1409-ΑΓ-098",
+    category: "食",
+    title: "最も長く「温め直し中」の料理",
+    body: `グリーゼ667Cc星系のロッホ・ウィン氏宅の調理器具には、<strong>880銀河標準暦</strong>にわたり同一の料理が「温め直し中」の状態にある。ロッホ・ウィン氏は「<em>もう少し温まったら食べる</em>」と繰り返し述べており、調理器具は世代交代を経て現在も正常に作動している。料理の原形は完全に失われているが、器具内の物質は「<em>安定した状態にある</em>」と定期検査で確認されており、ロッホ・ウィン家は毎年「食べるかもしれない」と申告している。`,
+    star: "グリーゼ667Cc",
+    holder: "ロッホ・ウィン家（歴代）",
+    year: "第1〜現在銀河標準暦",
+    disputed: false
+  },
+  {
+    id: "IGWR-1423-ΔΕ-099",
+    category: "身体",
+    title: "最も多くの個体が羨んだが誰も真似しなかった身体的特徴",
+    body: `HD40307g星系のウムボ・ヴィン氏が持つ「<em>第四感覚器</em>」（訳注：当該種が一般的に持たない感覚器官で、周囲の温度を色として認識する機能を持つ）は、<strong>4億4千万個体</strong>から「<em>欲しい</em>」と表明されたが、医学的に移植・再現が可能であるにもかかわらず実際に取得した個体は<strong>0</strong>である。理由を問われた個体の多くは「<em>欲しいとは思うが</em>」とのみ回答した。`,
+    star: "HD 40307g",
+    holder: "ウムボ・ヴィン",
+    year: "第12銀河標準暦",
+    disputed: false
+  },
+  {
+    id: "IGWR-1437-ΖΗ-100",
+    category: "その他",
+    title: "最後の記録（暫定）",
+    body: `本データベースの第100番目の記録は、「<em>データベースの最後の記録である</em>」という事実のみを内容とする。IGWRは当初この枠に別の記録を登録する予定であったが、「<em>最後の記録が何であるか</em>」についての委員会内での議論が<strong>440銀河標準暦</strong>続いた末、「最後の記録についての議論そのもの」を記録することで合意した。なお本記録の登録後、データベースに第101番目の記録が追加される可能性については「<em>まだ考え中</em>」である。`,
+    star: "銀河全域（IGWRデータベース管轄）",
+    holder: "IGWR記録委員会（全委員）",
+    year: "第14銀河標準暦",
+    disputed: true
+  }
+];
+
+let currentFilter = "all";
+let featuredIndex = Math.floor(Math.random() * records.length);
+
+function getFilteredRecords() {
+  if (currentFilter === "all") return records;
+  return records.filter(r => r.category === currentFilter);
+}
+
+function renderCard(record, size = "small") {
+  const disputedClass = record.disputed ? " disputed" : "";
+  return `
+    <div class="record-card ${size}${disputedClass}" onclick="openModal('${record.id}')">
+      <div class="record-id">${record.id}</div>
+      <div class="record-category">${record.category}</div>
+      <div class="record-title">${record.title}</div>
+      <div class="record-body">${record.body}</div>
+      <div class="record-meta">
+        <div class="meta-item">
+          <span class="meta-label">記録保持者</span>
+          <span class="meta-value">${record.holder}</span>
+        </div>
+        <div class="meta-item">
+          <span class="meta-label">星系</span>
+          <span class="meta-value">${record.star}星系</span>
+        </div>
+        <div class="meta-item">
+          <span class="meta-label">登録年</span>
+          <span class="meta-value">${record.year}</span>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function render() {
+  const filtered = getFilteredRecords();
+
+  // featured
+  const featuredRecord = filtered[featuredIndex % filtered.length];
+  document.getElementById("featured-record").innerHTML = renderCard(featuredRecord, "");
+
+  // list (exclude featured)
+  const rest = filtered.filter((_, i) => i !== featuredIndex % filtered.length);
+  document.getElementById("records-list").innerHTML = rest.map(r => renderCard(r)).join("");
+
+  // count
+  document.getElementById("count-display").textContent = `${filtered.length}件`;
+}
+
+function openModal(id) {
+  const record = records.find(r => r.id === id);
+  if (!record) return;
+  const disputedClass = record.disputed ? " disputed" : "";
+  document.getElementById("modal-content").innerHTML = `
+    <button class="modal-close" id="modal-close">✕</button>
+    <div class="record-id">${record.id}</div>
+    <div class="record-category">${record.category}</div>
+    <div class="record-title">${record.title}</div>
+    <div class="record-body">${record.body}</div>
+    <div class="record-meta">
+      <div class="meta-item">
+        <span class="meta-label">記録保持者</span>
+        <span class="meta-value">${record.holder}</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">星系</span>
+        <span class="meta-value">${record.star}星系</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">登録年</span>
+        <span class="meta-value">${record.year}</span>
+      </div>
+    </div>
+    ${record.disputed ? '<div style="margin-top:1rem;font-family:\'Space Mono\',monospace;font-size:0.65rem;color:var(--red);letter-spacing:0.1em;">⚑ この記録は現在争われています</div>' : ''}
+  `;
+  document.getElementById("modal-overlay").classList.add("open");
+  document.getElementById("modal-close").onclick = closeModal;
+}
+
+function closeModal() {
+  document.getElementById("modal-overlay").classList.remove("open");
+}
+
+document.getElementById("modal-overlay").addEventListener("click", function(e) {
+  if (e.target === this) closeModal();
+});
+
+document.querySelectorAll("button[data-filter]").forEach(btn => {
+  btn.addEventListener("click", function() {
+    document.querySelectorAll("button[data-filter]").forEach(b => b.classList.remove("active"));
+    this.classList.add("active");
+    currentFilter = this.dataset.filter;
+    featuredIndex = Math.floor(Math.random() * getFilteredRecords().length);
+    render();
+  });
+});
+
+document.getElementById("random-btn").addEventListener("click", function() {
+  const filtered = getFilteredRecords();
+  featuredIndex = Math.floor(Math.random() * filtered.length);
+  render();
+  window.scrollTo({ top: 0, behavior: "smooth" });
+});
+
+render();
+</script>
+</body>
+</html>
