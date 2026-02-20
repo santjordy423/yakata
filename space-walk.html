@@ -1,0 +1,1036 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SPACE WALK // 宇宙散歩</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: #05080f;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  min-height: 100vh; font-family: 'Courier New', monospace; color: #88aacc; overflow: hidden;
+}
+#gameWrap { position: relative; border: 1px solid #1a2a4a; box-shadow: 0 0 40px rgba(0,255,255,0.1); }
+canvas { display: block; }
+#ui {
+  position: absolute; top: 10px; left: 10px; right: 10px;
+  display: flex; justify-content: space-between; pointer-events: none; gap: 6px;
+}
+.ui-box {
+  background: rgba(5,8,15,0.85); border: 1px solid #1a2a4a;
+  padding: 5px 10px; font-size: 10px; letter-spacing: 2px; color: #00ffff; white-space: nowrap;
+}
+#btnInv { pointer-events: all; cursor: pointer; border-color: #ffaa00; color: #ffaa00; }
+#btnInv:hover { background: rgba(255,170,0,0.1); }
+#itemLog {
+  position: absolute; bottom: 90px; left: 0; right: 0; text-align: center;
+  font-size: 12px; letter-spacing: 2px; color: #ffaa00; pointer-events: none;
+  opacity: 0; transition: opacity 0.4s; text-shadow: 0 0 10px rgba(255,170,0,0.5);
+}
+#itemDesc {
+  position: absolute; bottom: 72px; left: 0; right: 0; text-align: center;
+  font-size: 10px; letter-spacing: 1px; color: #886633; pointer-events: none;
+  opacity: 0; transition: opacity 0.4s;
+}
+#biomeLabel {
+  position: absolute; top: 40px; left: 50%; transform: translateX(-50%);
+  font-size: 10px; letter-spacing: 4px; color: rgba(255,255,255,0.3);
+  pointer-events: none; transition: opacity 1s; opacity: 0;
+}
+#mobileCtrl {
+  display: none; position: absolute; bottom: 8px; left: 0; right: 0;
+  justify-content: space-between; padding: 0 20px;
+}
+.mbtn {
+  background: rgba(0,255,255,0.07); border: 1px solid rgba(0,255,255,0.2);
+  color: #00ffff; font-size: 18px; width: 50px; height: 50px; border-radius: 4px;
+  cursor: pointer; user-select: none; display: flex; align-items: center; justify-content: center;
+}
+@media (max-width: 700px) { #mobileCtrl { display: flex; } }
+#controlBar {
+  margin-top: 8px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap;
+  justify-content: center; background: rgba(8,12,24,0.95); border: 1px solid #1a2a4a;
+  padding: 7px 16px; font-size: 10px; letter-spacing: 2px;
+}
+.ctrl-label { color: #334466; }
+.ctrl-hint { color: #445566; }
+.vol-group { display: flex; align-items: center; gap: 6px; }
+.vol-group span { color: #00ffff; min-width: 24px; }
+input[type=range] {
+  -webkit-appearance: none; width: 70px; height: 3px;
+  background: #1a2a4a; border-radius: 2px; outline: none;
+}
+input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none; width: 10px; height: 10px;
+  border-radius: 50%; background: #00ffff; cursor: pointer;
+}
+.tog-btn {
+  background: transparent; border: 1px solid #334466; color: #00ffff;
+  font-family: 'Courier New', monospace; font-size: 9px; letter-spacing: 2px;
+  padding: 3px 8px; cursor: pointer;
+}
+.tog-btn.off { color: #334466; border-color: #1a2a4a; }
+#invOverlay {
+  display: none; position: absolute; inset: 0; background: rgba(2,4,12,0.93);
+  z-index: 100; align-items: center; justify-content: center;
+}
+#invOverlay.open { display: flex; }
+#invBox {
+  background: #080e20; border: 1px solid #1a3060;
+  width: 88%; max-width: 500px; max-height: 80%; display: flex; flex-direction: column; overflow: hidden;
+}
+#invHeader {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 12px 16px; border-bottom: 1px solid #1a2a4a;
+}
+#invHeader h2 { font-size: 11px; letter-spacing: 4px; color: #ffaa00; }
+#invClose { background: transparent; border: none; color: #334466; font-size: 18px; cursor: pointer; }
+#invClose:hover { color: #ff3355; }
+#invList { overflow-y: auto; padding: 12px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.inv-item { background: #0a1020; border: 1px solid #1a2a4a; padding: 10px 12px; }
+.inv-name { color: #ffaa00; font-size: 11px; margin-bottom: 4px; }
+.inv-desc { font-size: 9px; color: #445566; letter-spacing: 1px; line-height: 1.4; }
+.inv-empty { color: #334466; font-size: 11px; letter-spacing: 3px; padding: 24px; text-align: center; grid-column: 1/-1; }
+</style>
+</head>
+<body>
+<div id="gameWrap">
+  <canvas id="c"></canvas>
+  <div id="ui">
+    <div class="ui-box">DIST: <span id="distVal">0</span>m</div>
+    <div class="ui-box">ITEMS: <span id="itemVal">0</span></div>
+    <div class="ui-box" id="btnInv" onclick="openInventory()">[ I ] BAG</div>
+  </div>
+  <div id="biomeLabel"></div>
+  <div id="itemLog"></div>
+  <div id="itemDesc"></div>
+  <div id="mobileCtrl">
+    <button class="mbtn" id="btnL">←</button>
+    <button class="mbtn" id="btnJump">↑</button>
+    <button class="mbtn" id="btnR">→</button>
+  </div>
+  <div id="invOverlay">
+    <div id="invBox">
+      <div id="invHeader">
+        <h2>✦ COLLECTED ITEMS // 拾ったもの</h2>
+        <button id="invClose" onclick="closeInventory()">✕</button>
+      </div>
+      <div id="invList"></div>
+    </div>
+  </div>
+</div>
+<div id="controlBar">
+  <span class="ctrl-hint">← → 移動 | SPACE ジャンプ | I バッグ</span>
+  <span class="ctrl-label">BGM</span>
+  <div class="vol-group"><input type="range" id="sBGM" min="0" max="100" value="60"><span id="vBGM">60</span></div>
+  <button class="tog-btn" id="tBGM">ON</button>
+  <span class="ctrl-label">SE</span>
+  <div class="vol-group"><input type="range" id="sSE" min="0" max="100" value="60"><span id="vSE">60</span></div>
+</div>
+
+<script>
+// === CANVAS ===
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+const GW = Math.min(window.innerWidth - 4, 800);
+const GH = Math.min(window.innerHeight - 96, 440);
+canvas.width = GW; canvas.height = GH;
+const PS = Math.max(2, Math.floor(GW / 220));
+const FLOOR = GH - 72;
+const SPRITE_W = 16 * PS;
+const SPRITE_H = 20 * PS;
+
+// === AUDIO ===
+let audioCtx = null;
+let BGM_VOL = 0.07, SE_VOL = 0.15, bgmMuted = false;
+function getAudio() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+  return audioCtx;
+}
+function tone(freq, dur, type, vol) {
+  const a = getAudio(), o = a.createOscillator(), g = a.createGain();
+  o.type = type; o.frequency.value = freq;
+  g.gain.setValueAtTime(vol, a.currentTime);
+  g.gain.exponentialRampToValueAtTime(0.0001, a.currentTime + dur);
+  o.connect(g); g.connect(a.destination);
+  o.start(); o.stop(a.currentTime + dur + 0.02);
+}
+function playJump() { tone(280, 0.06, 'square', SE_VOL*0.6); tone(520, 0.08, 'square', SE_VOL*0.4); }
+function playPickup() { [523,659,784,1047].forEach((f,i) => setTimeout(() => tone(f, 0.09, 'square', SE_VOL*0.7), i*55)); }
+let bgmTimer = null, bgmI = 0;
+const BGM_NOTES = [261,293,329,261,349,329,293,261,392,349,329,293,261,293,329,349];
+function startBGM() {
+  if (bgmTimer) return;
+  bgmTimer = setInterval(() => {
+    if (!bgmMuted) tone(BGM_NOTES[bgmI % BGM_NOTES.length], 0.26, 'triangle', BGM_VOL);
+    bgmI++;
+  }, 310);
+}
+
+// === BIOMES ===
+const BIOMES = [
+  { name:'DEEP SPACE // 深宇宙',     skyT:'#020510', skyB:'#060b1a', gT:'#0d1830', gB:'#060e20', gL:'#1a3060', pC:'#0d2040', pT:'#1a3a70', nH:210, nS:60, stars:true },
+  { name:'GOLDEN CITY // 黄金都市',  skyT:'#1a0e00', skyB:'#2a1a00', gT:'#1e1200', gB:'#100a00', gL:'#604010', pC:'#3a2800', pT:'#c8880a', nH:40,  nS:80, stars:true,  buildings:true },
+  { name:'WASTELAND // 荒野',        skyT:'#100a06', skyB:'#1c1008', gT:'#2a1a0c', gB:'#1a1008', gL:'#603020', pC:'#3a2010', pT:'#885030', nH:18,  nS:55, stars:true,  rocks:true },
+  { name:'ICE MOUNTAINS // 氷山脈',  skyT:'#000810', skyB:'#001020', gT:'#102030', gB:'#081520', gL:'#304878', pC:'#102040', pT:'#6090c0', nH:200, nS:55, stars:true,  mountains:true },
+  { name:'NEON JUNGLE // ネオン密林',skyT:'#010a04', skyB:'#021208', gT:'#041a08', gB:'#020e04', gL:'#0a4020', pC:'#042010', pT:'#00ff88', nH:140, nS:80, stars:false, jungle:true },
+];
+const BIOME_LEN = 1200;
+function getBiomeBlend(wx) {
+  const pos = wx / BIOME_LEN, idx = Math.floor(pos), t = pos - idx;
+  return {
+    a: BIOMES[((idx % BIOMES.length) + BIOMES.length) % BIOMES.length],
+    b: BIOMES[(((idx+1) % BIOMES.length) + BIOMES.length) % BIOMES.length],
+    t
+  };
+}
+function lerpHex(h1, h2, t) {
+  const p = h => [parseInt(h.slice(1,3),16), parseInt(h.slice(3,5),16), parseInt(h.slice(5,7),16)];
+  const a = p(h1), b = p(h2);
+  return `rgb(${Math.round(a[0]+(b[0]-a[0])*t)},${Math.round(a[1]+(b[1]-a[1])*t)},${Math.round(a[2]+(b[2]-a[2])*t)})`;
+}
+
+// === SPRITES ===
+// シンプルな金髪の子
+// カラーパレット
+const C = {
+  _:null,
+  h:'#f0c830', // hair yellow
+  H:'#d4a820', // hair shadow
+  s:'#f5d5b8', // skin
+  e:'#3a2010', // eyes/outline
+  b:'#e8c8a0', // skin light
+  S:'#a8d4f0', // shirt light blue
+  s2:'#88b8e0',// shirt shadow
+  k:'#3a3a5a', // skirt/pants dark
+  K:'#4a4a6a', // skirt lighter
+  l:'#f5d5b8', // legs skin
+  o:'#e8a888', // leg shadow
+  w:'#ffffff', // white
+  r:'#ff8888', // cheek blush
+  g:'#88cc88', // shoe green
+  G:'#669966', // shoe shadow
+};
+
+// 16x18 シンプルスプライト
+// 立ちポーズ
+const IDLE_A = [
+  '_,_,_,_,h,h,h,h,h,_,_,_,_,_,_,_',
+  '_,_,_,h,h,h,h,h,h,h,_,_,_,_,_,_',
+  '_,_,_,h,s,s,s,s,s,h,_,_,_,_,_,_',
+  '_,_,_,h,s,e,s,e,s,h,_,_,_,_,_,_',
+  '_,_,_,h,r,s,s,s,r,h,_,_,_,_,_,_',
+  '_,_,_,_,h,s,s,s,h,_,_,_,_,_,_,_',
+  '_,_,_,_,_,h,h,h,_,_,_,_,_,_,_,_',
+  '_,_,_,S,S,S,S,S,S,_,_,_,_,_,_,_',
+  '_,_,S,S,s2,S,S,s2,S,S,_,_,_,_,_,_',
+  '_,_,S,S,S,S,S,S,S,S,_,_,_,_,_,_',
+  '_,_,_,S,S,S,S,S,S,_,_,_,_,_,_,_',
+  '_,_,_,k,k,_,_,k,k,_,_,_,_,_,_,_',
+  '_,_,_,k,k,_,_,k,k,_,_,_,_,_,_,_',
+  '_,_,_,k,k,_,_,k,k,_,_,_,_,_,_,_',
+  '_,_,_,k,k,_,_,k,k,_,_,_,_,_,_,_',
+  '_,_,_,g,g,_,_,g,g,_,_,_,_,_,_,_',
+  '_,_,_,G,G,_,_,G,G,_,_,_,_,_,_,_',
+  '_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_',
+];
+// 立ちポーズ2（ちょっと揺れ）
+const IDLE_B = [
+  '_,_,_,_,h,h,h,h,h,_,_,_,_,_,_,_',
+  '_,_,_,h,h,h,h,h,h,h,_,_,_,_,_,_',
+  '_,_,_,h,s,s,s,s,s,h,_,_,_,_,_,_',
+  '_,_,_,h,s,e,s,e,s,h,_,_,_,_,_,_',
+  '_,_,_,h,r,s,s,s,r,h,_,_,_,_,_,_',
+  '_,_,_,_,h,s,s,s,h,_,_,_,_,_,_,_',
+  '_,_,_,_,_,h,h,h,_,_,_,_,_,_,_,_',
+  '_,_,_,S,S,S,S,S,S,_,_,_,_,_,_,_',
+  '_,_,S,S,s2,S,S,s2,S,S,_,_,_,_,_,_',
+  '_,_,S,S,S,S,S,S,S,S,_,_,_,_,_,_',
+  '_,_,_,S,S,S,S,S,S,_,_,_,_,_,_,_',
+  '_,_,_,k,k,_,_,k,k,_,_,_,_,_,_,_',
+  '_,_,_,k,k,_,_,k,k,_,_,_,_,_,_,_',
+  '_,_,_,k,k,_,_,k,k,_,_,_,_,_,_,_',
+  '_,_,_,k,k,_,_,k,k,_,_,_,_,_,_,_',
+  '_,_,_,g,g,_,_,g,g,_,_,_,_,_,_,_',
+  '_,_,_,G,G,_,_,G,G,_,_,_,_,_,_,_',
+  '_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_',
+];
+// 歩き1（左足前）
+const WALK_A = [
+  '_,_,_,_,h,h,h,h,h,_,_,_,_,_,_,_',
+  '_,_,_,h,h,h,h,h,h,h,_,_,_,_,_,_',
+  '_,_,_,h,s,s,s,s,s,h,_,_,_,_,_,_',
+  '_,_,_,h,s,e,s,e,s,h,_,_,_,_,_,_',
+  '_,_,_,h,r,s,s,s,r,h,_,_,_,_,_,_',
+  '_,_,_,_,h,s,s,s,h,_,_,_,_,_,_,_',
+  '_,_,_,_,_,h,h,h,_,_,_,_,_,_,_,_',
+  '_,_,_,S,S,S,S,S,S,_,_,_,_,_,_,_',
+  '_,_,S,S,s2,S,S,s2,S,S,_,_,_,_,_,_',
+  '_,_,S,S,S,S,S,S,S,S,_,_,_,_,_,_',
+  '_,_,_,S,S,S,S,S,S,_,_,_,_,_,_,_',
+  '_,_,_,k,k,_,_,k,k,_,_,_,_,_,_,_',
+  '_,_,_,k,k,_,_,k,k,_,_,_,_,_,_,_',
+  '_,_,k,k,_,_,_,_,k,k,_,_,_,_,_,_',
+  '_,k,k,_,_,_,_,_,_,k,k,_,_,_,_,_',
+  '_,g,g,_,_,_,_,_,_,_,g,_,_,_,_,_',
+  '_,G,G,_,_,_,_,_,_,_,G,_,_,_,_,_',
+  '_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_',
+];
+// 歩き2（足閉じ）
+const WALK_B = IDLE_A;
+// 歩き3（右足前）
+const WALK_C = [
+  '_,_,_,_,h,h,h,h,h,_,_,_,_,_,_,_',
+  '_,_,_,h,h,h,h,h,h,h,_,_,_,_,_,_',
+  '_,_,_,h,s,s,s,s,s,h,_,_,_,_,_,_',
+  '_,_,_,h,s,e,s,e,s,h,_,_,_,_,_,_',
+  '_,_,_,h,r,s,s,s,r,h,_,_,_,_,_,_',
+  '_,_,_,_,h,s,s,s,h,_,_,_,_,_,_,_',
+  '_,_,_,_,_,h,h,h,_,_,_,_,_,_,_,_',
+  '_,_,_,S,S,S,S,S,S,_,_,_,_,_,_,_',
+  '_,_,S,S,s2,S,S,s2,S,S,_,_,_,_,_,_',
+  '_,_,S,S,S,S,S,S,S,S,_,_,_,_,_,_',
+  '_,_,_,S,S,S,S,S,S,_,_,_,_,_,_,_',
+  '_,_,_,k,k,_,_,k,k,_,_,_,_,_,_,_',
+  '_,_,_,k,k,_,_,k,k,_,_,_,_,_,_,_',
+  '_,_,k,k,_,_,_,_,k,k,_,_,_,_,_,_',
+  '_,k,k,_,_,_,_,_,_,k,k,_,_,_,_,_',
+  '_,_,g,_,_,_,_,_,_,g,g,_,_,_,_,_',
+  '_,_,G,_,_,_,_,_,_,G,G,_,_,_,_,_',
+  '_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_',
+];
+// ジャンプ
+const JUMP_F = [
+  '_,_,_,_,h,h,h,h,h,_,_,_,_,_,_,_',
+  '_,_,_,h,h,h,h,h,h,h,_,_,_,_,_,_',
+  '_,_,_,h,s,s,s,s,s,h,_,_,_,_,_,_',
+  '_,_,_,h,s,e,s,e,s,h,_,_,_,_,_,_',
+  '_,_,_,h,r,s,s,s,r,h,_,_,_,_,_,_',
+  '_,_,_,_,h,s,s,s,h,_,_,_,_,_,_,_',
+  '_,_,_,_,_,h,h,h,_,_,_,_,_,_,_,_',
+  '_,_,_,S,S,S,S,S,S,_,_,_,_,_,_,_',
+  '_,_,S,S,s2,S,S,s2,S,S,_,_,_,_,_,_',
+  '_,_,S,S,S,S,S,S,S,S,_,_,_,_,_,_',
+  '_,_,_,S,S,S,S,S,S,_,_,_,_,_,_,_',
+  '_,_,_,k,k,_,_,k,k,_,_,_,_,_,_,_',
+  '_,_,k,k,_,_,_,_,k,k,_,_,_,_,_,_',
+  'k,k,_,_,_,_,_,_,_,_,k,k,_,_,_,_',
+  'g,g,_,_,_,_,_,_,_,_,g,g,_,_,_,_',
+  'G,G,_,_,_,_,_,_,_,_,G,G,_,_,_,_',
+  '_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_',
+  '_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_',
+];
+
+const SPR = { w0:WALK_A, w1:WALK_B, w2:WALK_C, jmp:JUMP_F };
+
+function drawSprite(rows, x, y, flip) {
+  const parsed = rows.map(r => r.split(','));
+  ctx.save();
+  if (flip) { ctx.scale(-1,1); x = -x - parsed[0].length * PS; }
+  parsed.forEach((row, ry) => row.forEach((col, rx) => {
+    if (col !== '_' && C[col]) {
+      ctx.fillStyle = C[col];
+      ctx.fillRect(Math.round(x+rx*PS), Math.round(y+ry*PS), PS, PS);
+    }
+  }));
+  ctx.restore();
+}
+
+// === WORLD ===
+const CHUNK_W = 500;
+const chunks = {};
+const ITEMS_DB = [
+  ['謎の石ころ','普通の石。でもなんか光ってる。'],
+  ['宇宙缶','何かの飲み物。賞味期限不明。'],
+  ['古いネジ','誰かの宇宙船から落ちたっぽい。'],
+  ['メモ帳','「帰りたい」とだけ書いてある。'],
+  ['結晶片','きれい。でも役に立たない。'],
+  ['宇宙ゴミ','ゴミ。でも拾ってしまう。'],
+  ['謎のカプセル','開けたら空だった。'],
+  ['干からびた花','どこから来たんだろう。'],
+  ['折れたアンテナ','電波は拾えない。'],
+  ['サビたコイン','価値は不明。たぶんゼロ。'],
+  ['宇宙ドングリ','ドングリ？なんで？'],
+  ['光る砂','さらさらしてる。'],
+  ['古地図の切れ端','読めない文字で埋まってる。'],
+  ['ちっさいロボ','壊れてる。でもかわいい。'],
+  ['謎のボタン','押してみた。何も起きなかった。'],
+  ['星のかけら','冷たい。宇宙の温度だ。'],
+  ['誰かの手袋','片方だけ。'],
+  ['透明な瓶','中に何かいた気がした。'],
+  ['古い写真','誰だかわからない。'],
+  ['宇宙芋','食べられるかもしれない。'],
+];
+function rng(seed) { const x = Math.sin(seed+1)*99999; return x-Math.floor(x); }
+function getChunk(ci) {
+  if (chunks[ci]) return chunks[ci];
+  const platforms = [], items = [];
+  for (let i=0; i<5; i++) {
+    if (rng(ci*71+i*13) > 0.35) {
+      const px = ci*CHUNK_W + rng(ci*71+i*13+1)*(CHUNK_W-110)+40;
+      const py = FLOOR - 55 - rng(ci*71+i*13+2)*100;
+      const pw = 55 + rng(ci*71+i*13+3)*90;
+      platforms.push({x:px, y:py, w:pw});
+      if (rng(ci*71+i*13+4) > 0.35) {
+        const idx = Math.floor(rng(ci*71+i*13+5)*ITEMS_DB.length);
+        items.push({x:px+pw/2, y:py-18, name:ITEMS_DB[idx][0], desc:ITEMS_DB[idx][1], collected:false, bob:rng(ci*71+i)*Math.PI*2});
+      }
+    }
+  }
+  for (let i=0; i<3; i++) {
+    if (rng(ci*133+i*17) > 0.5) {
+      const idx = Math.floor(rng(ci*133+i*17+1)*ITEMS_DB.length);
+      items.push({x:ci*CHUNK_W+rng(ci*133+i*17+2)*CHUNK_W, y:FLOOR-18, name:ITEMS_DB[idx][0], desc:ITEMS_DB[idx][1], collected:false, bob:rng(ci*133+i)*Math.PI*2});
+    }
+  }
+  return (chunks[ci] = {platforms, items});
+}
+
+// === SHOOTING STARS + METEOR SHOWER ===
+const shootingStars = [];
+let starTick = 0;
+let meteorShower = false;
+let meteorTimer = 0;
+let meteorCooldown = 1400; // 最初はしばらく待つ
+let meteorBGM = false; // 流星群BGMフラグ
+let meteorBGMNotes = [392,440,523,440,392,349,392,523,659,523,440,392];
+let meteorBGMI = 0;
+let meteorBGMTimer = null;
+
+function spawnStar(fast, shower) {
+  const speed = fast ? (10 + Math.random()*14) : (5 + Math.random()*7);
+  const hue = shower ? (180 + Math.random()*80) : 0; // shower時は色付き
+  shootingStars.push({
+    x: Math.random()*GW*1.5,
+    y: -10 + Math.random()*(FLOOR*(shower?0.55:0.25)),
+    vx: -(speed*0.85), vy: speed*0.5,
+    life: 1,
+    thick: fast ? 1.5+Math.random()*2.5 : 1.5,
+    colored: shower,
+    hue,
+  });
+}
+
+function startMeteorBGM() {
+  if (meteorBGMTimer) return;
+  meteorBGM = true;
+  meteorBGMTimer = setInterval(() => {
+    if (!bgmMuted && meteorBGM) {
+      tone(meteorBGMNotes[meteorBGMI % meteorBGMNotes.length], 0.2, 'sine', BGM_VOL*1.6);
+      if (meteorBGMI % 3 === 0) tone(meteorBGMNotes[meteorBGMI % meteorBGMNotes.length]*2, 0.12, 'triangle', BGM_VOL*0.7);
+      meteorBGMI++;
+    }
+  }, 180);
+}
+function stopMeteorBGM() {
+  meteorBGM = false;
+  if (meteorBGMTimer) { clearInterval(meteorBGMTimer); meteorBGMTimer = null; }
+}
+
+// 流星群アナウンス
+let showerLabel = {text:'', opacity:0, timer:0};
+function triggerMeteorShower() {
+  meteorShower = true;
+  meteorTimer = 300 + Math.floor(Math.random()*200);
+  meteorCooldown = 2400 + Math.floor(Math.random()*1800);
+  startMeteorBGM();
+  showerLabel = {text:'✦ METEOR SHOWER // 流星群 ✦', opacity:1, timer:180};
+  // 一気に最初のバーストをスポーン
+  for (let i=0;i<8;i++) setTimeout(()=>spawnStar(true,true), i*80);
+}
+
+// === NPCS ===
+const NPC_LINES = [
+  // 哲学系
+  '存在するとはなにか。\n私が問う前に、問いは存在した。',
+  'あなたが歩くたびに、\n宇宙は少しだけ縮む。',
+  '石を拾う者は、\n石に拾われている。',
+  '時間は流れない。\n流れているのはあなた自身だ。',
+  '孤独とは、\n最も密度の高い状態である。',
+  '光の速さで逃げても、\n過去はついてくる。',
+  '何もないことが、\nすべての始まりだった。',
+  'この道の終わりには、\n別の道の始まりがある。',
+  '鏡は正直だが、\n真実を映したことはない。',
+  '知ることと、\nわかることは別の宇宙にある。',
+  '重力とは愛と同じで、\n近づくほど引き合う。',
+  '言葉は音だ。\n音は振動だ。\n振動は宇宙だ。',
+  'あなたが見ているものは\nすでに過去だ。',
+  '空白を恐れるな。\n空白こそが形を作る。',
+  '忘れることは\n新しい記憶のための余白だ。',
+  // 理解不能言語系
+  'ゾグフラ・ンバ。ンバ。\nゾグゾグ。',
+  'グリーーーイ！！\nグリグリグリ。',
+  'むにゃ むにゃ ぴょん\nぴょん むにゃ。',
+  'BZZZT—KRRK\nXXXXXXXXXXX',
+  'ガガガガガガガガ\nガ。',
+  'ぴぴぴぴぴぴぴ\nぷぷぷぷ。ぴ。',
+  '…………………\n…………………',
+  'ヴぁっ！ヴぁっ！\nヴぁ。',
+  'NN NNN N\nNNNNNNN。',
+  '♦︎▲♦︎▲♦︎▲\n♦︎。',
+  'KZZZZT KZZZZT\nBRRRRRRRRRRRR。',
+  'ふぁぁぁぁ〜\nぁ〜〜〜〜〜〜。',
+  '//ERROR//\n//BEAUTY//',
+  'ぬぅ〜〜〜〜〜〜〜\nぬぅ。',
+  'ちかちかちかちか\nぴかっ。',
+  // ゆるい系
+  'やあ。',
+  '今日もいい天気ですね\n（宇宙なので空はありません）',
+  'ここには何もないよ。\nでも来てくれてよかった。',
+  'わたしはここに\nいつもいる。',
+  'あなたが来る前から\nわたしはここにいた。',
+  'ちょっとつかれた。\nあなたもそう？',
+  'なにか拾った？\nわたしは何も持てない。',
+  '遠くから来たの？\nわたしはずっとここにいる。',
+  '帰り道は覚えてる？\nわたしは忘れた。',
+  'いい靴だね。\nわたしに足はないけど。',
+];
+
+// 流星群中の特別セリフ
+const NPC_SHOWER_LINES = [
+  '見て。\n落ちてくる。\nまた落ちてくる。',
+  'ああいうの見ると\nなんか泣けてくる。\nなんでだろう。',
+  'あれは全部\n誰かの願い事だって\nわたしは信じている。',
+  '☆☆☆☆☆☆☆\n☆☆☆☆☆☆☆',
+  'ドドドドドドドド\nドドドドドドドドド！',
+  '流星群のとき\nだけ歌える歌がある。\nでも今は忘れた。',
+  'これが宇宙の\n本気だよ。',
+];
+
+function makeNPC(worldX, seed) {
+  const tr = rng(seed*77);
+  const type = tr<0.33?'grey': tr<0.62?'green': tr<0.84?'mist':'giant';
+  const scale = type==='giant' ? 3+rng(seed*13)*2 : 1;
+  return {
+    x: worldX, y: FLOOR,
+    type, scale, seed,
+    line: NPC_LINES[Math.floor(rng(seed*91)*NPC_LINES.length)],
+    talking: false, talkTimer: 0,
+    bob: rng(seed*37)*Math.PI*2,
+    mist: rng(seed*53)*Math.PI*2,
+    lastShower: false,
+  };
+}
+
+const npcCache = {};
+function getNPCs(ci) {
+  if (npcCache[ci]) return npcCache[ci];
+  const list = [];
+  for (let i=0;i<2;i++) {
+    if (rng(ci*999+i*301) > 0.72) {
+      list.push(makeNPC(ci*CHUNK_W + rng(ci*999+i*301+1)*CHUNK_W, ci*1000+i));
+    }
+  }
+  return (npcCache[ci] = list);
+}
+
+function drawNPC(npc) {
+  const sx = npc.x - cameraX;
+  if (sx < -120 || sx > GW+120) return;
+  const bob = Math.sin(frameCount*0.04+npc.bob)*3;
+  const u = PS * npc.scale;
+  ctx.save();
+
+  if (npc.type === 'grey' || npc.type === 'giant') {
+    const headR = u*2.5, bodyH = u*2;
+    const by = npc.y - bodyH - headR*2 + bob;
+    const lum = 50 + Math.sin(frameCount*0.03+npc.bob)*6;
+    ctx.fillStyle = `hsl(210,15%,${lum}%)`;
+    ctx.fillRect(sx-u*.6, by+headR*1.8, u*1.2, bodyH);
+    ctx.fillRect(sx-u*1.8, by+headR*2.1, u*1.2, u*.5);
+    ctx.fillRect(sx+u*.6, by+headR*2.1, u*1.2, u*.5);
+    ctx.beginPath();
+    ctx.ellipse(sx, by+headR, headR, headR*1.2, 0, 0, Math.PI*2);
+    ctx.fillStyle = `hsl(210,15%,${lum+5}%)`;
+    ctx.fill();
+    ctx.fillStyle = '#030814';
+    ctx.beginPath(); ctx.ellipse(sx-headR*.35, by+headR*.9, headR*.3, headR*.42, -.2, 0, Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(sx+headR*.35, by+headR*.9, headR*.3, headR*.42,  .2, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle = 'rgba(100,160,255,0.45)';
+    ctx.beginPath(); ctx.arc(sx-headR*.26, by+headR*.76, headR*.1, 0, Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.arc(sx+headR*.42, by+headR*.76, headR*.1, 0, Math.PI*2); ctx.fill();
+
+  } else if (npc.type === 'green') {
+    const r = u*2;
+    const by = npc.y - r*2 + bob;
+    const lum = 32 + Math.sin(frameCount*0.05+npc.bob)*8;
+    ctx.fillStyle = `hsl(130,70%,${lum}%)`;
+    ctx.beginPath(); ctx.ellipse(sx, by+r, r*1.1, r, 0, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle = '#fff';
+    ctx.beginPath(); ctx.arc(sx-r*.3, by+r*.8, r*.28, 0, Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.arc(sx+r*.3, by+r*.8, r*.28, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle = '#111';
+    ctx.beginPath(); ctx.arc(sx-r*.28, by+r*.85, r*.15, 0, Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.arc(sx+r*.28, by+r*.85, r*.15, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle = 'rgba(80,255,100,0.28)';
+    ctx.beginPath(); ctx.arc(sx-r*.55, by+r*1.05, r*.18, 0, Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.arc(sx+r*.55, by+r*1.05, r*.18, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle = `hsl(130,60%,22%)`;
+    ctx.fillRect(sx-r*.5, by+r*1.9, r*.35, r*.4);
+    ctx.fillRect(sx+r*.15, by+r*1.9, r*.35, r*.4);
+
+  } else if (npc.type === 'mist') {
+    const phase = frameCount*0.03+npc.mist;
+    const by = npc.y - u*6 + Math.sin(phase)*8;
+    const hue = 200 + Math.sin(phase*.7)*30;
+    for (let i=0;i<6;i++) {
+      const ox = Math.sin(phase+i*1.1)*u*2, oy = Math.cos(phase*.8+i*.9)*u*1.5;
+      const r = u*(1.5+Math.sin(phase+i)*.5);
+      const grd = ctx.createRadialGradient(sx+ox,by+oy,0,sx+ox,by+oy,r*2.2);
+      grd.addColorStop(0,`hsla(${hue},80%,70%,0.18)`);
+      grd.addColorStop(1,'transparent');
+      ctx.fillStyle=grd;
+      ctx.beginPath(); ctx.arc(sx+ox,by+oy,r*2.2,0,Math.PI*2); ctx.fill();
+    }
+    ctx.fillStyle=`hsla(${hue+40},90%,82%,0.65)`;
+    ctx.beginPath(); ctx.arc(sx,by,u*.55,0,Math.PI*2); ctx.fill();
+  }
+
+  // 吹き出し
+  if (npc.talking && npc.talkTimer > 0) {
+    const lines = npc.line.split('\n');
+    const npcTopY = npc.type==='mist'
+      ? npc.y - u*8 + Math.sin(frameCount*0.03+npc.mist)*8
+      : npc.y - u*6.5 + bob;
+    const fw = Math.max(...lines.map(l=>[...l].length)) * 7.5 + 28;
+    const fh = lines.length*20 + 18;
+    const bx = Math.min(Math.max(sx-fw/2, 6), GW-fw-6);
+    const by2 = npcTopY - fh - 14;
+    const tipX = Math.min(Math.max(sx, bx+10), bx+fw-10);
+
+    ctx.fillStyle = 'rgba(4,7,18,0.94)';
+    ctx.strokeStyle = npc.type==='mist'?'#7799ff':npc.type==='green'?'#44cc66':'#aaaacc';
+    ctx.lineWidth = 1.2;
+    ctx.beginPath(); ctx.roundRect(bx,by2,fw,fh,5); ctx.fill(); ctx.stroke();
+    ctx.fillStyle='rgba(4,7,18,0.94)';
+    ctx.beginPath(); ctx.moveTo(tipX-6,by2+fh); ctx.lineTo(tipX+6,by2+fh); ctx.lineTo(tipX,by2+fh+11); ctx.closePath(); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(tipX-6,by2+fh); ctx.lineTo(tipX,by2+fh+11); ctx.lineTo(tipX+6,by2+fh); ctx.stroke();
+
+    ctx.fillStyle='#ccdeff';
+    ctx.font=`${Math.max(10,PS*1.8)}px 'Courier New',monospace`;
+    ctx.textAlign='center';
+    lines.forEach((l,i)=>ctx.fillText(l, bx+fw/2, by2+20+i*20));
+    ctx.textAlign='left';
+  }
+  ctx.restore();
+}
+
+function updateNPCs() {
+  const c0=Math.floor(cameraX/CHUNK_W)-1, c1=Math.floor((cameraX+GW)/CHUNK_W)+1;
+  for (let ci=c0;ci<=c1;ci++) {
+    for (const npc of getNPCs(ci)) {
+      const dx = Math.abs((player.x+SPRITE_W/2)-npc.x);
+      const near = dx < 55*npc.scale;
+
+      // 流星群が始まった瞬間、近くにいるNPCは特別セリフに切り替え
+      if (meteorShower && !npc.lastShower && near) {
+        npc.line = NPC_SHOWER_LINES[Math.floor(Math.random()*NPC_SHOWER_LINES.length)];
+        npc.lastShower = true;
+        npc.talking = true;
+        npc.talkTimer = 300;
+      } else if (!meteorShower && npc.lastShower) {
+        npc.lastShower = false;
+        npc.line = NPC_LINES[Math.floor(Math.random()*NPC_LINES.length)];
+      }
+
+      if (near) {
+        if (!npc.talking) {
+          npc.talking = true;
+          npc.talkTimer = 220;
+          // 近づくたびにセリフをランダム更新
+          npc.line = meteorShower
+            ? NPC_SHOWER_LINES[Math.floor(Math.random()*NPC_SHOWER_LINES.length)]
+            : NPC_LINES[Math.floor(Math.random()*NPC_LINES.length)];
+        } else if (npc.talkTimer<=0) {
+          npc.talkTimer = 220;
+          npc.line = meteorShower
+            ? NPC_SHOWER_LINES[Math.floor(Math.random()*NPC_SHOWER_LINES.length)]
+            : NPC_LINES[Math.floor(Math.random()*NPC_LINES.length)];
+        }
+      }
+      if (npc.talkTimer>0) npc.talkTimer--;
+      else npc.talking=false;
+    }
+  }
+}
+
+function drawNPCs() {
+  const c0=Math.floor(cameraX/CHUNK_W)-1, c1=Math.floor((cameraX+GW)/CHUNK_W)+1;
+  for (let ci=c0;ci<=c1;ci++) for (const npc of getNPCs(ci)) drawNPC(npc);
+}
+
+// === PLAYER ===
+const GRAVITY = 0.38;
+const player = { x:GW*0.2, y:FLOOR-SPRITE_H, vx:0, vy:0, onGround:true, facing:1, anim:0 };
+const keys = {left:false, right:false, up:false};
+let cameraX = 0, frameCount = 0;
+let collected = [];
+let lastBiome = '';
+
+// === PLATFORM HELPERS ===
+function getPlatBelow(wx, wy, w, h) {
+  for (let ci=Math.floor(wx/CHUNK_W)-1; ci<=Math.floor((wx+w)/CHUNK_W)+1; ci++)
+    for (const p of getChunk(ci).platforms)
+      if (wx+w>p.x+2 && wx<p.x+p.w-2 && wy+h>p.y && wy+h<p.y+16) return p.y;
+  return null;
+}
+function onAnyPlatform(wx, wy, w, h) {
+  for (let ci=Math.floor(wx/CHUNK_W)-1; ci<=Math.floor((wx+w)/CHUNK_W)+1; ci++)
+    for (const p of getChunk(ci).platforms)
+      if (wx+w>p.x+2 && wx<p.x+p.w-2 && Math.abs((wy+h)-p.y)<5) return true;
+  return false;
+}
+
+// === DRAW ===
+function drawBG() {
+  const cx = cameraX + GW/2;
+  const {a,b,t} = getBiomeBlend(cx);
+  const g = ctx.createLinearGradient(0,0,0,FLOOR);
+  g.addColorStop(0, lerpHex(a.skyT,b.skyT,t));
+  g.addColorStop(1, lerpHex(a.skyB,b.skyB,t));
+  ctx.fillStyle = g; ctx.fillRect(0,0,GW,FLOOR);
+
+  // nebula
+  const nH = a.nH + (b.nH-a.nH)*t, nS = a.nS + (b.nS-a.nS)*t;
+  const ng = ctx.createRadialGradient(GW*.65,FLOOR*.3,10,GW*.65,FLOOR*.3,FLOOR*.75);
+  ng.addColorStop(0,`hsla(${nH},${nS}%,28%,0.13)`);
+  ng.addColorStop(1,'transparent');
+  ctx.fillStyle = ng; ctx.fillRect(0,0,GW,FLOOR);
+
+  // parallax stars
+  const starOp = ((a.stars?1:0)*(1-t) + (b.stars?1:0)*t);
+  if (starOp > 0.05) {
+    ctx.fillStyle = `rgba(255,255,255,${0.65*starOp})`;
+    for (let i=0;i<60;i++) {
+      const sx = (rng(i*137)*GW*5 - (cameraX*0.08)%(GW*5) + GW*5)%(GW*5);
+      if (sx>GW) continue;
+      const sy = rng(i*137+1)*(FLOOR*.88);
+      ctx.fillRect(sx%GW, sy, rng(i*137+2)>.88?2:1, rng(i*137+2)>.88?2:1);
+    }
+  }
+
+  // biome BG elements
+  if (a.buildings || b.buildings) {
+    const op = (a.buildings?(1-t):0)+(b.buildings?t:0);
+    ctx.save(); ctx.globalAlpha = op*0.32;
+    for (let i=0;i<7;i++) {
+      const bx = (rng(i*31)*GW*2.5-(cameraX*.18)%(GW*2.5)+GW*2.5)%(GW*2.5);
+      if (bx>GW+60) continue;
+      const bh=45+rng(i*31+1)*85, bw=18+rng(i*31+2)*26;
+      ctx.fillStyle=`hsl(40,65%,${10+rng(i*31+3)*8}%)`;
+      ctx.fillRect(bx-bw/2,FLOOR-bh,bw,bh);
+      ctx.fillStyle=`hsla(48,90%,65%,0.55)`;
+      for (let wy=FLOOR-bh+6;wy<FLOOR-8;wy+=10)
+        for (let wx2=bx-bw/2+4;wx2<bx+bw/2-4;wx2+=8)
+          if (rng(wy*17+wx2*3+i)>0.42) ctx.fillRect(wx2,wy,3,5);
+    }
+    ctx.restore();
+  }
+  if (a.mountains || b.mountains) {
+    const op = (a.mountains?(1-t):0)+(b.mountains?t:0);
+    ctx.save(); ctx.globalAlpha = op*0.42;
+    for (let i=0;i<6;i++) {
+      const mx=(rng(i*53)*GW*2.5-(cameraX*.14)%(GW*2.5)+GW*2.5)%(GW*2.5);
+      if (mx>GW+100) continue;
+      const mh=80+rng(i*53+1)*130, mw=85+rng(i*53+2)*85;
+      ctx.fillStyle=`hsl(210,45%,${16+rng(i*53+3)*8}%)`;
+      ctx.beginPath(); ctx.moveTo(mx-mw/2,FLOOR); ctx.lineTo(mx,FLOOR-mh); ctx.lineTo(mx+mw/2,FLOOR); ctx.fill();
+      ctx.fillStyle=`hsl(210,25%,68%)`;
+      ctx.beginPath(); ctx.moveTo(mx-mw*.14,FLOOR-mh*.8); ctx.lineTo(mx,FLOOR-mh); ctx.lineTo(mx+mw*.14,FLOOR-mh*.8); ctx.fill();
+    }
+    ctx.restore();
+  }
+  if (a.rocks || b.rocks) {
+    const op = (a.rocks?(1-t):0)+(b.rocks?t:0);
+    ctx.save(); ctx.globalAlpha = op*0.48;
+    for (let i=0;i<10;i++) {
+      const rx=(rng(i*41)*GW*3-(cameraX*.24)%(GW*3)+GW*3)%(GW*3);
+      if (rx>GW+30) continue;
+      const rh=14+rng(i*41+1)*28, rw=18+rng(i*41+2)*38;
+      ctx.fillStyle=`hsl(20,28%,${13+rng(i*41+3)*9}%)`;
+      ctx.beginPath(); ctx.ellipse(rx,FLOOR-rh*.5,rw/2,rh/2,0,0,Math.PI*2); ctx.fill();
+    }
+    ctx.restore();
+  }
+  if (a.jungle || b.jungle) {
+    const op = (a.jungle?(1-t):0)+(b.jungle?t:0);
+    ctx.save(); ctx.globalAlpha = op*0.38;
+    for (let i=0;i<12;i++) {
+      const tx=(rng(i*23)*GW*2-(cameraX*.28)%(GW*2)+GW*2)%(GW*2);
+      if (tx>GW+20) continue;
+      const th=35+rng(i*23+1)*70;
+      ctx.strokeStyle=`hsl(140,75%,${22+rng(i*23+2)*18}%)`;
+      ctx.lineWidth=2+rng(i*23+3)*3;
+      ctx.beginPath();
+      ctx.moveTo(tx,FLOOR);
+      ctx.bezierCurveTo(tx-25+rng(i*23+4)*50,FLOOR-th*.5,tx-35+rng(i*23+5)*70,FLOOR-th*.85,tx-20+rng(i*23+6)*40,FLOOR-th);
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+}
+
+function drawShootingStars() {
+  starTick++;
+
+  // 流星群制御
+  if (!meteorShower) {
+    meteorCooldown--;
+    if (meteorCooldown <= 0) triggerMeteorShower();
+    if (starTick % 200 === 0 && Math.random() < 0.75) spawnStar();
+  } else {
+    meteorTimer--;
+    // シャワー中は頻繁にスポーン（バースト感）
+    if (Math.random() < 0.35) spawnStar(true, true);
+    if (Math.random() < 0.08) {
+      // 小バースト
+      for (let i=0;i<4+Math.floor(Math.random()*5);i++)
+        setTimeout(()=>spawnStar(true,true), i*60);
+    }
+    if (meteorTimer <= 0) {
+      meteorShower = false;
+      stopMeteorBGM();
+    }
+  }
+
+  // ラベル描画（流星群アナウンス）
+  if (showerLabel.timer > 0) {
+    showerLabel.timer--;
+    if (showerLabel.timer < 40) showerLabel.opacity = showerLabel.timer/40;
+    ctx.save();
+    ctx.globalAlpha = showerLabel.opacity;
+    ctx.fillStyle='rgba(4,7,18,0.7)';
+    ctx.font=`${PS*2}px 'Courier New',monospace`;
+    ctx.textAlign='center';
+    const tw = ctx.measureText(showerLabel.text).width;
+    ctx.fillRect(GW/2-tw/2-10, 60, tw+20, 24);
+    ctx.fillStyle='#aaddff';
+    ctx.fillText(showerLabel.text, GW/2, 77);
+    ctx.textAlign='left';
+    ctx.restore();
+  }
+
+  for (let i=shootingStars.length-1;i>=0;i--) {
+    const s = shootingStars[i];
+    s.x+=s.vx; s.y+=s.vy; s.life-=s.colored ? 0.014 : 0.018;
+    if (s.life<=0||s.y>FLOOR){shootingStars.splice(i,1);continue;}
+    const len=18+(1-s.life)*32;
+    const sg=ctx.createLinearGradient(s.x,s.y,s.x+len,s.y-len*0.6);
+    if (s.colored) {
+      sg.addColorStop(0,`hsla(${s.hue},100%,88%,${s.life*0.95})`);
+      sg.addColorStop(0.4,`hsla(${s.hue+30},90%,70%,${s.life*0.5})`);
+    } else {
+      sg.addColorStop(0,`rgba(255,255,235,${s.life*0.9})`);
+    }
+    sg.addColorStop(1,'transparent');
+    ctx.strokeStyle=sg; ctx.lineWidth=s.thick||1.5;
+    ctx.beginPath(); ctx.moveTo(s.x,s.y); ctx.lineTo(s.x+len,s.y-len*0.6); ctx.stroke();
+    // 流星群中は末端にきらきら
+    if (s.colored && s.life>0.5) {
+      ctx.save();
+      ctx.globalAlpha = (s.life-0.5)*0.7;
+      ctx.fillStyle=`hsla(${s.hue},100%,95%,1)`;
+      ctx.fillRect(s.x-1, s.y-1, 2, 2);
+      ctx.restore();
+    }
+  }
+}
+
+function drawGround() {
+  const {a,b,t} = getBiomeBlend(cameraX+GW/2);
+  const gg=ctx.createLinearGradient(0,FLOOR,0,GH);
+  gg.addColorStop(0,lerpHex(a.gT,b.gT,t)); gg.addColorStop(1,lerpHex(a.gB,b.gB,t));
+  ctx.fillStyle=gg; ctx.fillRect(0,FLOOR,GW,GH-FLOOR);
+  ctx.fillStyle=lerpHex(a.gL,b.gL,t); ctx.fillRect(0,FLOOR,GW,2);
+  for (let i=0;i<GW;i+=7) {
+    const r=rng((i+Math.floor(cameraX/7)*7)*17);
+    if (r>0.72){ctx.fillStyle=lerpHex(a.gL,b.gL,t)+'66'; ctx.fillRect(i,FLOOR+4+Math.floor(r*5),2,2);}
+  }
+}
+
+function drawPlatforms() {
+  const {a,b,t}=getBiomeBlend(cameraX+GW/2);
+  const pC=lerpHex(a.pC,b.pC,t), pT=lerpHex(a.pT,b.pT,t);
+  for (let ci=Math.floor(cameraX/CHUNK_W)-1; ci<=Math.floor((cameraX+GW)/CHUNK_W)+1; ci++) {
+    for (const p of getChunk(ci).platforms) {
+      const sx=p.x-cameraX;
+      if (sx+p.w<0||sx>GW) continue;
+      ctx.fillStyle=pC; ctx.fillRect(sx,p.y,p.w,14);
+      ctx.fillStyle=pT; ctx.fillRect(sx,p.y,p.w,3);
+      for (let i=0;i<p.w;i+=6){ctx.fillStyle=pC+'aa';ctx.fillRect(sx+i,p.y+5,3,2);}
+    }
+  }
+}
+
+function drawItems() {
+  for (let ci=Math.floor(cameraX/CHUNK_W)-1; ci<=Math.floor((cameraX+GW)/CHUNK_W)+1; ci++) {
+    for (const item of getChunk(ci).items) {
+      if (item.collected) continue;
+      const sx=item.x-cameraX;
+      if (sx<-20||sx>GW+20) continue;
+      const bob=Math.sin(frameCount*.05+item.bob)*3;
+      ctx.save();
+      ctx.globalAlpha=0.5+Math.sin(frameCount*.05+item.bob)*.2;
+      ctx.shadowColor='#ffcc44'; ctx.shadowBlur=12;
+      ctx.fillStyle='#ffcc44'; ctx.fillRect(sx-3,item.y-7+bob,6,6);
+      ctx.globalAlpha=1;
+      ctx.fillStyle='#ffe080'; ctx.fillRect(sx-2,item.y-9+bob,4,10);
+      ctx.fillRect(sx-6,item.y-5+bob,12,4);
+      ctx.restore();
+    }
+  }
+}
+
+function drawPlayer() {
+  let rows;
+  if (!player.onGround) rows=SPR.jmp;
+  else if (Math.abs(player.vx)>0.1) rows=[SPR.w0,SPR.w1,SPR.w2][Math.floor(player.anim/7)%3];
+  else rows=(Math.floor(player.anim/28)%2===0)?IDLE_A:IDLE_B;
+  drawSprite(rows, Math.round(player.x-cameraX), Math.round(player.y), player.facing===-1);
+}
+
+// === UPDATE ===
+function checkItems() {
+  for (let ci=Math.floor(player.x/CHUNK_W)-1; ci<=Math.floor((player.x+SPRITE_W)/CHUNK_W)+1; ci++) {
+    for (const item of getChunk(ci).items) {
+      if (item.collected) continue;
+      if (Math.abs((player.x+SPRITE_W/2)-item.x)<28 && Math.abs((player.y+SPRITE_H/2)-item.y)<34) {
+        item.collected=true;
+        collected.push({name:item.name, desc:item.desc});
+        document.getElementById('itemVal').textContent=collected.length;
+        playPickup();
+        showLog(item.name, item.desc);
+      }
+    }
+  }
+}
+
+function showLog(name, desc) {
+  const el=document.getElementById('itemLog'), el2=document.getElementById('itemDesc');
+  el.textContent=`✦ ${name} を拾った ✦`; el2.textContent=desc;
+  el.style.opacity='1'; el2.style.opacity='1';
+  clearTimeout(window._lt);
+  window._lt=setTimeout(()=>{el.style.opacity='0';el2.style.opacity='0';},2600);
+}
+
+function update() {
+  frameCount++;
+  player.vx=0;
+  if (keys.left){player.vx=-3;player.facing=-1;}
+  if (keys.right){player.vx=3;player.facing=1;}
+
+  // platform edge
+  if (player.onGround) {
+    const onFloor = player.y >= FLOOR-SPRITE_H-2;
+    if (!onFloor && !onAnyPlatform(player.x+2,player.y,SPRITE_W-4,SPRITE_H)) player.onGround=false;
+  }
+
+  if (!player.onGround) player.vy+=GRAVITY;
+  player.x+=player.vx; player.y+=player.vy;
+  if (player.x<0) player.x=0;
+
+  // floor
+  if (player.y>=FLOOR-SPRITE_H){player.y=FLOOR-SPRITE_H;player.vy=0;player.onGround=true;}
+  // platform land
+  if (player.vy>0){
+    const py=getPlatBelow(player.x+2,player.y,SPRITE_W-4,SPRITE_H);
+    if (py!==null){player.y=py-SPRITE_H;player.vy=0;player.onGround=true;}
+  }
+
+  player.anim++;
+  cameraX+=(player.x-GW*.35-cameraX)*.1;
+  if (cameraX<0) cameraX=0;
+  document.getElementById('distVal').textContent=Math.floor(player.x/10);
+
+  // biome announce
+  const bName=getBiomeBlend(player.x).a.name;
+  if (bName!==lastBiome) {
+    lastBiome=bName;
+    const el=document.getElementById('biomeLabel');
+    el.textContent=bName; el.style.opacity='1';
+    clearTimeout(window._bt);
+    window._bt=setTimeout(()=>el.style.opacity='0',3000);
+  }
+
+  checkItems();
+  updateNPCs();
+}
+
+function draw() {
+  ctx.clearRect(0,0,GW,GH);
+  drawBG();
+  drawShootingStars();
+  drawPlatforms();
+  drawGround();
+  drawItems();
+  drawNPCs();
+  drawPlayer();
+
+  // 流星群中：ほんのり青白いパルスオーバーレイ
+  if (meteorShower) {
+    const pulse = Math.sin(frameCount*0.08)*0.5+0.5;
+    ctx.fillStyle=`rgba(100,160,255,${0.025+pulse*0.03})`;
+    ctx.fillRect(0,0,GW,FLOOR);
+  }
+
+  ctx.fillStyle='rgba(0,0,0,0.022)';
+  for (let y=0;y<GH;y+=2) ctx.fillRect(0,y,GW,1);
+}
+
+// === INVENTORY ===
+function openInventory() {
+  const list=document.getElementById('invList');
+  list.innerHTML='';
+  if (collected.length===0) {
+    list.innerHTML='<div class="inv-empty">まだ何も拾っていない</div>';
+  } else {
+    collected.forEach(item=>{
+      const d=document.createElement('div');
+      d.className='inv-item';
+      d.innerHTML=`<div class="inv-name">✦ ${item.name}</div><div class="inv-desc">${item.desc}</div>`;
+      list.appendChild(d);
+    });
+  }
+  document.getElementById('invOverlay').classList.add('open');
+}
+function closeInventory(){document.getElementById('invOverlay').classList.remove('open');}
+document.getElementById('invOverlay').addEventListener('click',e=>{
+  if (e.target===document.getElementById('invOverlay')) closeInventory();
+});
+
+// === INPUT ===
+let bgmOn=false;
+function tryBGM(){if(!bgmOn){startBGM();bgmOn=true;}}
+function doJump(){if(player.onGround){player.vy=-9.2;player.onGround=false;playJump();}}
+
+document.addEventListener('keydown',e=>{
+  if(['ArrowLeft','KeyA'].includes(e.code)){keys.left=true;tryBGM();}
+  if(['ArrowRight','KeyD'].includes(e.code)){keys.right=true;tryBGM();}
+  if(['ArrowUp','Space','KeyW'].includes(e.code)&&!keys.up){keys.up=true;doJump();tryBGM();}
+  if(e.code==='KeyI') openInventory();
+  if(['ArrowLeft','ArrowRight','ArrowUp','Space'].includes(e.code)) e.preventDefault();
+});
+document.addEventListener('keyup',e=>{
+  if(['ArrowLeft','KeyA'].includes(e.code)) keys.left=false;
+  if(['ArrowRight','KeyD'].includes(e.code)) keys.right=false;
+  if(['ArrowUp','Space','KeyW'].includes(e.code)) keys.up=false;
+});
+
+document.getElementById('btnL').addEventListener('touchstart',e=>{e.preventDefault();keys.left=true;tryBGM();});
+document.getElementById('btnL').addEventListener('touchend',e=>{e.preventDefault();keys.left=false;});
+document.getElementById('btnR').addEventListener('touchstart',e=>{e.preventDefault();keys.right=true;tryBGM();});
+document.getElementById('btnR').addEventListener('touchend',e=>{e.preventDefault();keys.right=false;});
+document.getElementById('btnJump').addEventListener('touchstart',e=>{e.preventDefault();doJump();tryBGM();});
+
+document.getElementById('sBGM').addEventListener('input',function(){BGM_VOL=(this.value/100)*.12;document.getElementById('vBGM').textContent=this.value;});
+document.getElementById('sSE').addEventListener('input',function(){SE_VOL=(this.value/100)*.25;document.getElementById('vSE').textContent=this.value;});
+document.getElementById('tBGM').addEventListener('click',function(){bgmMuted=!bgmMuted;this.textContent=bgmMuted?'OFF':'ON';this.classList.toggle('off',bgmMuted);});
+
+// === LOOP ===
+function loop(){update();draw();requestAnimationFrame(loop);}
+loop();
+</script>
+</body>
+</html>
