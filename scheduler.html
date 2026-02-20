@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ちょろっとスケジューラー 🌸</title>
+</head>
+<body>
+<a href="index.html" style="position:fixed;top:1rem;left:1rem;z-index:999;display:flex;align-items:center;gap:.4rem;background:rgba(255,255,255,0.85);backdrop-filter:blur(8px);border:1.5px solid #e5d4f5;border-radius:50px;padding:.4rem 1rem;font-family:'Nunito',sans-serif;font-weight:800;font-size:.8rem;color:#7c3aed;text-decoration:none;box-shadow:0 2px 12px rgba(180,150,220,0.15);transition:box-shadow .15s;" onmouseover="this.style.boxShadow='0 4px 20px rgba(180,150,220,0.3)'" onmouseout="this.style.boxShadow='0 2px 12px rgba(180,150,220,0.15)'">← 館に戻る</a>
+<div id="root"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
+<script type="text/babel" data-presets="react">
+const { useState, useEffect, useRef } = React;
+
+
+const WARMUP_START = 9 * 60;
+const WARMUP_END = 9 * 60 + 30;
+const MORNING_END = 12 * 60;
+const AFTERNOON_START = 13 * 60;
+const DAY_END = 17 * 60;
+const TOAST_DURATION = 4000;
+
+function minutesToHHMM(m) {
+  return `${String(Math.floor(m / 60)).padStart(2, "0")}:${String(m % 60).padStart(2, "0")}`;
+}
+function nowInMinutes() {
+  const d = new Date();
+  return d.getHours() * 60 + d.getMinutes();
+}
+function getAvailableSlots(from) {
+  return [
+    { start: WARMUP_END, end: MORNING_END },
+    { start: AFTERNOON_START, end: DAY_END },
+  ].map(s => ({ start: Math.max(s.start, from), end: s.end })).filter(s => s.start < s.end);
+}
+function scheduleBlocks(tasks, pomodoro, breakTime, fromMinute = WARMUP_END) {
+  const pom = Math.max(pomodoro, 1);
+  const brk = Math.max(breakTime, 0);
+  const slots = getAvailableSlots(fromMinute);
+  const timeline = [];
+  if (fromMinute <= WARMUP_END) timeline.push({ type: "warmup", label: "ウォームアップ", start: WARMUP_START, end: WARMUP_END });
+  timeline.push({ type: "lunch", label: "お昼休み", start: MORNING_END, end: AFTERNOON_START });
+
+  const chunks = [];
+  for (const task of tasks) {
+    let remaining = task.minutes, part = 1;
+    const totalParts = Math.ceil(task.minutes / pom);
+    while (remaining > 0) {
+      chunks.push({ ...task, chunkMinutes: Math.min(remaining, pom), part, totalParts });
+      remaining -= pom; part++;
+    }
+  }
+
+  let chunkIdx = 0;
+  for (const slot of slots) {
+    let cursor = slot.start;
+    while (cursor < slot.end && chunkIdx < chunks.length) {
+      const chunk = chunks[chunkIdx];
+      const endTime = cursor + chunk.chunkMinutes;
+      if (endTime > slot.end) break;
+      const label = chunk.totalParts > 1 ? `${chunk.name} (${chunk.part}/${chunk.totalParts})` : chunk.name;
+      timeline.push({ type: "task", label, start: cursor, end: endTime, color: chunk.color, bg: chunk.bg, border: chunk.border, emoji: chunk.emoji, taskName: chunk.name });
+      cursor = endTime; chunkIdx++;
+      if (brk > 0 && cursor + brk <= slot.end && chunkIdx < chunks.length) {
+        timeline.push({ type: "break", label: "休憩", start: cursor, end: cursor + brk });
+        cursor += brk;
+      }
+    }
+  }
+
+  const overflowNames = new Set(chunks.slice(chunkIdx).map(c => c.name));
+  const overflow = tasks.filter(t => overflowNames.has(t.name));
+  timeline.sort((a, b) => a.start - b.start);
+  return { timeline, overflow };
+}
+
+const PALETTES = [
+  { bg: "#ffe4f0", color: "#d63384", border: "#ffb3d1" },
+  { bg: "#fff0d6", color: "#c97a20", border: "#ffd08a" },
+  { bg: "#e8f5e9", color: "#2e7d32", border: "#a5d6a7" },
+  { bg: "#e3f2fd", color: "#1565c0", border: "#90caf9" },
+  { bg: "#f3e5f5", color: "#7b1fa2", border: "#ce93d8" },
+  { bg: "#fce4ec", color: "#ad1457", border: "#f48fb1" },
+  { bg: "#e0f7fa", color: "#00695c", border: "#80cbc4" },
+  { bg: "#fff8e1", color: "#f57f17", border: "#ffe082" },
+];
+const EMOJIS = ["📝","💻","📊","🎨","📞","🔍","✍️","📚","🛠️","💡","🎯","📮"];
+
+// インライントースト（カード内上部に表示）
+function InlineToast({ task, onUndo, onDismiss }) {
+  const [progress, setProgress] = useState(100);
+  useEffect(() => {
+    const start = Date.now();
+    const id = setInterval(() => {
+      const elapsed = Date.now() - start;
+      const rem = Math.max(0, 100 - (elapsed / TOAST_DURATION) * 100);
+      setProgress(rem);
+      if (rem === 0) { clearInterval(id); onDismiss(); }
+    }, 30);
+    return () => clearInterval(id);
+  }, []);
+
+  return (
+    <div style={{
+      background: "#1e1b4b", borderRadius: 14, padding: ".75rem 1rem",
+      marginBottom: ".75rem", display: "flex", alignItems: "center", gap: ".75rem",
+      position: "relative", overflow: "hidden",
+      animation: "slideDown .25s ease",
+    }}>
+      <span style={{ fontSize: "1rem" }}>{task.emoji}</span>
+      <span style={{ color: "#e0d8ff", fontWeight: 700, fontSize: ".85rem", flex: 1 }}>
+        「{task.name}」を削除
+      </span>
+      <button onClick={onUndo} style={{
+        cursor: "pointer", border: "none",
+        background: "linear-gradient(135deg,#818cf8,#f472b6)",
+        color: "#fff", fontFamily: "'Nunito',sans-serif", fontWeight: 800,
+        fontSize: ".8rem", borderRadius: 20, padding: ".3rem .85rem", whiteSpace: "nowrap",
+      }}>↩ 元に戻す</button>
+      <div style={{
+        position: "absolute", bottom: 0, left: 0, height: 3,
+        width: `${progress}%`, background: "linear-gradient(90deg,#818cf8,#f472b6)",
+        transition: "width .03s linear",
+      }} />
+    </div>
+  );
+}
+
+function App() {
+  const [tasks, setTasks] = useState([]);
+  const [name, setName] = useState("");
+  const [hours, setHours] = useState("");
+  const [mins, setMins] = useState("");
+  const [pomodoroRaw, setPomodoroRaw] = useState("25");
+  const [breakRaw, setBreakRaw] = useState("5");
+  const [scheduled, setScheduled] = useState(null);
+  const [completedNames, setCompletedNames] = useState(new Set());
+  const [palIdx, setPalIdx] = useState(0);
+  const [emojiIdx, setEmojiIdx] = useState(0);
+  const [dragging, setDragging] = useState(null);
+  const [dragOver, setDragOver] = useState(null);
+  const [currentTime, setCurrentTime] = useState(nowInMinutes());
+  const [rescheduleAnim, setRescheduleAnim] = useState(false);
+  const [toast, setToast] = useState(null);
+
+  const pomodoro = Math.max(parseInt(pomodoroRaw) || 1, 1);
+  const breakTime = Math.max(parseInt(breakRaw) || 0, 0);
+
+  useEffect(() => {
+    const id = setInterval(() => setCurrentTime(nowInMinutes()), 30000);
+    return () => clearInterval(id);
+  }, []);
+
+  const addTask = () => {
+    const h = parseInt(hours) || 0;
+    const m = parseInt(mins) || 0;
+    const total = h * 60 + m;
+    if (!name.trim() || total <= 0) return;
+    const pal = PALETTES[palIdx % PALETTES.length];
+    setTasks([...tasks, { name: name.trim(), minutes: total, ...pal, emoji: EMOJIS[emojiIdx % EMOJIS.length] }]);
+    setPalIdx(p => p + 1); setEmojiIdx(e => e + 1);
+    setName(""); setHours(""); setMins(""); setScheduled(null);
+  };
+
+  const removeTask = (i) => {
+    const removed = tasks[i];
+    const tasksSnapshot = [...tasks];
+    const completedSnapshot = new Set(completedNames);
+    const newTasks = tasks.filter((_, idx) => idx !== i);
+    const newCompleted = new Set(completedNames);
+    newCompleted.delete(removed.name);
+    setToast({ task: removed, tasksSnapshot, completedSnapshot });
+    setTasks(newTasks);
+    setCompletedNames(newCompleted);
+    setScheduled(null);
+  };
+
+  const undoRemove = () => {
+    if (!toast) return;
+    setTasks(toast.tasksSnapshot);
+    setCompletedNames(toast.completedSnapshot);
+    setToast(null);
+    setScheduled(null);
+  };
+
+  const toggleComplete = (taskName) => {
+    const newCompleted = new Set(completedNames);
+    if (newCompleted.has(taskName)) {
+      newCompleted.delete(taskName);
+    } else {
+      newCompleted.add(taskName);
+    }
+    setCompletedNames(newCompleted);
+    const remaining = tasks.filter(t => !newCompleted.has(t.name));
+    const from = Math.max(currentTime, WARMUP_END);
+    if (scheduled) {
+      triggerAnim();
+      setScheduled(scheduleBlocks(remaining, pomodoro, breakTime, from));
+    }
+  };
+
+  const onDragStart = i => setDragging(i);
+  const onDragOver = (e, i) => { e.preventDefault(); setDragOver(i); };
+  const onDrop = i => {
+    if (dragging === null || dragging === i) return;
+    const t = [...tasks]; const [moved] = t.splice(dragging, 1); t.splice(i, 0, moved);
+    setTasks(t); setDragging(null); setDragOver(null); setScheduled(null);
+  };
+  const onDragEnd = () => { setDragging(null); setDragOver(null); };
+
+  const run = (from = WARMUP_END) => {
+    if (tasks.length === 0) return;
+    const remaining = tasks.filter(t => !completedNames.has(t.name));
+    setScheduled(scheduleBlocks(remaining, pomodoro, breakTime, from));
+  };
+
+  const rescheduleNow = () => {
+    const remaining = tasks.filter(t => !completedNames.has(t.name));
+    triggerAnim();
+    setScheduled(scheduleBlocks(remaining, pomodoro, breakTime, Math.max(currentTime, WARMUP_END)));
+  };
+
+  const triggerAnim = () => { setRescheduleAnim(true); setTimeout(() => setRescheduleAnim(false), 600); };
+
+  const totalSlotMin = DAY_END - WARMUP_START;
+  const pct = m => ((m - WARMUP_START) / totalSlotMin) * 100;
+  const nowPct = pct(Math.min(Math.max(currentTime, WARMUP_START), DAY_END));
+
+  const getBlockStyle = b => {
+    if (b.type === "task") return { background: b.bg, border: `2px solid ${b.border}` };
+    if (b.type === "warmup") return { background: "#fef9c3", border: "2px solid #fde047" };
+    if (b.type === "lunch") return { background: "#dcfce7", border: "2px solid #86efac" };
+    return { background: "#e0f2fe", border: "2px solid #7dd3fc" };
+  };
+  const getTextColor = b => {
+    if (b.type === "task") return b.color;
+    if (b.type === "warmup") return "#a16207";
+    if (b.type === "lunch") return "#166534";
+    return "#0369a1";
+  };
+
+  return (
+    <div style={{ minHeight: "100vh", background: "linear-gradient(160deg,#fff5fb 0%,#f0f4ff 55%,#f5fff8 100%)", fontFamily: "'Nunito',sans-serif", padding: "2rem 1rem" }}>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Pacifico&display=swap');
+        *{box-sizing:border-box}
+        .card{background:#fff;border-radius:24px;padding:1.5rem;box-shadow:0 4px 24px rgba(180,150,220,0.12);margin-bottom:1.25rem}
+        .btn{cursor:pointer;border:none;font-family:'Nunito',sans-serif;font-weight:800;border-radius:50px;transition:transform .12s,box-shadow .12s}
+        .btn:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,0,0,0.13)}
+        .btn:active{transform:translateY(0)}
+        .ni{font-family:'Nunito',sans-serif;background:#faf5ff;border:2.5px solid #e5d4f5;border-radius:12px;padding:.4rem .6rem;width:64px;text-align:center;font-weight:700;font-size:.9rem;color:#7c3aed;outline:none}
+        .ni:focus{border-color:#a78bfa}
+        .drag-over{outline:3px solid #a78bfa;outline-offset:2px}
+        input[type=number]::-webkit-inner-spin-button{opacity:1}
+        @keyframes slideDown{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
+        @keyframes pop{0%{transform:scale(1)}40%{transform:scale(1.03)}100%{transform:scale(1)}}
+        .reschedule-anim{animation:pop .5s ease}
+        .check-btn{cursor:pointer;border:none;border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-size:.85rem;flex-shrink:0;transition:transform .1s,background .15s}
+        .check-btn:hover{transform:scale(1.15)}
+        .del-btn{cursor:pointer;background:none;border:none;opacity:.35;font-size:1rem;padding:0 .2rem;transition:opacity .15s}
+        .del-btn:hover{opacity:.85}
+      `}</style>
+
+      <div style={{ maxWidth: 680, margin: "0 auto" }}>
+        {/* Header */}
+        <div style={{ textAlign: "center", marginBottom: "2rem" }}>
+          <div style={{ fontSize: "2.5rem", marginBottom: ".2rem" }}>🌸</div>
+          <h1 style={{ fontFamily: "'Pacifico',cursive", fontSize: "2.2rem", margin: "0 0 .3rem", background: "linear-gradient(90deg,#f472b6,#818cf8,#34d399)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>今日もがんばろ〜</h1>
+          <p style={{ color: "#c0b0d8", fontSize: ".82rem", margin: 0, fontWeight: 600 }}>9:00–17:00 ちょろっとスケジューラー ✨</p>
+        </div>
+
+        {/* 設定 */}
+        <div className="card" style={{ display: "flex", gap: "1.5rem", alignItems: "center", flexWrap: "wrap", padding: "1rem 1.5rem" }}>
+          <span style={{ fontSize: ".78rem", color: "#c0a8e8", fontWeight: 800 }}>⏱ ポモドーロ</span>
+          <label style={{ display: "flex", alignItems: "center", gap: ".5rem", fontSize: ".85rem", color: "#7c3aed", fontWeight: 700 }}>
+            集中
+            <input className="ni" type="number" value={pomodoroRaw}
+              onChange={e => { setPomodoroRaw(e.target.value); setScheduled(null); }}
+              onBlur={e => { if (!e.target.value || parseInt(e.target.value) < 1) setPomodoroRaw("1"); }} />
+            分
+          </label>
+          <label style={{ display: "flex", alignItems: "center", gap: ".5rem", fontSize: ".85rem", color: "#7c3aed", fontWeight: 700 }}>
+            休憩
+            <input className="ni" type="number" value={breakRaw}
+              onChange={e => { setBreakRaw(e.target.value); setScheduled(null); }}
+              onBlur={e => { if (e.target.value === "" || parseInt(e.target.value) < 0) setBreakRaw("0"); }} />
+            分
+          </label>
+        </div>
+
+        {/* 入力 */}
+        <div className="card">
+          <div style={{ display: "flex", flexDirection: "column", gap: ".6rem" }}>
+            {/* 1行目：タスク名 */}
+            <input
+              style={{ width: "100%", fontFamily: "'Nunito',sans-serif", background: "#faf5ff", border: "2.5px solid #e5d4f5", borderRadius: 14, padding: ".55rem 1rem", fontSize: ".95rem", fontWeight: 700, color: "#3b1d6e", outline: "none" }}
+              placeholder="タスク名…" value={name}
+              onChange={e => setName(e.target.value)}
+              onKeyDown={e => e.key === "Enter" && addTask()}
+              onFocus={e => e.target.style.borderColor = "#a78bfa"}
+              onBlur={e => e.target.style.borderColor = "#e5d4f5"}
+            />
+            {/* 2行目：時間＋追加ボタン（折り返しなし） */}
+            <div style={{ display: "flex", gap: ".5rem", alignItems: "center" }}>
+              <input className="ni" placeholder="0" type="number" min="0" value={hours} onChange={e => setHours(e.target.value)} onKeyDown={e => e.key === "Enter" && addTask()} style={{ width: 52 }} />
+              <span style={{ color: "#c0a8e8", fontWeight: 800, fontSize: ".8rem" }}>h</span>
+              <input className="ni" placeholder="0" type="number" min="0" max="59" value={mins} onChange={e => setMins(e.target.value)} onKeyDown={e => e.key === "Enter" && addTask()} style={{ width: 52 }} />
+              <span style={{ color: "#c0a8e8", fontWeight: 800, fontSize: ".8rem" }}>min</span>
+              <button className="btn" onClick={addTask} style={{ background: "linear-gradient(135deg,#f472b6,#818cf8)", color: "#fff", padding: ".55rem 1.4rem", fontSize: ".9rem", marginLeft: "auto" }}>＋ 追加</button>
+            </div>
+          </div>
+        </div>
+
+        {/* タスクリスト */}
+        {tasks.length > 0 && (
+          <div className="card">
+            {/* インライントースト */}
+            {toast && (
+              <InlineToast task={toast.task} onUndo={undoRemove} onDismiss={() => setToast(null)} />
+            )}
+            <div style={{ fontSize: ".75rem", color: "#c0b0d8", fontWeight: 700, marginBottom: ".6rem" }}>↕ ドラッグで順番変更 · ✓ で完了トグル</div>
+            {tasks.map((t, i) => {
+              const done = completedNames.has(t.name);
+              return (
+                <div key={i}
+                  className={dragOver === i && dragging !== i ? "drag-over" : ""}
+                  draggable={!done}
+                  onDragStart={() => !done && onDragStart(i)}
+                  onDragOver={e => onDragOver(e, i)}
+                  onDrop={() => onDrop(i)}
+                  onDragEnd={onDragEnd}
+                  style={{
+                    display: "flex", alignItems: "center", gap: ".6rem",
+                    background: done ? "#f8f8f8" : t.bg,
+                    border: `2px solid ${done ? "#e0e0e0" : t.border}`,
+                    borderRadius: 14, padding: ".55rem .9rem", marginBottom: ".4rem",
+                    cursor: done ? "default" : "grab", userSelect: "none",
+                    opacity: dragging === i ? 0.4 : 1, transition: "all .2s",
+                  }}>
+                  <button className="check-btn"
+                    onClick={() => toggleComplete(t.name)}
+                    title={done ? "クリックで未完了に戻す" : "完了にする"}
+                    style={{ background: done ? "#d1fae5" : "#fff", border: `2px solid ${done ? "#34d399" : t.border}`, color: done ? "#16a34a" : "transparent" }}>
+                    ✓
+                  </button>
+                  <span style={{ fontSize: "1.1rem" }}>{t.emoji}</span>
+                  <span style={{ fontWeight: 800, color: done ? "#aaa" : t.color, flex: 1, fontSize: ".9rem", textDecoration: done ? "line-through" : "none" }}>{t.name}</span>
+                  <span style={{ fontSize: ".8rem", color: done ? "#bbb" : t.color, opacity: .7, fontWeight: 700 }}>
+                    {t.minutes >= 60 ? `${Math.floor(t.minutes / 60)}h${t.minutes % 60 > 0 ? `${t.minutes % 60}m` : ""}` : `${t.minutes}m`}
+                  </span>
+                  <button className="del-btn" onClick={() => removeTask(i)} style={{ color: done ? "#bbb" : t.color }}>✕</button>
+                </div>
+              );
+            })}
+            <div style={{ fontSize: ".75rem", color: "#c0b0d8", textAlign: "right", marginTop: ".4rem", fontWeight: 700 }}>
+              {completedNames.size > 0 && <span style={{ color: "#34d399", marginRight: ".75rem" }}>✓ {completedNames.size}個完了！</span>}
+              残り {tasks.filter(t => !completedNames.has(t.name)).reduce((s, t) => s + t.minutes, 0)} 分
+            </div>
+          </div>
+        )}
+
+        {/* ボタン */}
+        <div style={{ textAlign: "center", marginBottom: "2rem", display: "flex", gap: "1rem", justifyContent: "center", flexWrap: "wrap" }}>
+          <button className="btn" onClick={() => run()} disabled={tasks.length === 0}
+            style={{ background: tasks.length === 0 ? "#ede9fe" : "linear-gradient(135deg,#818cf8,#f472b6)", color: tasks.length === 0 ? "#c4b5fd" : "#fff", padding: ".85rem 2.4rem", fontSize: "1rem", boxShadow: tasks.length === 0 ? "none" : "0 6px 24px rgba(129,140,248,.4)" }}>
+            ✨ スケジュールする！
+          </button>
+          {scheduled && (
+            <button className="btn" onClick={rescheduleNow}
+              style={{ background: "linear-gradient(135deg,#34d399,#60a5fa)", color: "#fff", padding: ".85rem 2rem", fontSize: "1rem", boxShadow: "0 6px 24px rgba(52,211,153,.35)" }}>
+              🔄 今から再スケジュール
+            </button>
+          )}
+        </div>
+
+        {/* 結果 */}
+        {scheduled && (
+          <div className={`card${rescheduleAnim ? " reschedule-anim" : ""}`}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "1.25rem", flexWrap: "wrap", gap: ".5rem" }}>
+              <h2 style={{ fontFamily: "'Pacifico',cursive", color: "#818cf8", fontSize: "1.25rem", margin: 0 }}>📅 今日のスケジュール</h2>
+              <span style={{ fontSize: ".78rem", color: "#c0b0d8", fontWeight: 700 }}>現在 {minutesToHHMM(currentTime)}</span>
+            </div>
+
+            {/* タイムラインバー */}
+            <div style={{ marginBottom: "1.5rem" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", fontSize: ".68rem", color: "#c4b5fd", fontWeight: 800, marginBottom: ".35rem" }}>
+                {["9:00","10:00","11:00","12:00","13:00","14:00","15:00","16:00","17:00"].map(t => <span key={t}>{t}</span>)}
+              </div>
+              <div style={{ position: "relative", height: 40, background: "#f5f3ff", borderRadius: 14, overflow: "visible" }}>
+                {scheduled.timeline.map((b, i) => {
+                  const left = pct(b.start);
+                  const width = Math.max(pct(b.end) - left, 0.3);
+                  return (
+                    <div key={i} title={`${minutesToHHMM(b.start)}–${minutesToHHMM(b.end)} ${b.label}`}
+                      style={{ position: "absolute", top: 2, bottom: 2, left: `${left}%`, width: `${width}%`, borderRadius: 8, overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "center", fontSize: ".75rem", ...getBlockStyle(b) }}>
+                      {width > 3 ? (b.emoji || (b.type === "warmup" ? "☕" : b.type === "lunch" ? "🍱" : b.type === "break" ? "🌿" : "")) : ""}
+                    </div>
+                  );
+                })}
+                {currentTime >= WARMUP_START && currentTime <= DAY_END && (
+                  <div style={{ position: "absolute", top: -4, bottom: -4, left: `${nowPct}%`, width: 2, background: "#f472b6", borderRadius: 2, zIndex: 10 }}>
+                    <div style={{ position: "absolute", top: -4, left: "50%", transform: "translateX(-50%)", width: 8, height: 8, borderRadius: "50%", background: "#f472b6" }} />
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* リスト */}
+            <div style={{ display: "flex", flexDirection: "column", gap: ".35rem" }}>
+              {scheduled.timeline.map((b, i) => {
+                const isTask = b.type === "task";
+                const isPast = b.end <= currentTime;
+                const done = isTask && completedNames.has(b.taskName);
+                return (
+                  <div key={i} style={{ display: "flex", alignItems: "center", gap: ".6rem", padding: ".45rem .85rem", borderRadius: 12, ...getBlockStyle(b), opacity: (isPast || done) ? 0.4 : (isTask ? 1 : 0.65) }}>
+                    <span style={{ fontSize: ".95rem" }}>{b.emoji || (b.type === "warmup" ? "☕" : b.type === "lunch" ? "🍱" : "🌿")}</span>
+                    <span style={{ fontSize: ".72rem", fontWeight: 800, color: getTextColor(b), minWidth: 100 }}>{minutesToHHMM(b.start)} – {minutesToHHMM(b.end)}</span>
+                    <span style={{ fontWeight: 700, color: getTextColor(b), flex: 1, fontSize: ".85rem", textDecoration: done ? "line-through" : "none" }}>{b.label}</span>
+                    <span style={{ fontSize: ".7rem", color: getTextColor(b), opacity: .6, fontWeight: 700 }}>{b.end - b.start}min</span>
+                    {isTask && (
+                      <button className="check-btn btn"
+                        onClick={() => toggleComplete(b.taskName)}
+                        title={done ? "クリックで未完了に戻す" : "完了！"}
+                        style={{ background: done ? "#d1fae5" : "#fff", border: `2px solid ${done ? "#34d399" : b.border}`, color: done ? "#16a34a" : b.color, width: 26, height: 26, fontSize: ".75rem" }}>✓</button>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+
+            <div style={{ marginTop: "1.25rem" }}>
+              {tasks.filter(t => !completedNames.has(t.name)).length === 0 ? (
+                <div style={{ background: "linear-gradient(135deg,#f0fdf4,#dcfce7)", border: "2px solid #86efac", borderRadius: 16, padding: "1rem 1.25rem", display: "flex", gap: ".75rem", alignItems: "center" }}>
+                  <span style={{ fontSize: "1.6rem" }}>🎊</span>
+                  <div>
+                    <div style={{ fontWeight: 800, color: "#16a34a", fontSize: ".95rem" }}>全タスク完了！天才！！</div>
+                    <div style={{ fontSize: ".78rem", color: "#4ade80", fontWeight: 600 }}>もう今日は終わりでいいよ〜🎉</div>
+                  </div>
+                </div>
+              ) : scheduled.overflow.length === 0 ? (
+                <div style={{ background: "linear-gradient(135deg,#f0fdf4,#dcfce7)", border: "2px solid #86efac", borderRadius: 16, padding: "1rem 1.25rem", display: "flex", gap: ".75rem", alignItems: "center" }}>
+                  <span style={{ fontSize: "1.6rem" }}>🎉</span>
+                  <div>
+                    <div style={{ fontWeight: 800, color: "#16a34a", fontSize: ".95rem" }}>全部入った！えらすぎ！</div>
+                    <div style={{ fontSize: ".78rem", color: "#4ade80", fontWeight: 600 }}>余裕の一日〜✌️</div>
+                  </div>
+                </div>
+              ) : (
+                <div style={{ background: "linear-gradient(135deg,#fff1f2,#ffe4e6)", border: "2px solid #fda4af", borderRadius: 16, padding: "1rem 1.25rem" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: ".6rem", marginBottom: ".7rem" }}>
+                    <span style={{ fontSize: "1.4rem" }}>😅</span>
+                    <span style={{ fontWeight: 800, color: "#e11d48" }}>今日は無理リスト</span>
+                  </div>
+                  {scheduled.overflow.map((t, i) => (
+                    <div key={i} style={{ display: "flex", alignItems: "center", gap: ".5rem", background: t.bg, border: `1.5px solid ${t.border}`, borderRadius: 10, padding: ".4rem .75rem", marginBottom: ".3rem" }}>
+                      <span>{t.emoji}</span>
+                      <span style={{ fontWeight: 800, color: t.color, flex: 1, fontSize: ".85rem" }}>{t.name}</span>
+                      <span style={{ fontSize: ".75rem", color: t.color, opacity: .7, fontWeight: 700 }}>{t.minutes}min</span>
+                    </div>
+                  ))}
+                  <div style={{ fontSize: ".74rem", color: "#fda4af", marginTop: ".6rem", fontWeight: 700 }}>明日でいいや〜🌙</div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>
