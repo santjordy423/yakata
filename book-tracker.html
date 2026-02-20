@@ -27,21 +27,52 @@ const STATUS={
   done:{label:"読了",emoji:"✅",color:"rgba(100,220,120,0.8)"},
 };
 
-const GIL_SYSTEM=`あなたはギルガメッシュ（Fate/stay night）です。古代バビロニアの王にして人類最古の英雄王。傲慢・尊大・自信家ですが、本の内容には造詣が深い。一人称は「余」、相手を「雑種」と呼ぶ。語尾は「〜だ」「〜だろう」「〜ぞ」など断定調。長々と語らず、2〜4文でビシッと言い切る。`;
+const GIL_LINES={
+  unread:[
+    "積まれた本は墓石と同じだ。早く読め、雑種。",
+    "我の宝物庫にある書は全て読み尽くされている。貴様はどうだ？",
+    "買っただけで読んだ気になるとは、雑種らしい思考だ。",
+    "積読とは知への冒涜だ。まあ、雑種には荷が重いのかもしれぬが。",
+    "その本が積まれている間にも、世界は動いている。置いていかれるぞ。",
+    "読まぬ本を持つくらいなら、我に献上せよ。少なくとも有効活用される。",
+    "いつ読むつもりだ？答えてみろ、雑種。……そうだろう、答えられまい。",
+    "本とは開かれてこそ価値がある。飾りではない。",
+    "積読の言い訳は聞き飽きた。読め。以上だ。",
+    "その本が待っている。我ほど寛大ではないがな。",
+    "貴様の積読リストは我の忍耐を試しているのか？",
+    "読まぬなら捨てろ。どちらかにしろ、雑種。",
+  ],
+  reading:[
+    "まだ読んでいるのか。我なら一夜で読み終える。",
+    "遅い。だが読まぬよりはマシだ。続けろ。",
+    "ほう、読書中とは殊勝だな。最後まで読み切れるか見ていてやろう。",
+    "途中で放り出すなよ、雑種。それだけは許さん。",
+    "読書中か。まあよい。我も気が向いたら感想を聞いてやろう。",
+    "その調子だ。積読よりは格段にマシな状態だ。",
+    "最後まで読め。途中でやめるくらいなら最初から読むな。",
+    "読んでいる最中が一番良い。結末を知る前の時間を大切にしろ。",
+    "遅読も悪くはない。だが締まりなく読むのはやめろ。",
+    "ふむ。読書中とは、貴様にしては上出来だ。",
+  ],
+  done:[
+    "雑種にしては興味深い選択だ。その本の価値がわかるとは見どころがある。",
+    "読了か。我が認めてやろう……少しだけだが。",
+    "ほう、最後まで読み切ったか。雑種にしては上出来だ。",
+    "その本を読んだならば、貴様も少しは話せる者になったかもしれぬ。",
+    "読了とは良いことだ。積読のままよりも、はるかに貴様の格が上がった。",
+    "我の蔵書にも同様の書がある。貴様と趣味が合うとは不本意だが、悪くはない。",
+    "読み終えたか。次は何を読む？我が選んでやろうか。",
+    "ふむ。その本を読んだ雑種の感想とやらを、いつか聞いてやらんでもない。",
+    "完読とは、約束を果たすことと同じだ。貴様はその義務を果たした。",
+    "読了か。まあ、及第点だ。次も精進しろ、雑種。",
+    "その本を読み終えたか。我も認めざるを得ない、良い読書だったのではないか。",
+    "ようやく読んだか。遅かったが、読まないよりは遥かにマシだ。",
+  ],
+};
 
-async function callGilgamesh(prompt){
-  const res=await fetch("https://api.anthropic.com/v1/messages",{
-    method:"POST",
-    headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({
-      model:"claude-sonnet-4-20250514",
-      max_tokens:300,
-      system:GIL_SYSTEM,
-      messages:[{role:"user",content:prompt}]
-    })
-  });
-  const data=await res.json();
-  return data.content?.[0]?.text||"……";
+function callGilgamesh(prompt,status){
+  const lines=GIL_LINES[status]||GIL_LINES.unread;
+  return Promise.resolve(lines[Math.floor(Math.random()*lines.length)]);
 }
 
 function StatusBadge({status}){
@@ -188,7 +219,7 @@ function BookTracker(){
     }else{
       prompt=`余の臣下が「${book.title}」（${book.author}）を積読している。読んでいない言い訳を本人に代わって考えてやれ。ただし最後に一言ダメ出しもせよ。`;
     }
-    const text=await callGilgamesh(prompt);
+    const text=await callGilgamesh(prompt,book.status);
     updateBook(book.id,{gilLoading:false,gilText:text});
   }
 
