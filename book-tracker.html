@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>王の書架 — 怠惰な雑種と王の館</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:linear-gradient(160deg,#060d18 0%,#0a1628 60%,#060d18 100%);min-height:100vh;}
+.back-link{position:fixed;top:16px;left:16px;z-index:100;color:rgba(100,180,255,0.5);font-size:0.75rem;text-decoration:none;font-family:'Noto Sans JP',sans-serif;letter-spacing:0.1em;transition:color 0.2s;}
+.back-link:hover{color:#90c8f8;}
+</style>
+</head>
+<body>
+<a href="index.html" class="back-link">← もどる</a>
+<div id="root"></div>
+<script type="text/babel">
+const{useState,useEffect,useRef}=React;
+
+const STATUS={
+  unread:{label:"積読",emoji:"📚",color:"rgba(255,180,50,0.8)"},
+  reading:{label:"読書中",emoji:"📖",color:"rgba(100,180,255,0.8)"},
+  done:{label:"読了",emoji:"✅",color:"rgba(100,220,120,0.8)"},
+};
+
+const GIL_SYSTEM=`あなたはギルガメッシュ（Fate/stay night）です。古代バビロニアの王にして人類最古の英雄王。傲慢・尊大・自信家ですが、本の内容には造詣が深い。一人称は「余」、相手を「雑種」と呼ぶ。語尾は「〜だ」「〜だろう」「〜ぞ」など断定調。長々と語らず、2〜4文でビシッと言い切る。`;
+
+async function callGilgamesh(prompt){
+  const res=await fetch("https://api.anthropic.com/v1/messages",{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({
+      model:"claude-sonnet-4-20250514",
+      max_tokens:300,
+      system:GIL_SYSTEM,
+      messages:[{role:"user",content:prompt}]
+    })
+  });
+  const data=await res.json();
+  return data.content?.[0]?.text||"……";
+}
+
+function StatusBadge({status}){
+  const s=STATUS[status];
+  return(
+    <span style={{
+      background:`${s.color.replace("0.8","0.15")}`,
+      border:`1px solid ${s.color.replace("0.8","0.4")}`,
+      color:s.color,borderRadius:6,padding:"2px 8px",fontSize:"0.72rem",fontWeight:700
+    }}>{s.emoji} {s.label}</span>
+  );
+}
+
+function GilSpeech({text,loading}){
+  if(!text&&!loading)return null;
+  return(
+    <div style={{
+      background:"linear-gradient(135deg,rgba(255,200,50,0.05),rgba(255,150,0,0.08))",
+      border:"1px solid rgba(255,200,50,0.25)",borderRadius:12,padding:"14px 16px",marginTop:12
+    }}>
+      <div style={{fontSize:"0.6rem",letterSpacing:"0.3em",color:"rgba(255,200,50,0.5)",marginBottom:6}}>GILGAMESH</div>
+      {loading
+        ?<div style={{color:"rgba(255,200,50,0.4)",fontSize:"0.82rem",fontStyle:"italic"}}>王が言葉を選んでいる……</div>
+        :<div style={{color:"#ffd878",fontSize:"0.88rem",lineHeight:1.8,whiteSpace:"pre-wrap"}}>{text}</div>
+      }
+    </div>
+  );
+}
+
+function BookCard({book,onStatusChange,onDelete,onGilClick}){
+  const[expanded,setExpanded]=useState(false);
+  const isRed=book.status==="unread";
+  return(
+    <div style={{
+      background:isRed?"rgba(255,180,50,0.03)":"rgba(255,255,255,0.03)",
+      border:`1px solid ${isRed?"rgba(255,180,50,0.15)":"rgba(255,255,255,0.08)"}`,
+      borderRadius:12,overflow:"hidden",transition:"border-color 0.2s"
+    }}>
+      <div style={{display:"flex",gap:12,padding:"14px 16px",cursor:"pointer"}} onClick={()=>setExpanded(!expanded)}>
+        {book.cover
+          ?<img src={book.cover} alt="" style={{width:48,height:68,objectFit:"cover",borderRadius:4,flexShrink:0}}/>
+          :<div style={{width:48,height:68,background:"rgba(255,255,255,0.06)",borderRadius:4,flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center",fontSize:"1.4rem"}}>📕</div>
+        }
+        <div style={{flex:1,minWidth:0}}>
+          <div style={{fontWeight:700,fontSize:"0.92rem",color:"#e8f0f8",marginBottom:4,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{book.title}</div>
+          <div style={{fontSize:"0.72rem",color:"rgba(255,255,255,0.4)",marginBottom:6}}>{book.author}</div>
+          <StatusBadge status={book.status}/>
+        </div>
+        <div style={{color:"rgba(255,255,255,0.2)",fontSize:"0.8rem",flexShrink:0,paddingTop:4}}>{expanded?"▲":"▼"}</div>
+      </div>
+      {expanded&&(
+        <div style={{padding:"0 16px 16px",borderTop:"1px solid rgba(255,255,255,0.06)"}}>
+          {book.description&&(
+            <div style={{fontSize:"0.76rem",color:"rgba(255,255,255,0.35)",lineHeight:1.6,margin:"12px 0",display:"-webkit-box",WebkitLineClamp:3,WebkitBoxOrient:"vertical",overflow:"hidden"}}>{book.description}</div>
+          )}
+          <div style={{display:"flex",gap:8,flexWrap:"wrap",marginTop:12}}>
+            {Object.entries(STATUS).map(([k,v])=>(
+              <button key={k} onClick={()=>onStatusChange(book.id,k)}
+                style={{padding:"5px 12px",background:book.status===k?"rgba(255,255,255,0.1)":"transparent",
+                border:`1px solid ${book.status===k?"rgba(255,255,255,0.25)":"rgba(255,255,255,0.1)"}`,
+                borderRadius:6,color:book.status===k?"#e8f0f8":"rgba(255,255,255,0.35)",fontSize:"0.72rem",cursor:"pointer"}}>
+                {v.emoji} {v.label}
+              </button>
+            ))}
+          </div>
+          <div style={{display:"flex",gap:8,marginTop:10}}>
+            <button onClick={()=>onGilClick(book)}
+              style={{flex:1,padding:"8px 12px",background:"linear-gradient(135deg,rgba(255,200,50,0.1),rgba(255,150,0,0.1))",
+              border:"1px solid rgba(255,200,50,0.3)",borderRadius:8,color:"#ffd878",fontSize:"0.78rem",cursor:"pointer",fontWeight:700}}>
+              👑 {book.status==="done"?"王の感想を聞く":book.status==="reading"?"王のお言葉":"言い訳を生成"}
+            </button>
+            <button onClick={()=>onDelete(book.id)}
+              style={{padding:"8px 10px",background:"rgba(255,80,80,0.08)",border:"1px solid rgba(255,80,80,0.2)",borderRadius:8,color:"rgba(255,100,100,0.7)",fontSize:"0.72rem",cursor:"pointer"}}>🗑</button>
+          </div>
+          {(book.gilText||book.gilLoading)&&<GilSpeech text={book.gilText} loading={book.gilLoading}/>}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function BookTracker(){
+  const[books,setBooks]=useState([]);
+  const[nextId,setNextId]=useState(1);
+  const[search,setSearch]=useState("");
+  const[searching,setSearching]=useState(false);
+  const[searchResults,setSearchResults]=useState([]);
+  const[filter,setFilter]=useState("all");
+  const[deleteId,setDeleteId]=useState(null);
+
+  useEffect(()=>{
+    try{const s=localStorage.getItem("book-tracker");if(s){const d=JSON.parse(s);setBooks(d.books||[]);setNextId(d.nextId||1);}}catch(e){}
+  },[]);
+
+  function save(newBooks,nid){
+    setBooks(newBooks);
+    try{localStorage.setItem("book-tracker",JSON.stringify({books:newBooks,nextId:nid??nextId}));}catch(e){}
+  }
+
+  async function searchBooks(){
+    if(!search.trim())return;
+    setSearching(true);setSearchResults([]);
+    try{
+      const isIsbn=/^[0-9\-]{10,17}$/.test(search.replace(/-/g,""));
+      const query=isIsbn?`isbn:${search.replace(/-/g,"")}`:`intitle:${encodeURIComponent(search)}`;
+      const res=await fetch(`https://www.googleapis.com/books/v1/volumes?q=${query}&langRestrict=ja&maxResults=5`);
+      const data=await res.json();
+      setSearchResults((data.items||[]).map(item=>({
+        googleId:item.id,
+        title:item.volumeInfo.title||"不明",
+        author:(item.volumeInfo.authors||[]).join("、"),
+        cover:item.volumeInfo.imageLinks?.thumbnail?.replace("http:","https:")||null,
+        description:item.volumeInfo.description||"",
+        isbn:((item.volumeInfo.industryIdentifiers||[]).find(x=>x.type==="ISBN_13")||{}).identifier||"",
+      })));
+    }catch(e){setSearchResults([]);}
+    setSearching(false);
+  }
+
+  function addBook(info){
+    const newBook={id:nextId,...info,status:"unread",gilText:"",gilLoading:false,addedAt:new Date().toISOString()};
+    const newBooks=[...books,newBook];
+    const nid=nextId+1;
+    setNextId(nid);save(newBooks,nid);
+    setSearchResults([]);setSearch("");
+  }
+
+  function updateBook(id,patch){
+    const newBooks=books.map(b=>b.id===id?{...b,...patch}:b);
+    save(newBooks);
+  }
+
+  function handleStatusChange(id,status){
+    updateBook(id,{status,gilText:"",gilLoading:false});
+  }
+
+  async function handleGilClick(book){
+    updateBook(book.id,{gilLoading:true,gilText:""});
+    let prompt;
+    if(book.status==="done"){
+      prompt=`「${book.title}」（${book.author}）を読んだ感想を、王として語れ。内容を踏まえて具体的に。`;
+    }else if(book.status==="reading"){
+      prompt=`余の臣下が「${book.title}」（${book.author}）をまだ読み終えていない。一言叱咤せよ。`;
+    }else{
+      prompt=`余の臣下が「${book.title}」（${book.author}）を積読している。読んでいない言い訳を本人に代わって考えてやれ。ただし最後に一言ダメ出しもせよ。`;
+    }
+    const text=await callGilgamesh(prompt);
+    updateBook(book.id,{gilLoading:false,gilText:text});
+  }
+
+  function deleteBook(id){setBooks(prev=>{const n=prev.filter(b=>b.id!==id);save(n);return n;});setDeleteId(null);}
+
+  function exportData(){
+    const json=JSON.stringify({books,nextId},null,2);
+    const a=document.createElement("a");
+    a.href="data:application/json;charset=utf-8,"+encodeURIComponent(json);
+    a.download=`王の書架_${new Date().toISOString().slice(0,10)}.json`;
+    document.body.appendChild(a);a.click();document.body.removeChild(a);
+  }
+
+  function importData(e){
+    const file=e.target.files[0];if(!file)return;
+    const r=new FileReader();
+    r.onload=ev=>{try{const d=JSON.parse(ev.target.result);if(d.books){save(d.books,d.nextId||nextId);setNextId(d.nextId||nextId);}}catch{alert("読み込みに失敗しました");}};
+    r.readAsText(file);e.target.value="";
+  }
+
+  let displayed=filter==="all"?books:books.filter(b=>b.status===filter);
+  const counts={all:books.length,...Object.fromEntries(Object.keys(STATUS).map(k=>[k,books.filter(b=>b.status===k).length]))};
+
+  const inp={background:"rgba(255,255,255,0.06)",border:"1px solid rgba(255,255,255,0.12)",borderRadius:8,padding:"10px 14px",color:"#e8f0f8",fontSize:"0.84rem",fontFamily:"inherit",width:"100%",outline:"none"};
+
+  return(
+    <div style={{minHeight:"100vh",fontFamily:"'Noto Sans JP',sans-serif",color:"#e8f0f8",padding:"28px 16px 80px"}}>
+      <style>{`input:focus{border-color:rgba(100,180,255,0.5)!important;} button:hover{opacity:0.85;}`}</style>
+
+      {deleteId&&(
+        <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.75)",zIndex:50,display:"flex",alignItems:"center",justifyContent:"center",padding:16}}>
+          <div style={{background:"linear-gradient(135deg,#0a1628,#0d1f38)",border:"1px solid rgba(255,80,80,0.3)",borderRadius:16,padding:24,width:"100%",maxWidth:300,textAlign:"center"}}>
+            <div style={{fontSize:"1.6rem",marginBottom:10}}>🗑</div>
+            <div style={{fontSize:"0.88rem",marginBottom:6}}>削除しますか？</div>
+            <div style={{fontSize:"0.72rem",color:"rgba(255,255,255,0.3)",marginBottom:20}}>この操作は元に戻せません</div>
+            <div style={{display:"flex",gap:10}}>
+              <button onClick={()=>setDeleteId(null)} style={{flex:1,padding:10,background:"transparent",border:"1px solid rgba(255,255,255,0.15)",borderRadius:8,color:"rgba(255,255,255,0.4)",fontSize:"0.8rem",cursor:"pointer"}}>キャンセル</button>
+              <button onClick={()=>deleteBook(deleteId)} style={{flex:1,padding:10,background:"linear-gradient(135deg,#ff3355,#cc1133)",border:"none",borderRadius:8,color:"#fff",fontSize:"0.8rem",fontWeight:700,cursor:"pointer"}}>削除</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div style={{maxWidth:520,margin:"0 auto",paddingTop:40}}>
+        {/* ヘッダー */}
+        <div style={{marginBottom:24}}>
+          <div style={{fontSize:"0.6rem",letterSpacing:"0.4em",color:"rgba(255,200,50,0.5)",marginBottom:6}}>KING'S LIBRARY</div>
+          <div style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+            <h1 style={{fontSize:"1.7rem",fontWeight:700,color:"#ffd878",letterSpacing:"0.05em",textShadow:"0 0 20px rgba(255,200,50,0.3)"}}>王の書架</h1>
+            <div style={{display:"flex",gap:6}}>
+              <button onClick={exportData} title="データを保存" style={{padding:"8px 10px",background:"rgba(255,200,50,0.08)",border:"1px solid rgba(255,200,50,0.2)",borderRadius:8,color:"rgba(255,200,50,0.7)",fontSize:"0.82rem",cursor:"pointer"}}>💾</button>
+              <label title="データを読み込む" style={{padding:"8px 10px",background:"rgba(255,200,50,0.08)",border:"1px solid rgba(255,200,50,0.2)",borderRadius:8,color:"rgba(255,200,50,0.7)",fontSize:"0.82rem",cursor:"pointer"}}>
+                📂<input type="file" accept=".json" onChange={importData} style={{display:"none"}}/>
+              </label>
+            </div>
+          </div>
+          {/* サマリー */}
+          <div style={{display:"flex",gap:8,marginTop:14}}>
+            {[["all","全部","#90c8f8"],["unread","積読","#ffb832"],["reading","読書中","#90c8f8"],["done","読了","#64dc78"]].map(([k,l,c])=>(
+              <div key={k} style={{flex:1,background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.07)",borderRadius:10,padding:"8px 10px",textAlign:"center"}}>
+                <div style={{fontSize:"0.55rem",color:"rgba(255,255,255,0.3)",marginBottom:2}}>{l}</div>
+                <div style={{fontSize:"1.2rem",fontWeight:700,color:c}}>{counts[k]}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* 検索 */}
+        <div style={{background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:12,padding:16,marginBottom:20}}>
+          <div style={{fontSize:"0.65rem",color:"rgba(255,255,255,0.35)",marginBottom:8}}>ISBNまたはタイトルで検索</div>
+          <div style={{display:"flex",gap:8}}>
+            <input value={search} onChange={e=>setSearch(e.target.value)} onKeyDown={e=>e.key==="Enter"&&searchBooks()}
+              placeholder="例：9784101092058 / 君の名は" style={{...inp,flex:1}}/>
+            <button onClick={searchBooks} disabled={searching||!search.trim()}
+              style={{padding:"10px 16px",background:"linear-gradient(135deg,rgba(255,200,50,0.2),rgba(255,150,0,0.2))",border:"1px solid rgba(255,200,50,0.3)",borderRadius:8,color:"#ffd878",fontSize:"0.82rem",cursor:"pointer",whiteSpace:"nowrap",fontWeight:700}}>
+              {searching?"…":"検索"}
+            </button>
+          </div>
+          {searchResults.length>0&&(
+            <div style={{marginTop:12,display:"flex",flexDirection:"column",gap:6}}>
+              {searchResults.map(r=>(
+                <div key={r.googleId} style={{display:"flex",gap:10,alignItems:"center",padding:"10px 12px",background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:8}}>
+                  {r.cover
+                    ?<img src={r.cover} alt="" style={{width:36,height:50,objectFit:"cover",borderRadius:3,flexShrink:0}}/>
+                    :<div style={{width:36,height:50,background:"rgba(255,255,255,0.06)",borderRadius:3,flexShrink:0}}/>
+                  }
+                  <div style={{flex:1,minWidth:0}}>
+                    <div style={{fontSize:"0.82rem",fontWeight:700,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{r.title}</div>
+                    <div style={{fontSize:"0.68rem",color:"rgba(255,255,255,0.35)"}}>{r.author}</div>
+                  </div>
+                  <button onClick={()=>addBook(r)}
+                    disabled={books.some(b=>b.googleId===r.googleId)}
+                    style={{padding:"6px 12px",background:books.some(b=>b.googleId===r.googleId)?"rgba(255,255,255,0.05)":"linear-gradient(135deg,rgba(255,200,50,0.15),rgba(255,150,0,0.15))",
+                    border:`1px solid ${books.some(b=>b.googleId===r.googleId)?"rgba(255,255,255,0.1)":"rgba(255,200,50,0.3)"}`,
+                    borderRadius:6,color:books.some(b=>b.googleId===r.googleId)?"rgba(255,255,255,0.2)":"#ffd878",fontSize:"0.72rem",cursor:"pointer",flexShrink:0}}>
+                    {books.some(b=>b.googleId===r.googleId)?"登録済":"追加"}
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* フィルター */}
+        <div style={{display:"flex",gap:6,marginBottom:16,flexWrap:"wrap"}}>
+          {[["all","すべて"],["unread","積読"],["reading","読書中"],["done","読了"]].map(([k,l])=>(
+            <button key={k} onClick={()=>setFilter(k)}
+              style={{padding:"5px 12px",background:filter===k?"rgba(255,200,50,0.1)":"rgba(255,255,255,0.03)",
+              border:`1px solid ${filter===k?"rgba(255,200,50,0.4)":"rgba(255,255,255,0.08)"}`,
+              borderRadius:20,color:filter===k?"#ffd878":"rgba(255,255,255,0.35)",fontSize:"0.72rem",cursor:"pointer"}}>
+              {l} {counts[k]}
+            </button>
+          ))}
+        </div>
+
+        {/* 本一覧 */}
+        {displayed.length===0
+          ?<div style={{textAlign:"center",padding:"60px 20px",color:"rgba(255,255,255,0.2)",fontSize:"0.85rem"}}>
+            <div style={{fontSize:"2.5rem",marginBottom:12}}>👑</div>
+            {books.length===0?"まだ一冊も登録されていない":"該当する本がない"}
+          </div>
+          :<div style={{display:"flex",flexDirection:"column",gap:8}}>
+            {displayed.map(book=>(
+              <BookCard key={book.id} book={book}
+                onStatusChange={handleStatusChange}
+                onDelete={(id)=>setDeleteId(id)}
+                onGilClick={handleGilClick}/>
+            ))}
+          </div>
+        }
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<BookTracker/>);
+</script>
+</body>
+</html>
