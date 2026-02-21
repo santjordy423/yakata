@@ -331,7 +331,14 @@ function goRandom(){ const others=CREATURES.filter(c=>c!==currentCreature); rend
 const{month,day}=getToday();
 const months=['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
 document.getElementById('todayLabel').textContent=`${months[month-1]}${day}日`;
-renderCreature(findCreature(month,day));
+// ハッシュがあればその番号の生物を表示、なければ今日の生物
+const hash=location.hash.replace("#","");
+const hashIdx=parseInt(hash);
+if(hashIdx>=1&&hashIdx<=CREATURES.length){
+  renderCreature(CREATURES[hashIdx-1]);
+}else{
+  renderCreature(findCreature(month,day));
+}
 </script>
 </body>
 </html>
