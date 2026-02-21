@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>絶滅生物一覧 — Field Notes Index</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@300;400;700&family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Noto+Sans+JP:wght@300;400&family=IM+Fell+English:ital@0;1&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper:#f4ede0; --paper2:#ede3d0; --paper-dark:#d9ccb4;
+    --ink:#2c2416; --ink-fade:#6b5a3e; --ink-light:#9e8b6e;
+    --red-ink:#8b2020; --blue-ink:#1a3a5c; --border:#b5a080;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{background:#c8ba9e;background-image:repeating-linear-gradient(0deg,transparent,transparent 31px,rgba(100,80,40,.06) 31px,rgba(100,80,40,.06) 32px);min-height:100vh;font-family:'Noto Serif JP',serif;color:var(--ink);}
+  .notebook{max-width:760px;margin:0 auto;padding:40px 20px 80px;opacity:0;animation:pageOpen .8s ease forwards;}
+  .notebook::before{content:'';position:fixed;left:0;top:0;bottom:0;width:6px;background:linear-gradient(90deg,#8b7355,#a0875f,#8b7355);z-index:10;}
+  .page{background:var(--paper);background-image:radial-gradient(ellipse 60px 40px at 88% 8%,rgba(120,80,20,.07) 0%,transparent 100%),radial-gradient(ellipse 200px 300px at 20% 60%,rgba(140,110,50,.04) 0%,transparent 100%),repeating-linear-gradient(0deg,transparent,transparent 31px,rgba(100,80,40,.08) 31px,rgba(100,80,40,.08) 32px);border-radius:1px 4px 4px 1px;box-shadow:-2px 0 8px rgba(0,0,0,.2),2px 2px 16px rgba(0,0,0,.15);position:relative;overflow:hidden;}
+  .page::before{content:'';position:absolute;left:52px;top:0;bottom:0;width:1px;background:rgba(160,50,50,.3);z-index:1;}
+  .page::after{content:'';position:absolute;left:18px;top:0;bottom:0;width:16px;background-image:radial-gradient(circle 5px at center,#c8ba9e 0%,#c8ba9e 60%,transparent 60%);background-size:100% 80px;background-position:0 40px;z-index:2;}
+  .page-inner{padding:44px 44px 44px 68px;position:relative;z-index:3;}
+
+  .header{margin-bottom:36px;padding-bottom:20px;border-bottom:1px solid var(--border);}
+  .header-meta{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;}
+  .header-date-label{font-family:'IM Fell English',serif;font-size:11px;color:var(--ink-fade);letter-spacing:.05em;}
+  .header h1{font-family:'Playfair Display',serif;font-size:clamp(20px,4vw,26px);font-weight:400;color:var(--ink);}
+  .header h1 em{color:var(--red-ink);font-style:italic;}
+  .header-sub{font-family:'Noto Sans JP',sans-serif;font-size:11px;font-weight:300;color:var(--ink-light);margin-top:6px;letter-spacing:.1em;}
+
+  /* Filter bar */
+  .filter-bar{display:flex;gap:8px;margin-bottom:28px;flex-wrap:wrap;align-items:center;}
+  .filter-label{font-family:'IM Fell English',serif;font-size:11px;color:var(--ink-light);margin-right:4px;}
+  .filter-btn{padding:4px 12px;background:transparent;border:1px solid var(--border);color:var(--ink-fade);font-family:'Noto Sans JP',sans-serif;font-size:11px;font-weight:300;cursor:pointer;transition:all .15s;letter-spacing:.05em;}
+  .filter-btn:hover,.filter-btn.active{background:rgba(139,32,32,.07);border-color:var(--red-ink);color:var(--red-ink);}
+  .count-note{font-family:'IM Fell English',serif;font-size:11px;color:var(--ink-light);margin-left:auto;}
+
+  /* Table */
+  .index-table{width:100%;border-collapse:collapse;margin-bottom:32px;}
+  .index-table th{font-family:'IM Fell English',serif;font-size:11px;color:var(--ink-light);letter-spacing:.08em;padding:6px 8px;border-bottom:1px solid var(--border);text-align:left;font-weight:400;}
+  .index-table th:first-child{width:36px;text-align:center;}
+  .index-table th.th-date{width:60px;}
+  .index-table th.th-period{width:150px;}
+  .index-table td{padding:10px 8px;border-bottom:1px solid rgba(181,160,128,.25);vertical-align:top;font-size:13px;line-height:1.6;}
+  .index-table td:first-child{text-align:center;font-family:'IM Fell English',serif;font-size:10px;color:var(--ink-light);}
+  .row-link{cursor:pointer;transition:background .15s;}
+  .row-link:hover{background:rgba(139,32,32,.04);}
+  .row-link:hover .creature-name-cell{color:var(--red-ink);}
+  .creature-name-cell{font-family:'Noto Serif JP',serif;font-weight:700;color:var(--ink);font-size:14px;}
+  .sci-cell{font-family:'IM Fell English',serif;font-style:italic;font-size:11px;color:var(--blue-ink);opacity:.8;display:block;margin-top:2px;}
+  .date-cell{font-family:'Noto Sans JP',sans-serif;font-size:12px;color:var(--ink-fade);font-weight:300;}
+  .period-cell{font-size:12px;color:var(--ink-fade);font-family:'Noto Sans JP',sans-serif;font-weight:300;}
+  .era-dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;vertical-align:middle;flex-shrink:0;}
+
+  /* Era color dots */
+  .era-cambrian{background:#8b6a3a;}
+  .era-ediacaran{background:#a08050;}
+  .era-ordovician{background:#7a8a4a;}
+  .era-silurian{background:#6a9a5a;}
+  .era-devonian{background:#5a9a6a;}
+  .era-carboniferous{background:#4a8a7a;}
+  .era-permian{background:#3a7a8a;}
+  .era-triassic{background:#4a6a9a;}
+  .era-jurassic{background:#5a5a9a;}
+  .era-cretaceous{background:#7a4a9a;}
+  .era-paleogene{background:#9a4a7a;}
+  .era-neogene{background:#9a5a4a;}
+  .era-quaternary{background:#8a3030;}
+
+  .no-results{text-align:center;padding:40px;font-family:'IM Fell English',serif;font-size:14px;color:var(--ink-light);font-style:italic;}
+
+  .back-btn{padding:10px 16px;background:transparent;border:1px solid var(--border);color:var(--ink-fade);font-family:'Noto Serif JP',serif;font-size:12px;letter-spacing:.1em;cursor:pointer;transition:all .2s;}
+  .back-btn:hover{background:rgba(100,80,40,.06);color:var(--ink);border-color:var(--ink-fade);}
+  .page-fold{position:absolute;bottom:0;right:0;width:32px;height:32px;background:linear-gradient(225deg,var(--paper-dark) 50%,var(--paper2) 50%);box-shadow:-2px -2px 4px rgba(0,0,0,.08);}
+  @keyframes pageOpen{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+  @media(max-width:600px){
+    .page-inner{padding:32px 16px 32px 48px;}
+    .index-table th.th-period,.index-table td.period-cell{display:none;}
+    .filter-btn{font-size:10px;padding:3px 8px;}
+  }
+</style>
+</head>
+<body>
+<div class="notebook">
+  <div class="page">
+    <div class="page-inner">
+      <div class="header">
+        <div class="header-meta">
+          <div class="header-date-label">Field Notes on Extinct Life Forms — Index</div>
+        </div>
+        <h1>絶滅生物<em>一覧</em></h1>
+        <div class="header-sub" id="headerSub"></div>
+      </div>
+
+      <div class="filter-bar">
+        <span class="filter-label">Filter:</span>
+        <button class="filter-btn active" onclick="setFilter('all')">すべて</button>
+        <button class="filter-btn" onclick="setFilter('カンブリア')">カンブリア紀</button>
+        <button class="filter-btn" onclick="setFilter('デボン')">デボン紀</button>
+        <button class="filter-btn" onclick="setFilter('石炭')">石炭紀</button>
+        <button class="filter-btn" onclick="setFilter('ジュラ')">ジュラ紀</button>
+        <button class="filter-btn" onclick="setFilter('白亜')">白亜紀</button>
+        <button class="filter-btn" onclick="setFilter('新生代')">新生代</button>
+        <button class="filter-btn" onclick="setFilter('完新')">完新世</button>
+        <span style="margin-left:auto;display:flex;gap:6px;align-items:center;"><span class="filter-label">Sort:</span><button class="filter-btn active" id="sortDate" onclick="setSort('date')">日付順</button><button class="filter-btn" id="sortKana" onclick="setSort('kana')">五十音順</button></span><span class="count-note" id="countNote"></span>
+      </div>
+
+      <table class="index-table">
+        <thead>
+          <tr>
+            <th>No.</th>
+            <th class="th-date">日付</th>
+            <th>生物名</th>
+            <th class="th-period">地質年代</th>
+          </tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+      </table>
+
+      <button class="back-btn" onclick="location.href='kyou_no_zetsumetsu.html'">← 今日の記録に戻る</button>
+    </div>
+    <div class="page-fold"></div>
+  </div>
+</div>
+
+<script>
+const CREATURES = [
+  // ===== 1月 =====
+  { month:1, day:1, name:"アノマロカリス", sci:"Anomalocaris canadensis", period:"カンブリア紀後期", mya:"約5億900万〜5億500万年前",
+    desc:"体長最大1mに達したカンブリア紀最大の捕食者。複眼と把持器官を持ち、当時の海の頂点に君臨した。やわらかい体を持つ生物たちが跳梁する海で、この怪物だけが明確な強者だった。",
+    ext:"カンブリア紀末の環境変動により姿を消した。", era_pos: 2 },
+  { month:1, day:8, name:"ピカイア", sci:"Pikaia gracilens", period:"カンブリア紀中期", mya:"約5億800万年前",
+    desc:"体長5cmほどの紐状の生物で、脊索動物の最初期の化石の一つ。バージェス頁岩から発見された。地味な外見とは裏腹に、脊椎動物全体の遠い祖先にあたる可能性がある。",
+    ext:"カンブリア紀末に絶滅したとみられる。", era_pos: 2 },
+  { month:1, day:15, name:"ダンクルオステウス", sci:"Dunkleosteus terrelli", period:"デボン紀後期", mya:"約3億8000万〜3億6000万年前",
+    desc:"全長8〜10mの装甲魚類。歯のかわりに骨の刃を持ち、その咬合力は現生のワニをも超えると推定される。海の覇者として約2000万年間繁栄した。",
+    ext:"デボン紀末大量絶滅（フラスニアン-ファメニアン絶滅事件）で消えた。海洋の酸素欠乏が主因とされる。", era_pos: 28 },
+  { month:1, day:22, name:"ノトサウルス", sci:"Nothosaurus mirabilis", period:"三畳紀中期", mya:"約2億4000万〜2億1000万年前",
+    desc:"体長4mほどの海生爬虫類。陸と海を行き来する両生的な生活を送り、後に完全海生となる首長竜の祖先に近いとされる。長い歯で魚を挟むように捕食した。",
+    ext:"三畳紀末大量絶滅で消えた。", era_pos: 52 },
+  { month:1, day:28, name:"ハルキゲニア", sci:"Hallucigenia sparsa", period:"カンブリア紀中期", mya:"約5億800万〜5億500万年前",
+    desc:"背中に棘、腹に脚を持つ謎めいた生物。発見当初は上下逆に復元されていたほど、その姿は現代の常識を超えていた。現在も「何の仲間か」について議論が続く。",
+    ext:"カンブリア紀末に絶滅。", era_pos: 2 },
+
+  // ===== 2月 =====
+  { month:2, day:3, name:"アルスロプレウラ", sci:"Arthropleura armata", period:"石炭紀後期〜ペルム紀前期", mya:"約3億1500万〜2億9900万年前",
+    desc:"体長2.5mに達した史上最大の陸生節足動物。現在のヤスデに近縁で、高酸素濃度の石炭紀の森に生きた。巨大昆虫たちが跋扈する世界で最大のムカデだった。",
+    ext:"ペルム紀初期の乾燥化で生息環境が失われ絶滅した。", era_pos: 38 },
+  { month:2, day:9, name:"ディプロドクス", sci:"Diplodocus carnegii", period:"ジュラ紀後期", mya:"約1億5400万〜1億5200万年前",
+    desc:"全長27mに達する長大な竜脚類恐竜。首と尾で全長の大半を占め、尾は鞭のように音速で振れたという説もある。アメリカ西部の乾燥した平原に生きた。",
+    ext:"ジュラ紀末の環境変動で絶滅した。白亜紀には生き残っていない。", era_pos: 69 },
+  { month:2, day:14, name:"メガネウラ", sci:"Meganeura monyi", period:"石炭紀後期", mya:"約3億500万〜2億9900万年前",
+    desc:"翼開長70cmに達した巨大トンボ。石炭紀の高酸素環境（現在の1.5倍）が昆虫の巨大化を可能にした。現生のトンボと同様に空中で獲物を捕らえた。",
+    ext:"石炭紀末の酸素濃度低下とともに消えた。", era_pos: 39 },
+  { month:2, day:20, name:"カルニアディスクス", sci:"Charnia masoni", period:"エディアカラ紀", mya:"約5億5500万年前",
+    desc:"葉や羽のような形をした固着性の生物。岩に付着して生きており、光合成をしていた可能性がある。動物でも植物でも菌類でもない、現在分類不能な生物。",
+    ext:"エディアカラ紀末に絶滅。", era_pos: 2 },
+  { month:2, day:22, name:"オパビニア", sci:"Opabinia regalis", period:"カンブリア紀中期", mya:"約5億800万年前",
+    desc:"5つの目と象のような鼻を持つ珍奇な生物。1975年の学会発表時、会場が笑いに包まれたというエピソードが残る。ハサミのついた吻で獲物を口に運んだ。",
+    ext:"カンブリア紀の終わりとともに姿を消した。", era_pos: 2 },
+
+  // ===== 3月 =====
+  { month:3, day:2, name:"パキケファロサウルス", sci:"Pachycephalosaurus wyomingensis", period:"白亜紀後期", mya:"約7600万〜6600万年前",
+    desc:"頭蓋骨の厚さ25cmにも達するドーム頭の恐竜。頭突きで戦ったとされてきたが、近年は種内の視覚的ディスプレイとして使われたとする説も有力。",
+    ext:"白亜紀末大量絶滅で消えた。", era_pos: 86 },
+  { month:3, day:5, name:"ティクターリク", sci:"Tiktaalik roseae", period:"デボン紀後期", mya:"約3億7500万年前",
+    desc:"魚と四足動物の中間にいた「移行化石」。ひれの中に肩・肘・手首に相当する骨を持ち、陸に上がりかけていた。あなたの腕もこの生物の遺産かもしれない。",
+    ext:"デボン紀末大量絶滅で絶滅したが、その系譜は四足動物として続いた。", era_pos: 25 },
+  { month:3, day:12, name:"エラスモサウルス", sci:"Elasmosaurus platyurus", period:"白亜紀後期", mya:"約8000万〜7500万年前",
+    desc:"首の長さが全体の半分以上を占める首長竜。脊椎骨の数は72個と極めて多い。化石発見当初、頭と尾を逆に復元する有名なミスが起きた生物でもある。",
+    ext:"白亜紀末大量絶滅で消えた。", era_pos: 84 },
+  { month:3, day:19, name:"エウリプテルス", sci:"Eurypterus remipes", period:"シルル紀後期", mya:"約4億3200万〜4億1800万年前",
+    desc:"「海サソリ」とも呼ばれる節足動物。最大種は2mを超えた。シルル紀ニューヨーク州の浅海で繁栄し、その化石の豊富さからニューヨーク州の州化石に指定されている。",
+    ext:"ペルム紀末大量絶滅で消えた。", era_pos: 16 },
+  { month:3, day:26, name:"テリジノサウルス", sci:"Therizinosaurus cheloniformis", period:"白亜紀後期", mya:"約7000万〜6600万年前",
+    desc:"長さ70cmに達する史上最長の爪を持つ恐竜。肉食恐竜から進化しながら植物食に転じた。鎌のような爪で高木の枝を引き寄せて葉を食べたと考えられる。",
+    ext:"白亜紀末大量絶滅で消えた。", era_pos: 87 },
+
+  // ===== 4月 =====
+  { month:4, day:1, name:"ディキンソニア", sci:"Dickinsonia costata", period:"エディアカラ紀", mya:"約5億5800万〜5億5000万年前",
+    desc:"楕円形の葉っぱのような生物。動物なのか菌類なのか長年論争されたが、近年のコレステロール分析で動物と確認された。多細胞動物の夜明けに生きた謎の存在。",
+    ext:"エディアカラ紀末に絶滅。カンブリア爆発で多様化した動物たちに取って代わられた。", era_pos: 2 },
+  { month:4, day:7, name:"ステゴサウルス", sci:"Stegosaurus armatus", period:"ジュラ紀後期", mya:"約1億5500万〜1億5000万年前",
+    desc:"背中に並ぶ菱形の骨板が特徴の恐竜。骨板の機能は体温調節、威嚇、ディスプレイなど諸説ある。脳の大きさは犬ほどで、脊髄神経が集中する腰部のほうが大きかった。",
+    ext:"ジュラ紀末に絶滅した。白亜紀まで生き残った証拠はない。", era_pos: 70 },
+  { month:4, day:16, name:"アカントステガ", sci:"Acanthostega gunnari", period:"デボン紀後期", mya:"約3億6500万年前",
+    desc:"水中生活をしながら8本の指（趾）を持っていた初期四足動物。「指は陸上歩行のために進化した」という定説を覆した。8本指の手は水中での移動に使われた。",
+    ext:"デボン紀末に絶滅。", era_pos: 27 },
+  { month:4, day:23, name:"ドレパナスピス", sci:"Drepanaspis gemuendenensis", period:"デボン紀前期", mya:"約4億年前",
+    desc:"平べったい体を持つ無顎魚類。甲冑のような硬い外皮で覆われ、海底で藻類や有機物を吸い込んで食べていた。現代の魚からは想像もつかない異形の姿。",
+    ext:"デボン紀中期に絶滅。", era_pos: 20 },
+  { month:4, day:30, name:"プテリゴトゥス", sci:"Pterygotus anglicus", period:"シルル紀〜デボン紀", mya:"約4億3000万〜3億7000万年前",
+    desc:"体長2.5mに達した巨大海サソリ。鋭いハサミで魚類を捕食した。現生のサソリやクモが陸に上がったとき、海ではこのような巨人が支配していた。",
+    ext:"デボン紀末大量絶滅で消えた。", era_pos: 20 },
+
+  // ===== 5月 =====
+  { month:5, day:5, name:"カルノタウルス", sci:"Carnotaurus sastrei", period:"白亜紀後期", mya:"約7200万〜6900万年前",
+    desc:"頭に2本の角を持つ異形の肉食恐竜。腕は極端に退化し、ほぼ無用の長物となっていた。南米固有の恐竜で、独特の進化を遂げた系統の代表格。",
+    ext:"白亜紀末大量絶滅で消えた。", era_pos: 86 },
+  { month:5, day:7, name:"パラサウロロフス", sci:"Parasaurolophus walkeri", period:"白亜紀後期", mya:"約7600万〜7300万年前",
+    desc:"頭の後ろに伸びる大きな管状のトサカが特徴のハドロサウルス類。このトサカは中が空洞で、空気を通すことで低周波の音を出していたと考えられている。群れで生活し、仲間とコミュニケーションを取っていた社会性の高い草食恐竜。",
+    ext:"白亜紀末大量絶滅で消えた。", era_pos: 85 },
+  { month:5, day:8, name:"スピノサウルス", sci:"Spinosaurus aegyptiacus", period:"白亜紀中期", mya:"約9800万〜9300万年前",
+    desc:"全長15〜18mで史上最大の肉食恐竜候補。近年の研究で水中を泳いでいたことが示唆され、「直立して歩く恐竜」というイメージを塗り替えた。北アフリカの川に生きた。",
+    ext:"白亜紀末大量絶滅（K-Pg絶滅）で消えた。", era_pos: 81 },
+  { month:5, day:14, name:"ユタラプトル", sci:"Utahraptor ostrommaysi", period:"白亜紀前期", mya:"約1億2600万〜1億2500万年前",
+    desc:"体長7mの最大のドロマエオサウルス類。30cmを超える鎌状の爪は関節の可動域が広く、獲物を押さえ込むのに使われた。映画のヴェロキラプトルはこちらのイメージに近い。",
+    ext:"白亜紀後期まで生き残れず絶滅した。", era_pos: 75 },
+  { month:5, day:21, name:"タラッソドロメウス", sci:"Thalassodromeus sethi", period:"白亜紀前期", mya:"約1億1000万年前",
+    desc:"翼開長4.5mの翼竜。頭部のトサカが体の半分近くを占め、水面を滑走しながら魚を捕食したと考えられる。現在のブラジルにあたる場所に生息した。",
+    ext:"白亜紀末絶滅事件で消えた。", era_pos: 78 },
+  { month:5, day:28, name:"アルゼンチノサウルス", sci:"Argentinosaurus huinculensis", period:"白亜紀後期", mya:"約9600万〜9200万年前",
+    desc:"推定体長30〜40m・体重70〜80トンで史上最大の陸上動物候補。南米の草食恐竜で、脊椎骨1個の長さだけで1.5mある。一日に数百kgの植物を消費したと推定される。",
+    ext:"白亜紀末大量絶滅で消えた。", era_pos: 81 },
+
+  // ===== 6月 =====
+  { month:6, day:3, name:"アルゲンタヴィス", sci:"Argentavis magnificens", period:"中新世後期", mya:"約600万年前",
+    desc:"翼開長7mで史上最大の飛翔鳥類。コンドルの親戚で、南米のパンパスを滑空していた。体重70〜80kgの体を支えるために、上昇気流を巧みに利用した。",
+    ext:"約600万年前に絶滅。気候変動と獲物の減少が原因とされる。", era_pos: 99 },
+  { month:6, day:10, name:"イクチオサウルス", sci:"Ichthyosaurus communis", period:"ジュラ紀前期", mya:"約2億〜1億9000万年前",
+    desc:"イルカに似た体型を持つ海生爬虫類の代表格。収斂進化の典型例として知られる。目が巨大で、暗い深海での視力が非常に高かったとされる。",
+    ext:"白亜紀前期に多様性を失い、白亜紀後期には絶滅した。", era_pos: 62 },
+  { month:6, day:18, name:"メソサウルス", sci:"Mesosaurus tenuidens", period:"ペルム紀前期", mya:"約2億9900万〜2億7000万年前",
+    desc:"最初に海に戻った爬虫類の一つ。南米とアフリカ両方に化石が見つかり、大陸移動説の証拠となった生物。大西洋はまだ存在せず、両大陸はつながっていた。",
+    ext:"ペルム紀中期に絶滅した。", era_pos: 43 },
+  { month:6, day:25, name:"プレシオサウルス", sci:"Plesiosaurus dolichodeirus", period:"ジュラ紀前期〜中期", mya:"約2億〜1億8000万年前",
+    desc:"長い首と大きなひれ脚を持つ海生爬虫類。「ネス湖のネッシー」のモデルとされることが多い。頭が小さく、魚やアンモナイトを捕食していた。",
+    ext:"白亜紀末大量絶滅で消えた。", era_pos: 64 },
+
+  // ===== 7月 =====
+  { month:7, day:4, name:"カルカロドントサウルス", sci:"Carcharodontosaurus saharicus", period:"白亜紀中期", mya:"約9900万〜9400万年前",
+    desc:"全長12〜13mのサメ歯を持つ恐竜。アフリカに生息し、スピノサウルスと同じ時代・地域の支配者だった。二頭の巨人が同じ川岸でにらみあっていたかもしれない。",
+    ext:"白亜紀末絶滅事件で消えた。", era_pos: 81 },
+  { month:7, day:11, name:"ケラトサウルス", sci:"Ceratosaurus nasicornis", period:"ジュラ紀後期", mya:"約1億5300万〜1億4800万年前",
+    desc:"鼻の上に角を持つ中型肉食恐竜。ジュラ紀北米でアロサウルスと共存していたが、より小型で数も少なかったらしい。背中には小さな骨板（皮骨）が並んでいた。",
+    ext:"ジュラ紀末に絶滅した。", era_pos: 70 },
+  { month:7, day:20, name:"ニクトサウルス", sci:"Nyctosaurus gracilis", period:"白亜紀後期", mya:"約8500万〜8400万年前",
+    desc:"翼指以外の指を完全に失った特殊化した翼竜。一部の標本はY字型の巨大なトサカを持つ。帆のようなトサカの機能（帆走？求愛？）はいまも謎のまま。",
+    ext:"白亜紀末に絶滅。", era_pos: 83 },
+  { month:7, day:27, name:"タニストロフェウス", sci:"Tanystropheus hydroides", period:"三畳紀中期", mya:"約2億4200万〜2億1200万年前",
+    desc:"首の長さが胴体・尾よりもはるかに長い奇妙な爬虫類。首はたった13個の椎骨から成るが、それぞれが極端に長い。近年の研究で水辺で魚を捕食していたことが判明した。",
+    ext:"三畳紀末大量絶滅で消えた。", era_pos: 52 },
+
+  // ===== 8月 =====
+  { month:8, day:2, name:"パラケラテリウム", sci:"Paraceratherium transouralicum", period:"漸新世〜中新世", mya:"約3400万〜2300万年前",
+    desc:"史上最大の陸上哺乳類。サイの親戚で体高5m・体重20トンに達した。首長竜のように首を伸ばして高木の葉を食べた。マンモスどころではない巨大さ。",
+    ext:"中新世の気候変動による植生変化で絶滅した。", era_pos: 95 },
+  { month:8, day:9, name:"バシロサウルス", sci:"Basilosaurus cetoides", period:"始新世後期", mya:"約4000万〜3400万年前",
+    desc:"体長18〜20mに達する原始的なクジラ。後ろ足の痕跡器官を持っていた。「バシロサウルス（帝王トカゲ）」という名前だが、実際はクジラの仲間。",
+    ext:"始新世末に絶滅。より高度なクジラ類に取って代わられた。", era_pos: 93 },
+  { month:8, day:17, name:"グリプトドン", sci:"Glyptodon clavipes", period:"更新世", mya:"約200万〜1万年前",
+    desc:"巨大な甲羅を持つアルマジロの親戚。甲羅は直径1.5mに達し、一部の古代人がシェルターとして利用したという説もある。しっぽは骨質のトゲに覆われた武器だった。",
+    ext:"約1万年前、人類の到来と気候変動が重なり絶滅した。", era_pos: 100 },
+  { month:8, day:24, name:"ドゥードゥクトゥス", sci:"Doedicurus clavicaudus", period:"更新世", mya:"約200万〜1万年前",
+    desc:"グリプトドンの近縁種で、しっぽの先が鉄球のような骨質の塊になった甲冑動物。しっぽを武器として使い、同種間で戦ったことが化石からわかっている。",
+    ext:"約1万年前に絶滅した。", era_pos: 100 },
+
+  // ===== 9月 =====
+  { month:9, day:1, name:"テラトルニス", sci:"Teratornis merriami", period:"更新世", mya:"約180万〜1万年前",
+    desc:"翼開長3.5〜4mの巨大な猛禽類。ハゲワシに近縁で北米に生息した。ラ・ブレアタールピットからも大量に化石が出土している。",
+    ext:"約1万年前に絶滅。人類の進出と気候変動が原因とみられる。", era_pos: 100 },
+  { month:9, day:6, name:"スミロドン", sci:"Smilodon fatalis", period:"更新世", mya:"約250万〜1万年前",
+    desc:"長さ28cmの剣歯を持つ「サーベルタイガー」。ライオンほどの体格を持ち、大型哺乳類を専門に狩っていたとされる。ロサンゼルスのラ・ブレアタールピットから数千体の化石が発見された。",
+    ext:"約1万年前、獲物の大型哺乳類の絶滅に続いて消えた。", era_pos: 100 },
+  { month:9, day:14, name:"マストドン", sci:"Mammut americanum", period:"更新世〜完新世", mya:"約500万〜1万年前",
+    desc:"マンモスに似るが別系統の長鼻類。より原始的な歯の形を持ち、森林性で低木の葉や枝を食べていた。北米では最後の大型哺乳類の一つだった。",
+    ext:"約1万年前に絶滅。人類の狩猟と気候変動が重なった。", era_pos: 99 },
+  { month:9, day:23, name:"エンテロドン", sci:"Entelodon magnum", period:"始新世後期〜漸新世", mya:"約3700万〜1600万年前",
+    desc:"「地獄のブタ」の異名を持つ大型偶蹄類。顎の骨は何でも砕ける頑丈さで、死肉漁りから積極的な捕食まで行ったとされる。エネルギー源を選ばない食性の怪物。",
+    ext:"中新世に絶滅。より効率的な捕食者に取って代わられた。", era_pos: 95 },
+  { month:9, day:30, name:"メガロドン", sci:"Otodus megalodon", period:"中新世〜鮮新世", mya:"約2300万〜360万年前",
+    desc:"体長15〜18mの史上最大のサメ。歯の幅は18cmに達した。現生のホオジロザメの直接の祖先ではないが、近縁に当たる。各地の海を支配した頂点捕食者。",
+    ext:"約360万年前に絶滅。気候変動による餌となる大型哺乳類の減少が主因とされる。", era_pos: 97 },
+
+  // ===== 10月 =====
+  { month:10, day:5, name:"ドエディクルス", sci:"Doedicurus clavicaudus", period:"更新世", mya:"約200万〜1万年前",
+    desc:"全長4mに達する甲冑を持つ動物。甲羅の厚みは5cm以上で、しっぽの先の骨塊は武器として使われた。骨格同士でぶつかった痕跡が化石に残っている。",
+    ext:"約1万年前に絶滅。人類の狩猟圧と気候変動が原因とされる。", era_pos: 100 },
+  { month:10, day:10, name:"ドードー", sci:"Raphus cucullatus", period:"完新世", mya:"1662年に絶滅",
+    desc:"飛べない鳥の代名詞。モーリシャス島の固有種で、天敵のいない環境で飛翔能力を失った。人間への警戒心がなく、棒で簡単に捕まえられたという記録が残る。",
+    ext:"人間による乱獲と移入動物による生態系破壊で1662年頃に絶滅した。", era_pos: 100 },
+  { month:10, day:17, name:"ティラノサウルス", sci:"Tyrannosaurus rex", period:"白亜紀末期", mya:"約6800万〜6600万年前",
+    desc:"全長12〜13mの最も有名な肉食恐竜。小さな前肢と強大な顎が特徴で、噛む力は現代の動物を大きく上回る。成長速度も哺乳類並みに速かったことがわかっている。",
+    ext:"白亜紀末大量絶滅で消えた。その子孫は鳥類として現在も生きている。", era_pos: 87 },
+  { month:10, day:27, name:"ケツァルコアトルス", sci:"Quetzalcoatlus northropi", period:"白亜紀末期", mya:"約6800万〜6600万年前",
+    desc:"翼開長10〜11mで史上最大の飛翔動物。キリンほどの体高を持ち、二足歩行で地上を歩き回ったとされる。その見た目は現代人の想像するドラゴンに最も近い実在の生物かもしれない。",
+    ext:"白亜紀末大量絶滅で恐竜とともに消えた。", era_pos: 87 },
+
+  // ===== 11月 =====
+  { month:11, day:5, name:"アンドリューサルクス", sci:"Andrewsarchus mongoliensis", period:"始新世中期", mya:"約4500万〜3600万年前",
+    desc:"推定体長3.8mの史上最大の陸上肉食哺乳類候補。頭骨しか発見されていないが、その全長は83cmに達した。クジラに近縁という説があり、「陸のクジラ」と呼ばれることも。",
+    ext:"始新世末の気候変動で絶滅した。", era_pos: 92 },
+  { month:11, day:12, name:"ウマの祖先（ヒラコテリウム）", sci:"Hyracotherium leporinum", period:"始新世前期", mya:"約5600万〜4500万年前",
+    desc:"体高30cmほどの犬くらいの大きさの初期の馬。4本指の前足を持ち、森林の植物を食べていた。現代の馬との違いはあまりに大きく、発見当時はウマの仲間とは認識されなかった。",
+    ext:"始新世末に絶滅したが、その後継者たちが進化してやがて現代のウマとなった。", era_pos: 89 },
+  { month:11, day:19, name:"ハイコウイクティス", sci:"Haikouichthys ercaicunensis", period:"カンブリア紀前期", mya:"約5億2500万年前",
+    desc:"体長2.5cmの最古の魚類候補の一つ。脊索・鰭・目の痕跡を持つ。この小さな生物があなたのはるかな祖先かもしれない。",
+    ext:"カンブリア紀内に絶滅したとみられる。", era_pos: 5 },
+  { month:11, day:26, name:"プルガトリウス", sci:"Purgatorius unio", period:"暁新世〜始新世", mya:"約6600万〜6300万年前",
+    desc:"体長10cmほどの最古の霊長類とされる哺乳類。恐竜絶滅の直後に登場し、木の上で昆虫や果実を食べていた。あなたの祖先に最も近い生物の一つ。",
+    ext:"始新世初期に絶滅したが、その系統が現代の霊長類へと続いた。", era_pos: 87 },
+
+  // ===== 12月 =====
+  { month:12, day:1, name:"ウーリーマンモス", sci:"Mammuthus primigenius", period:"更新世〜完新世", mya:"約40万〜4000年前",
+    desc:"長い体毛と湾曲した牙を持つゾウの親戚。シベリアの永久凍土から冷凍状態で発見された個体もある。ピラミッドが建設されていた時代に、まだ離島で生きていた。",
+    ext:"約1万年前に大陸では絶滅。ウランゲリ島の個体群は約4000年前まで生き延びた。", era_pos: 100 },
+  { month:12, day:7, name:"モアシム", sci:"Dinornis robustus", period:"完新世", mya:"1440年頃に絶滅",
+    desc:"体高3.6mに達するニュージーランドの飛べない巨大鳥。翼は完全に退化し痕跡すら残さない。マオリの人々が到達してから約200年で絶滅した。",
+    ext:"マオリの人々による狩猟と生息地の破壊で15世紀頃に絶滅。", era_pos: 100 },
+  { month:12, day:12, name:"モサスサウルス", sci:"Mosasaurus hoffmannii", period:"白亜紀後期", mya:"約7000万〜6600万年前",
+    desc:"全長17mの海の支配者。コモドドラゴンやヘビに近縁の爬虫類が海に適応した姿。白亜紀末の海では頂点捕食者として君臨し、かのメガロドンの時代よりもずっと前の話。",
+    ext:"白亜紀末大量絶滅で消えた。", era_pos: 87 },
+  { month:12, day:19, name:"アンキロサウルス", sci:"Ankylosaurus magniventris", period:"白亜紀末期", mya:"約6800万〜6600万年前",
+    desc:"全身を骨板と棘で覆い、しっぽの先に骨塊を持つ装甲恐竜。装甲の重さは数トンと推定される。しっぽの骨塊はティラノサウルスの脚の骨を砕けたという試算もある。",
+    ext:"白亜紀末大量絶滅で消えた。", era_pos: 87 },
+  { month:12, day:25, name:"カルポイド", sci:"Cothurnocystis elizae", period:"オルドビス紀", mya:"約4億8000万〜4億4000万年前",
+    desc:"棘皮動物の一種で、左右非対称という異例の体制を持つ。尾のような器官で海底を移動した。脊索動物との関係が議論されてきた、進化の不思議な傍系。",
+    ext:"オルドビス紀末大量絶滅で消えた。", era_pos: 10 },
+  { month:12, day:31, name:"チェンジャンゴカリス", sci:"Chengjiangocaris kunmingensis", period:"カンブリア紀前期", mya:"約5億2000万年前",
+    desc:"体長3cmほどの小さな節足動物。しかし神経系が驚くほど精巧に化石として保存されており、カンブリア紀の神経進化の研究に革命をもたらした。",
+    ext:"カンブリア紀に絶滅。", era_pos: 5 }
+];
+
+function getEraClass(period){
+  if(period.includes('エディアカラ'))return'era-ediacaran';
+  if(period.includes('カンブリア'))return'era-cambrian';
+  if(period.includes('オルドビス'))return'era-ordovician';
+  if(period.includes('シルル'))return'era-silurian';
+  if(period.includes('デボン'))return'era-devonian';
+  if(period.includes('石炭'))return'era-carboniferous';
+  if(period.includes('ペルム'))return'era-permian';
+  if(period.includes('三畳'))return'era-triassic';
+  if(period.includes('ジュラ'))return'era-jurassic';
+  if(period.includes('白亜'))return'era-cretaceous';
+  if(period.includes('始新')||period.includes('漸新')||period.includes('暁新'))return'era-paleogene';
+  if(period.includes('中新')||period.includes('鮮新'))return'era-neogene';
+  if(period.includes('更新')||period.includes('完新'))return'era-quaternary';
+  return'era-neogene';
+}
+
+const months=['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
+let currentFilter='all';
+let currentSort='date';
+
+function isNewGeneration(period){
+  return period.includes('始新')||period.includes('漸新')||period.includes('暁新')||
+         period.includes('中新')||period.includes('鮮新')||period.includes('更新')||
+         period.includes('完新');
+}
+
+function matchFilter(c,f){
+  if(f==='all')return true;
+  if(f==='新生代')return isNewGeneration(c.period);
+  return c.period.includes(f);
+}
+
+function setFilter(f){
+  currentFilter=f;
+  document.querySelectorAll('.filter-btn').forEach(b=>{
+    b.classList.toggle('active', b.textContent.includes(f==='all'?'すべて':f) || (f==='all'&&b.textContent==='すべて'));
+  });
+  renderTable();
+}
+
+function setSort(s){
+  currentSort=s;
+  document.getElementById('sortDate').classList.toggle('active',s==='date');
+  document.getElementById('sortKana').classList.toggle('active',s==='kana');
+  renderTable();
+}
+
+function renderTable(){
+  let filtered=CREATURES.filter(c=>matchFilter(c,currentFilter));
+  if(currentSort==='kana') filtered=[...filtered].sort((a,b)=>a.name.localeCompare(b.name,'ja'));
+  else filtered=[...filtered].sort((a,b)=>a.month*100+a.day-(b.month*100+b.day));
+  const tbody=document.getElementById('tableBody');
+  document.getElementById('countNote').textContent=`${filtered.length} 件`;
+  document.getElementById('headerSub').textContent=`全${CREATURES.length}種の記録`;
+
+  if(filtered.length===0){
+    tbody.innerHTML=`<tr><td colspan="4" class="no-results">該当する記録なし</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML=filtered.map((c,i)=>{
+    const idx=CREATURES.indexOf(c)+1;
+    const eraClass=getEraClass(c.period);
+    return `<tr class="row-link" onclick="location.href='kyou_no_zetsumetsu.html#${idx}'">
+      <td>${String(idx).padStart(3,'0')}</td>
+      <td class="date-cell">${months[c.month-1]}${c.day}日</td>
+      <td>
+        <span class="era-dot ${eraClass}"></span><span class="creature-name-cell">${c.name}</span>
+        <span class="sci-cell">${c.sci}</span>
+      </td>
+      <td class="period-cell">${c.period}</td>
+    </tr>`;
+  }).join('');
+}
+
+renderTable();
+</script>
+</body>
+</html>
