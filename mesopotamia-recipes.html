@@ -708,7 +708,137 @@
     margin-bottom: 10px;
   }
 
-  /* ===== SCROLL TO TOP ===== */
+  /* ===== DETAIL NAV BUTTONS ===== */
+  .detail-nav {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+    justify-content: space-between;
+  }
+
+  .detail-nav-btn {
+    background: none;
+    border: 1px solid var(--clay);
+    color: var(--clay-dark);
+    font-family: 'Noto Serif JP', serif;
+    font-size: 0.78rem;
+    padding: 7px 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+    flex: 1;
+    text-align: left;
+    max-width: 42%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .detail-nav-btn-right {
+    text-align: right;
+  }
+
+  .detail-nav-btn:hover:not(:disabled) {
+    background: var(--clay-light);
+  }
+
+  .detail-nav-btn:disabled {
+    opacity: 0.25;
+    cursor: default;
+  }
+
+  .detail-nav-count {
+    font-family: 'Cinzel', serif;
+    font-size: 0.72rem;
+    color: var(--clay-dark);
+    opacity: 0.6;
+    white-space: nowrap;
+    letter-spacing: 0.1em;
+  }
+
+  /* ===== MOBILE ===== */
+  @media (max-width: 600px) {
+    header {
+      padding: 36px 16px 28px;
+    }
+
+    nav {
+      gap: 6px;
+      padding: 12px 12px;
+    }
+
+    .nav-btn {
+      padding: 7px 12px;
+      font-size: 0.8rem;
+    }
+
+    main {
+      padding: 12px;
+    }
+
+    #cards-container {
+      grid-template-columns: 1fr;
+      gap: 16px;
+    }
+
+    .card-inner {
+      padding: 18px;
+    }
+
+    .filter-bar {
+      gap: 6px;
+      padding: 0 0 14px;
+    }
+
+    .filter-btn {
+      padding: 5px 10px;
+      font-size: 0.75rem;
+    }
+
+    #detail-view {
+      padding: 12px 0 40px;
+    }
+
+    .detail-tablet {
+      padding: 24px 18px;
+      box-shadow: 4px 4px 0 var(--clay-dark);
+    }
+
+    .detail-title {
+      font-size: clamp(1.3rem, 6vw, 2rem);
+    }
+
+    .detail-nav-btn {
+      font-size: 0.72rem;
+      padding: 6px 10px;
+    }
+
+    .gilgamesh-comment {
+      padding: 18px;
+    }
+
+    .inline-glossary-card {
+      padding: 14px 16px;
+    }
+
+    .glossary-grid {
+      grid-template-columns: 1fr;
+    }
+
+    #scroll-top {
+      bottom: 20px;
+      right: 16px;
+      width: 40px;
+      height: 40px;
+    }
+
+    .gilgamesh-banner {
+      padding: 16px 20px;
+      font-size: 0.85rem;
+    }
+  }
+
+
   #scroll-top {
     position: fixed;
     bottom: 32px;
@@ -742,6 +872,28 @@
   #scroll-top:hover {
     background: var(--clay);
   }
+
+  /* ===== BACK TO HOME ===== */
+  .back-to-home {
+    position: fixed;
+    top: 12px;
+    left: 14px;
+    z-index: 200;
+    font-family: 'Noto Serif JP', serif;
+    font-size: 0.75rem;
+    color: var(--clay-dark);
+    opacity: 0.5;
+    text-decoration: none;
+    letter-spacing: 0.05em;
+    transition: opacity 0.2s;
+    background: rgba(253,246,232,0.88);
+    padding: 4px 10px;
+    border: 1px solid var(--clay);
+  }
+
+  .back-to-home:hover {
+    opacity: 1;
+  }
 </style>
 </head>
 <body>
@@ -758,8 +910,9 @@
   「エンキドゥよ、ウルクの民はパンを食らい、麦酒を飲む。これが人の道というものだ。」— ギルガメッシュ叙事詩より
 </div>
 
+<a href="index.html" class="back-to-home">← 館にもどる</a>
+
 <nav>
-  <button class="nav-btn" onclick="location.href='index.html'" style="opacity:0.6;">← 館にもどる</button>
   <button class="nav-btn active" id="nav-list" onclick="showList()">📜 一覧</button>
   <button class="nav-btn" id="nav-daily" onclick="showDaily()">🌅 今日の王の食卓</button>
   <button class="nav-btn" id="nav-glossary" onclick="showGlossary()">📖 食材用語集</button>
@@ -1169,7 +1322,7 @@ const recipes = [
       'ナッツを混ぜ込み、クッキングシートに薄く広げる。',
       '冷蔵庫で1時間以上冷やして固め、割って供する。',
     ],
-    gilgamesh: '「ザクロの赤は冥界の色でもある。ウトナピシュティムに会いに行く旅の途中、ワタシはこれを食べた。甘かった。でもザクロを見るたびに、帰れない場所のことを考えた。」（エンキドゥ）',
+    gilgamesh: '「ザクロの赤は冥界の色でもある。ギルガメッシュと一緒に食べた。甘かった。あの頃はまだ、死というものを自分のこととは思っていなかった。」（エンキドゥ）',
     tags: ['デザート', '甘い', '簡単', 'ノークッキング'],
   },
   {
@@ -1403,7 +1556,7 @@ const recipes = [
       'カルダモンとシナモンを加えてひと混ぜする。',
       '温かいまま、または冷やして飲む。',
     ],
-    gilgamesh: '「ニンフルサグ女神が神々に授けたと伝わる飲み物。ワタシはこれを儀式の前に飲んだ。甘くて、温かくて、飲むと少し落ち着いた。神様に近づける気がした——本当かどうかはわからないけど。」（エンキドゥ）',
+    gilgamesh: '「ニンフルサグ女神が神々に授けたと伝わる飲み物。ワタシはこれを儀式の前に飲んだ。甘くて、温かくて、飲むと少し落ち着いた。野にいた頃にはなかった感覚だ。」（エンキドゥ）',
     tags: ['飲み物', 'ノンアルコール', '儀式', '温かい', '簡単'],
   },
   {
@@ -1527,6 +1680,7 @@ function linkIngredient(text) {
     ['デーツ', 'デーツ（ナツメヤシ）'],
     ['ナツメヤシ', 'デーツ（ナツメヤシ）'],
     ['レンズ豆', 'レンズ豆'],
+    ['氷', 'ザグロス産の氷・雪'],
   ];
 
   for (const [keyword, glossaryName] of keywords) {
@@ -1587,6 +1741,8 @@ function inlineGlossaryHTML(recipe) {
     ['赤レンズ豆', 'レンズ豆'],
     ['レンズ豆', 'レンズ豆'],
     ['ヤギのミルク', 'ヤギのミルク'],
+    ['氷', 'ザグロス産の氷・雪'],
+    ['シカル', 'シカル（大麦ビール）'],
   ];
 
   const allText = recipe.ingredients.join(' ');
@@ -1636,7 +1792,7 @@ function renderCards(filter) {
   }
 
   container.innerHTML = filtered.map((r, i) => `
-    <div class="recipe-card" style="animation-delay:${i * 0.05}s" onclick="showDetail(${r.id})">
+    <div class="recipe-card" style="animation-delay:${i * 0.05}s" onclick="showDetail(${r.id}, '${filter}')">
       <div class="card-inner">
         <div class="card-category">${r.categoryLabel}</div>
         <div class="card-name">${r.name}</div>
@@ -1658,9 +1814,23 @@ function filterRecipes(filter, btn) {
   renderCards(filter);
 }
 
-function showDetail(id) {
+let currentDetailFilter = 'all';
+
+function getFilteredRecipes() {
+  if (currentDetailFilter === 'cookable') return recipes.filter(r => r.cookable);
+  if (currentDetailFilter !== 'all') return recipes.filter(r => r.category === currentDetailFilter);
+  return recipes;
+}
+
+function showDetail(id, filterContext) {
+  if (filterContext !== undefined) currentDetailFilter = filterContext;
   const recipe = recipes.find(r => r.id === id);
   if (!recipe) return;
+
+  const filtered = getFilteredRecipes();
+  const idx = filtered.findIndex(r => r.id === id);
+  const prevRecipe = idx > 0 ? filtered[idx - 1] : null;
+  const nextRecipe = idx < filtered.length - 1 ? filtered[idx + 1] : null;
 
   document.getElementById('list-view').style.display = 'none';
   document.getElementById('daily-view').style.display = 'none';
@@ -1669,6 +1839,15 @@ function showDetail(id) {
   dv.style.display = 'block';
 
   document.getElementById('detail-content').innerHTML = `
+    <div class="detail-nav">
+      <button class="detail-nav-btn" onclick="showDetail(${prevRecipe ? prevRecipe.id : 'null'})" ${!prevRecipe ? 'disabled' : ''}>
+        ← ${prevRecipe ? prevRecipe.name : ''}
+      </button>
+      <span class="detail-nav-count">${idx + 1} / ${filtered.length}</span>
+      <button class="detail-nav-btn detail-nav-btn-right" onclick="showDetail(${nextRecipe ? nextRecipe.id : 'null'})" ${!nextRecipe ? 'disabled' : ''}>
+        ${nextRecipe ? nextRecipe.name : ''} →
+      </button>
+    </div>
     <div class="detail-tablet">
       <div class="detail-category">${recipe.categoryLabel}</div>
       <div class="detail-title">${recipe.name}</div>
@@ -1832,7 +2011,7 @@ const glossary = [
     category: 'spice',
     categoryLabel: '香辛料・調味料',
     desc: 'マメ科の木の果実から作られる酸味調味料。茶色いペースト状で、強い酸味と甘みを持つ。古代メソポタミアでは消化促進薬としても使われた。',
-    modern: '現代での入手：アジア食材店やネットで「タマリンドペースト」として購入可能。インド・タイ料理でも多用される。ない場合はレモン汁＋少量の黒糖で代替できる。',
+    modern: 'アジア食材店やネットで「タマリンドペースト」として購入可能。インド・タイ料理でも多用される。ない場合はレモン汁＋少量の黒糖で代替できる。',
   },
   {
     name: 'エムマー麦',
@@ -1840,7 +2019,7 @@ const glossary = [
     category: 'grain',
     categoryLabel: '穀物',
     desc: '古代小麦の一種。現代の小麦より栄養価が高く、風味が強い。シュメル文明の主食で、パンにも酒造にも使われた。グルテン含量が低め。',
-    modern: '現代での入手：エムマー麦自体の流通はほぼないが、近縁種の「スペルト小麦」や、イタリア語でエムマー麦を指す「ファッロ」が自然食品店やネットで購入可能。ファッロの方がより近い品種。通常の小麦粉でも代替できるが風味は異なる。',
+    modern: 'エムマー麦自体の流通はほぼないが、近縁種の「スペルト小麦」や、イタリア語でエムマー麦を指す「ファッロ」が自然食品店やネットで購入可能。ファッロの方がより近い品種。通常の小麦粉でも代替できるが風味は異なる。',
   },
   {
     name: 'ザクロモラセス',
@@ -1848,7 +2027,7 @@ const glossary = [
     category: 'condiment',
     categoryLabel: '香辛料・調味料',
     desc: 'ザクロ果汁を長時間煮詰めた濃厚なシロップ。生のザクロ果汁とは別物で、酸味と甘みが凝縮されている。古代メソポタミアでは肉料理のソースやディップに多用された。現代の中東料理でも定番の調味料。',
-    modern: '現代での入手：中東食材店やネットで「ザクロモラセス」または「ポメグラネートモラセス」として販売。ない場合はザクロジュース200mlを弱火で半量になるまで煮詰めて自作できる。',
+    modern: '中東食材店やネットで「ザクロモラセス」または「ポメグラネートモラセス」として販売。ない場合はザクロジュース200mlを弱火で半量になるまで煮詰めて自作できる。',
   },
   {
     name: 'クミン',
@@ -1856,7 +2035,7 @@ const glossary = [
     category: 'spice',
     categoryLabel: '香辛料・調味料',
     desc: 'セリ科の植物の種子。古代メソポタミアで最も多用されたスパイスのひとつ。土っぽく温かみのある香りで、肉・魚・野菜どれにも合う。シュメル語では「kamūnu」。',
-    modern: '現代での入手：スーパーのスパイスコーナーで「クミン（シード・パウダー）」として入手可能。最も手に入りやすい古代スパイス。',
+    modern: 'スーパーのスパイスコーナーで「クミン（シード・パウダー）」として入手可能。最も手に入りやすい古代スパイス。',
   },
   {
     name: 'コリアンダー',
@@ -1864,7 +2043,7 @@ const glossary = [
     category: 'spice',
     categoryLabel: '香辛料・調味料',
     desc: 'セリ科の植物で、葉はパクチー（香菜）として知られる。古代レシピではシードを乾燥させて使う。柑橘系の爽やかな香り。メソポタミアの料理には欠かせない脇役。',
-    modern: '現代での入手：スーパーで「コリアンダーシード」として入手可能。葉（パクチー）とは風味が異なるので注意。',
+    modern: 'スーパーで「コリアンダーシード」として入手可能。葉（パクチー）とは風味が異なるので注意。',
   },
   {
     name: 'カルダモン',
@@ -1872,7 +2051,7 @@ const glossary = [
     category: 'spice',
     categoryLabel: '香辛料・調味料',
     desc: 'ショウガ科の植物の種子。甘く複雑な香りで「スパイスの女王」とも呼ばれる。古代メソポタミアのデザートや飲み物に多用された。',
-    modern: '現代での入手：スーパーのスパイスコーナーで「カルダモン（パウダー）」として入手可能。チャイにも使う香辛料。',
+    modern: 'スーパーのスパイスコーナーで「カルダモン（パウダー）」として入手可能。チャイにも使う香辛料。',
   },
   {
     name: 'キャラウェイ',
@@ -1880,7 +2059,7 @@ const glossary = [
     category: 'spice',
     categoryLabel: '香辛料・調味料',
     desc: 'セリ科の植物の種子。クミンに似た見た目だが風味は異なり、やや甘みとアニス系の香りを持つ。肉料理の詰め物やパンに使われた。',
-    modern: '現代での入手：製菓材料店や輸入食材店で入手可能。ない場合はクミンで代替できるが風味は変わる。',
+    modern: '製菓材料店や輸入食材店で入手可能。ない場合はクミンで代替できるが風味は変わる。',
   },
   {
     name: 'リーキ（西洋ネギ）',
@@ -1888,7 +2067,7 @@ const glossary = [
     category: 'vegetable',
     categoryLabel: '野菜・ハーブ',
     desc: '長ネギに似た野菜だが、より太く、甘みが強い。古代メソポタミアで最も重要な香味野菜のひとつで、ほぼすべての料理に登場する。シュメル語では「karaššu」。',
-    modern: '現代での入手：スーパーで「リーキ」または「ポワロ」として販売。ない場合は長ネギで代替可能。',
+    modern: 'スーパーで「リーキ」または「ポワロ」として販売。ない場合は長ネギで代替可能。',
   },
   {
     name: 'クレス',
@@ -1896,7 +2075,7 @@ const glossary = [
     category: 'vegetable',
     categoryLabel: '野菜・ハーブ',
     desc: 'アブラナ科の植物で、ピリッとした辛みと爽やかな香りを持つ。古代レシピでは仕上げに散らす使い方が多い。湿地帯のメソポタミアでは自生していた。',
-    modern: '現代での入手：スーパーの野菜売り場で「クレソン」として販売。ない場合はルッコラやラディッシュの芽で代替できる。',
+    modern: 'スーパーの野菜売り場で「クレソン」として販売。ない場合はルッコラやラディッシュの芽で代替できる。',
   },
   {
     name: 'スペルト小麦',
@@ -1904,7 +2083,7 @@ const glossary = [
     category: 'grain',
     categoryLabel: '穀物',
     desc: '古代小麦の一種で、エムマー麦の近縁種。現代でも健康食品として流通しており、古代レシピの再現に最も適した代替穀物。風味が豊かでナッツのような香り。',
-    modern: '現代での入手：自然食品店やネットで「スペルト小麦粉」として購入可能。通常の小麦粉より高価だが、再現度が高まる。',
+    modern: '自然食品店やネットで「スペルト小麦粉」として購入可能。通常の小麦粉より高価だが、再現度が高まる。',
   },
   {
     name: 'ザクロ（実・果汁）',
@@ -1912,7 +2091,7 @@ const glossary = [
     category: 'vegetable',
     categoryLabel: '野菜・ハーブ',
     desc: '古代メソポタミア全域で栽培された果物。酸味と甘みのバランスが特徴で、料理のソースから神殿の供物まで幅広く使われた。豊穣・生命・冥界の象徴でもある。',
-    modern: '現代での入手：秋〜冬にスーパーで生のザクロが手に入る。果汁は年中ザクロジュースとして購入可能。',
+    modern: '秋〜冬にスーパーで生のザクロが手に入る。果汁は年中ザクロジュースとして購入可能。',
   },
   {
     name: 'デーツ（ナツメヤシ）',
@@ -1920,7 +2099,7 @@ const glossary = [
     category: 'vegetable',
     categoryLabel: '野菜・ハーブ',
     desc: 'ナツメヤシの果実。メソポタミアで最も重要な甘味源で、砂糖代わりに使われた。乾燥させると保存が効き、栄養価も高い。神殿の供物リストに必ず登場する。',
-    modern: '現代での入手：スーパーやカルディで「ドライデーツ」として購入可能。種を除いてそのまま使える。',
+    modern: 'スーパーやカルディで「ドライデーツ」として購入可能。種を除いてそのまま使える。',
   },
   {
     name: 'フェタチーズ（山羊チーズ）',
@@ -1928,7 +2107,7 @@ const glossary = [
     category: 'dairy',
     categoryLabel: '乳製品',
     desc: '古代メソポタミアのチーズは山羊や羊のミルクから作られた塩味の固めのもの。現代のフェタチーズが最も近い風味とされる。神殿の供物記録に繰り返し登場する。',
-    modern: '現代での入手：スーパーの乳製品コーナーで「フェタチーズ」として購入可能。なければモッツァレラやリコッタで代替できるが塩味が変わる。',
+    modern: 'スーパーの乳製品コーナーで「フェタチーズ」として購入可能。なければモッツァレラやリコッタで代替できるが塩味が変わる。',
   },
   {
     name: 'ザグロス産の氷・雪',
@@ -1936,7 +2115,7 @@ const glossary = [
     category: 'other',
     categoryLabel: 'その他',
     desc: 'バビロニア・アッシリアの宮廷では、ザグロス山脈から雪や氷を運ばせて食物を冷やした記録がある。当時の冷蔵技術は宮廷の特権で、冷たい飲み物は王族だけが楽しめた。',
-    modern: '現代での入手：冷凍庫で完全に再現できる。4000年分の技術の進歩をありがたく享受しよう。',
+    modern: '冷凍庫で完全に再現できる。4000年分の技術の進歩をありがたく享受しよう。',
   },
   {
     name: 'シカル（大麦ビール）',
@@ -1944,7 +2123,7 @@ const glossary = [
     category: 'other',
     categoryLabel: 'その他',
     desc: 'シュメル語でビールを指す言葉。大麦モルトと麦パンを発酵させた低アルコール飲料で、古代メソポタミアでは水より安全な飲み物として日常的に飲まれた。労働者への報酬としても支給された。',
-    modern: '現代での再現：本格的な再現はホームブルーイング設備が必要。市販のヴァイツェンビールやランビックビールが風味的に近いとされる。',
+    modern: '本格的な再現はホームブルーイング設備が必要。市販のヴァイツェンビールやランビックビールが風味的に近いとされる。',
   },
   {
     name: 'レンズ豆',
@@ -1952,7 +2131,7 @@ const glossary = [
     category: 'vegetable',
     categoryLabel: '野菜・果物',
     desc: 'マメ科の植物の種子。古代メソポタミアで最も重要なタンパク源のひとつ。保存が効き、短時間で調理できるため庶民食の定番だった。赤・緑・黒など種類があるが、古代では主に赤レンズ豆が使われた。',
-    modern: '現代での入手：スーパーやカルディで「レンズ豆」として購入可能。赤レンズ豆は水に浸けなくてもそのまま煮られて便利。',
+    modern: 'スーパーやカルディで「レンズ豆」として購入可能。赤レンズ豆は水に浸けなくてもそのまま煮られて便利。',
   },
   {
     name: 'ヤギのミルク',
@@ -1960,7 +2139,7 @@ const glossary = [
     category: 'dairy',
     categoryLabel: '乳製品',
     desc: '古代メソポタミアで最も一般的な乳製品の原料。牛乳より脂肪球が小さく消化しやすい。チーズ、粥、飲み物など幅広く使われた。神殿への供物記録にも頻繁に登場する。',
-    modern: '現代での入手：大型スーパーや自然食品店で「ヤギミルク」として購入可能。ない場合は牛乳で代替できる。風味はやや異なる。',
+    modern: '大型スーパーや自然食品店で「ヤギミルク」として購入可能。ない場合は牛乳で代替できる。風味はやや異なる。',
   },
 ];
 
