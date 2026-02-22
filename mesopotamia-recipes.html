@@ -499,7 +499,13 @@
     gap: 24px;
   }
 
-  #detail-view { animation: fadeIn 0.3s ease; }
+  #list-view {
+    display: block;
+  }
+
+  #detail-view {
+    display: none;
+  }
 
   /* ===== DAILY VIEW ===== */
   .daily-header {
@@ -1611,7 +1617,9 @@ function rerollDaily() {
 }
 
 // Init
-renderCards('all');
+document.addEventListener('DOMContentLoaded', () => {
+  renderCards('all');
+});
 
 // Scroll to top button
 window.addEventListener('scroll', () => {
