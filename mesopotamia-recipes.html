@@ -1661,6 +1661,7 @@ function renderDaily() {
       </div>
       ${commentHTML(recipe)}
     </div>
+    ${inlineGlossaryHTML(recipe)}
     <button class="reroll-btn" onclick="rerollDaily()">🎲 別の料理を見る（神託を乞う）</button>
   `;
 }
@@ -1703,6 +1704,7 @@ function rerollDaily() {
       </div>
       ${commentHTML(recipe)}
     </div>
+    ${inlineGlossaryHTML(recipe)}
     <button class="reroll-btn" onclick="rerollDaily()">🎲 別の料理を見る（神託を乞う）</button>
   `;
   window.scrollTo({ top: 0, behavior: 'smooth' });
