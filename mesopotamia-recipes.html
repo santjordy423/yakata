@@ -1422,6 +1422,13 @@ function commentHTML(recipe) {
 
 function linkIngredient(text) {
   const keywords = [
+    ['スペルト小麦粉', 'スペルト小麦'],
+    ['ドライデーツ', 'デーツ（ナツメヤシ）'],
+    ['ネギ（リーキ）', 'リーキ（西洋ネギ）'],
+    ['フェタチーズ', 'フェタチーズ（山羊チーズ）'],
+    ['山羊チーズ', 'フェタチーズ（山羊チーズ）'],
+    ['赤レンズ豆', 'レンズ豆'],
+    ['ヤギのミルク', 'ヤギのミルク'],
     ['タマリンド', 'タマリンド'],
     ['エムマー麦', 'エムマー麦'],
     ['ザクロ', 'ザクロ（実・果汁）'],
@@ -1429,44 +1436,45 @@ function linkIngredient(text) {
     ['クミン', 'クミン'],
     ['カルダモン', 'カルダモン'],
     ['キャラウェイ', 'キャラウェイ'],
-    ['ネギ（リーキ）', 'リーキ（西洋ネギ）'],
     ['リーキ', 'リーキ（西洋ネギ）'],
     ['クレス', 'クレス'],
-    ['スペルト小麦粉', 'スペルト小麦'],
     ['スペルト', 'スペルト小麦'],
-    ['ドライデーツ', 'デーツ（ナツメヤシ）'],
     ['デーツ', 'デーツ（ナツメヤシ）'],
     ['ナツメヤシ', 'デーツ（ナツメヤシ）'],
-    ['フェタチーズ', 'フェタチーズ（山羊チーズ）'],
-    ['山羊チーズ', 'フェタチーズ（山羊チーズ）'],
-    ['赤レンズ豆', 'レンズ豆'],
     ['レンズ豆', 'レンズ豆'],
-    ['ヤギのミルク', 'ヤギのミルク'],
   ];
+
   let result = text;
+  const used = new Set();
   for (const [keyword, glossaryName] of keywords) {
-    if (result.includes(keyword)) {
-      result = result.replace(
-        keyword,
-        `<a href="#" class="ingredient-link" onclick="event.preventDefault();jumpToGlossary('${glossaryName}')">${keyword}</a>`
-      );
-      break;
+    // すでにリンク済みのキーワードはスキップ
+    if (used.has(glossaryName)) continue;
+    if (!result.includes(keyword)) continue;
+    // split/joinで安全に置換（正規表現やHTMLタグへの誤マッチを防ぐ）
+    const parts = result.split(keyword);
+    if (parts.length > 1) {
+      const link = `<a href="#" class="ingredient-link" onclick="event.preventDefault();jumpToGlossary(event.currentTarget.dataset.name)" data-name="${glossaryName}">${keyword}</a>`;
+      result = parts.join(link);
+      used.add(glossaryName);
     }
   }
   return result;
 }
 
-function jumpToGlossary(name) {
-  // ページ内の用語カードにスクロール
-  const cards = document.querySelectorAll('.inline-glossary-card');
-  for (const card of cards) {
-    if (card.dataset.name === name) {
-      card.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      card.style.outline = '3px solid var(--gold)';
-      setTimeout(() => card.style.outline = '', 1500);
-      break;
+function jumpToGlossary(el) {
+  const name = typeof el === 'string' ? el : el.dataset.name;
+  const scroll = () => {
+    const cards = document.querySelectorAll('.inline-glossary-card');
+    for (const card of cards) {
+      if (card.dataset.name === name) {
+        card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        card.style.outline = '3px solid var(--gold)';
+        setTimeout(() => card.style.outline = '', 1500);
+        return;
+      }
     }
-  }
+  };
+  requestAnimationFrame(() => requestAnimationFrame(scroll));
 }
 
 function inlineGlossaryHTML(recipe) {
@@ -1738,7 +1746,7 @@ const glossary = [
     category: 'grain',
     categoryLabel: '穀物',
     desc: '古代小麦の一種。現代の小麦より栄養価が高く、風味が強い。シュメル文明の主食で、パンにも酒造にも使われた。グルテン含量が低め。',
-    modern: '現代での入手：「スペルト小麦（スペルト）」または「ファッロ」という名前で自然食品店やネットで購入可能。通常の小麦粉で代替してもほぼ問題ない。',
+    modern: '現代での入手：エムマー麦自体の流通はほぼないが、近縁種の「スペルト小麦」や、イタリア語でエムマー麦を指す「ファッロ」が自然食品店やネットで購入可能。ファッロの方がより近い品種。通常の小麦粉でも代替できるが風味は異なる。',
   },
   {
     name: 'ザクロ果汁・モラセス',
