@@ -1,0 +1,1807 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="color-scheme" content="light only">
+<title>王の食卓 — 古代メソポタミア料理集</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Noto+Serif+JP:wght@300;400;700&family=Shippori+Mincho:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --clay: #c4956a;
+    --clay-dark: #8b5e3c;
+    --clay-light: #e8c9a0;
+    --sand: #f5e6c8;
+    --sand-deep: #d4b896;
+    --lapis: #1a3a5c;
+    --lapis-light: #2d5a8e;
+    --gold: #c9a84c;
+    --gold-light: #e8c96a;
+    --ink: #2a1a0a;
+    --cream: #fdf6e8;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { color-scheme: light only; }
+
+  body {
+    font-family: 'Noto Serif JP', serif;
+    background: var(--cream);
+    color: var(--ink);
+    min-height: 100vh;
+    position: relative;
+    overflow-x: hidden;
+  }
+
+  /* Tablet texture background */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: 
+      radial-gradient(ellipse at 20% 20%, rgba(196,149,106,0.15) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 80%, rgba(26,58,92,0.08) 0%, transparent 50%),
+      url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23c4956a' fill-opacity='0.06'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ===== HEADER ===== */
+  header {
+    position: relative;
+    z-index: 10;
+    text-align: center;
+    padding: 60px 20px 40px;
+    border-bottom: 3px solid var(--clay);
+  }
+
+  .cuneiform-deco {
+    font-size: 2rem;
+    letter-spacing: 0.5rem;
+    color: var(--clay);
+    opacity: 0.6;
+    margin-bottom: 12px;
+    display: block;
+  }
+
+  header h1 {
+    font-family: 'Shippori Mincho', serif;
+    font-size: clamp(2rem, 6vw, 4rem);
+    font-weight: 800;
+    color: var(--clay-dark);
+    letter-spacing: 0.15em;
+    line-height: 1.1;
+  }
+
+  header h1 span {
+    display: block;
+    font-size: 0.38em;
+    font-weight: 700;
+    color: var(--lapis-light);
+    letter-spacing: 0.35em;
+    margin-top: 10px;
+    font-family: 'Cinzel', serif;
+  }
+
+  .header-sub {
+    margin-top: 16px;
+    color: var(--clay-dark);
+    font-size: 0.85rem;
+    opacity: 0.7;
+    letter-spacing: 0.05em;
+  }
+
+  /* ===== GILGAMESH QUOTE ===== */
+  .gilgamesh-banner {
+    position: relative;
+    z-index: 10;
+    background: linear-gradient(135deg, var(--lapis) 0%, var(--lapis-light) 100%);
+    color: var(--gold-light);
+    padding: 20px 40px;
+    text-align: center;
+    font-style: italic;
+    font-size: 0.95rem;
+    letter-spacing: 0.05em;
+    border-bottom: 2px solid var(--gold);
+  }
+
+  .gilgamesh-banner::before {
+    content: '𒀭𒄑𒂆𒈦';
+    display: block;
+    font-style: normal;
+    font-size: 1.5rem;
+    color: var(--gold);
+    margin-bottom: 8px;
+    opacity: 0.8;
+  }
+
+  /* ===== NAVIGATION ===== */
+  nav {
+    position: relative;
+    z-index: 10;
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    padding: 20px;
+    flex-wrap: wrap;
+  }
+
+  .nav-btn {
+    background: none;
+    border: 2px solid var(--clay);
+    color: var(--clay-dark);
+    padding: 8px 20px;
+    font-family: 'Noto Serif JP', serif;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    letter-spacing: 0.05em;
+  }
+
+  .nav-btn:hover, .nav-btn.active {
+    background: var(--clay);
+    color: var(--cream);
+  }
+
+  /* ===== MAIN ===== */
+  main {
+    position: relative;
+    z-index: 10;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+  }
+
+  /* ===== LIST VIEW ===== */
+  #list-view {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 24px;
+    padding: 20px 0;
+  }
+
+  .recipe-card {
+    background: var(--sand);
+    border: 2px solid var(--clay);
+    position: relative;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    overflow: hidden;
+  }
+
+  .recipe-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--clay-dark), var(--gold), var(--clay-dark));
+  }
+
+  .recipe-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(139,94,60,0.25);
+  }
+
+  .card-inner {
+    padding: 24px;
+  }
+
+  .card-category {
+    font-size: 0.7rem;
+    letter-spacing: 0.2em;
+    color: var(--lapis);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+    font-family: 'Cinzel', serif;
+  }
+
+  .card-name {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--clay-dark);
+    margin-bottom: 4px;
+    line-height: 1.3;
+  }
+
+  .card-name-en {
+    font-size: 0.8rem;
+    color: var(--clay);
+    margin-bottom: 12px;
+    font-style: italic;
+  }
+
+  .card-desc {
+    font-size: 0.85rem;
+    color: var(--ink);
+    opacity: 0.75;
+    line-height: 1.6;
+    margin-bottom: 16px;
+  }
+
+  .card-tags {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+
+  .tag {
+    background: var(--clay-light);
+    color: var(--clay-dark);
+    font-size: 0.7rem;
+    padding: 3px 10px;
+    letter-spacing: 0.05em;
+  }
+
+  .tag.cookable {
+    background: var(--lapis);
+    color: var(--gold-light);
+  }
+
+  /* ===== DETAIL VIEW ===== */
+  #detail-view {
+    display: none;
+    max-width: 780px;
+    margin: 0 auto;
+    padding: 20px 0 60px;
+  }
+
+  .back-btn {
+    background: none;
+    border: none;
+    color: var(--clay-dark);
+    font-family: 'Noto Serif JP', serif;
+    font-size: 0.9rem;
+    cursor: pointer;
+    padding: 10px 0;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    opacity: 0.7;
+    transition: opacity 0.2s;
+  }
+  .back-btn:hover { opacity: 1; }
+
+  .detail-tablet {
+    background: var(--sand);
+    border: 3px solid var(--clay);
+    padding: 40px;
+    position: relative;
+    box-shadow: 6px 6px 0 var(--clay-dark);
+  }
+
+  .detail-tablet::after {
+    content: '';
+    position: absolute;
+    inset: 8px;
+    border: 1px solid var(--clay);
+    opacity: 0.3;
+    pointer-events: none;
+  }
+
+  .detail-category {
+    font-family: 'Cinzel', serif;
+    font-size: 0.75rem;
+    letter-spacing: 0.3em;
+    color: var(--lapis);
+    margin-bottom: 12px;
+  }
+
+  .detail-title {
+    font-family: 'Cinzel', serif;
+    font-size: clamp(1.5rem, 4vw, 2.5rem);
+    font-weight: 700;
+    color: var(--clay-dark);
+    line-height: 1.2;
+    margin-bottom: 6px;
+  }
+
+  .detail-title-en {
+    font-size: 1rem;
+    color: var(--clay);
+    font-style: italic;
+    margin-bottom: 24px;
+  }
+
+  .divider {
+    border: none;
+    border-top: 2px solid var(--clay);
+    margin: 24px 0;
+    position: relative;
+  }
+
+  .divider::before {
+    content: '𒀭';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: var(--sand);
+    padding: 0 12px;
+    color: var(--gold);
+    font-size: 1rem;
+  }
+
+  .detail-source {
+    font-size: 0.75rem;
+    color: var(--lapis);
+    opacity: 0.7;
+    margin-bottom: 20px;
+    font-style: italic;
+  }
+
+  .detail-desc {
+    font-size: 1rem;
+    line-height: 1.9;
+    margin-bottom: 24px;
+    color: var(--ink);
+  }
+
+  .section-title {
+    font-family: 'Cinzel', serif;
+    font-size: 0.8rem;
+    letter-spacing: 0.25em;
+    color: var(--clay-dark);
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .section-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--clay);
+    opacity: 0.4;
+  }
+
+  .ingredients-list {
+    list-style: none;
+    margin-bottom: 24px;
+  }
+
+  .ingredients-list li {
+    padding: 8px 0;
+    border-bottom: 1px dotted var(--clay);
+    font-size: 0.9rem;
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    color: var(--ink);
+  }
+
+  .ingredients-list li::before {
+    content: '𒁹';
+    color: var(--gold);
+    flex-shrink: 0;
+  }
+
+  .recipe-steps {
+    margin-bottom: 24px;
+  }
+
+  .step {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 16px;
+    align-items: flex-start;
+  }
+
+  .step-num {
+    background: var(--clay-dark);
+    color: var(--cream);
+    font-family: 'Cinzel', serif;
+    font-size: 0.75rem;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  .step-text {
+    font-size: 0.9rem;
+    line-height: 1.8;
+    color: var(--ink);
+  }
+
+  /* Gilgamesh comment box */
+  .gilgamesh-comment {
+    background: linear-gradient(135deg, var(--lapis) 0%, var(--lapis-light) 100%);
+    color: var(--clay-light);
+    padding: 24px;
+    margin-top: 32px;
+    position: relative;
+  }
+
+  .gilgamesh-comment::before {
+    content: attr(data-speaker);
+    display: block;
+    font-size: 0.7rem;
+    letter-spacing: 0.2em;
+    color: var(--gold);
+    margin-bottom: 10px;
+    font-family: 'Cinzel', serif;
+  }
+
+  .gilgamesh-comment p {
+    font-style: italic;
+    line-height: 1.8;
+    font-size: 0.95rem;
+  }
+
+  .cookable-badge {
+    display: inline-block;
+    background: var(--lapis);
+    color: var(--gold-light);
+    font-size: 0.7rem;
+    padding: 4px 14px;
+    letter-spacing: 0.15em;
+    margin-bottom: 20px;
+    font-family: 'Cinzel', serif;
+  }
+
+  /* ===== FILTER BAR ===== */
+  .filter-bar {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    padding: 0 0 20px;
+    flex-wrap: wrap;
+  }
+
+  .filter-label {
+    font-size: 0.8rem;
+    color: var(--clay-dark);
+    letter-spacing: 0.1em;
+  }
+
+  .filter-btn {
+    background: none;
+    border: 1px solid var(--clay);
+    color: var(--clay-dark);
+    padding: 5px 14px;
+    font-family: 'Noto Serif JP', serif;
+    font-size: 0.78rem;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .filter-btn:hover, .filter-btn.active {
+    background: var(--clay-light);
+  }
+
+  /* ===== FOOTER ===== */
+  footer {
+    position: relative;
+    z-index: 10;
+    text-align: center;
+    padding: 40px 20px;
+    border-top: 2px solid var(--clay);
+    color: var(--clay-dark);
+    font-size: 0.75rem;
+    opacity: 0.6;
+    letter-spacing: 0.05em;
+  }
+
+  /* Animations */
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .recipe-card {
+    animation: fadeIn 0.4s ease both;
+  }
+
+  #detail-view { animation: fadeIn 0.3s ease; }
+
+  /* ===== DAILY VIEW ===== */
+  .daily-header {
+    text-align: center;
+    padding: 20px 0 32px;
+  }
+
+  .daily-title {
+    font-family: 'Cinzel', serif;
+    font-size: clamp(1.2rem, 3vw, 1.8rem);
+    font-weight: 700;
+    color: var(--clay-dark);
+    margin-bottom: 6px;
+  }
+
+  .daily-subtitle {
+    font-size: 0.82rem;
+    color: var(--clay-dark);
+    opacity: 0.7;
+    font-style: italic;
+    margin-bottom: 14px;
+  }
+
+  .daily-date {
+    font-family: 'Cinzel', serif;
+    font-size: 0.75rem;
+    letter-spacing: 0.3em;
+    color: var(--lapis-light);
+    background: rgba(26,58,92,0.08);
+    display: inline-block;
+    padding: 4px 16px;
+    border: 1px solid rgba(26,58,92,0.2);
+  }
+
+  .reroll-btn {
+    display: block;
+    margin: 28px auto 0;
+    background: none;
+    border: 2px solid var(--clay);
+    color: var(--clay-dark);
+    padding: 10px 28px;
+    font-family: 'Noto Serif JP', serif;
+    font-size: 0.85rem;
+    cursor: pointer;
+    letter-spacing: 0.1em;
+    transition: all 0.2s;
+  }
+
+  .reroll-btn:hover {
+    background: var(--clay);
+    color: var(--cream);
+  }
+
+  /* ===== GLOSSARY VIEW ===== */
+  .glossary-header {
+    text-align: center;
+    padding: 20px 0 32px;
+  }
+
+  .glossary-header h2 {
+    font-family: 'Cinzel', serif;
+    font-size: clamp(1.2rem, 3vw, 1.8rem);
+    font-weight: 700;
+    color: var(--clay-dark);
+    margin-bottom: 6px;
+  }
+
+  .glossary-header p {
+    font-size: 0.82rem;
+    color: var(--clay-dark);
+    opacity: 0.7;
+    font-style: italic;
+  }
+
+  .glossary-filter {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 28px;
+    align-items: center;
+  }
+
+  .glossary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 16px;
+  }
+
+  .glossary-card {
+    background: var(--sand);
+    border: 2px solid var(--clay);
+    padding: 20px;
+    position: relative;
+    animation: fadeIn 0.3s ease both;
+  }
+
+  .glossary-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--clay-dark), var(--gold), var(--clay-dark));
+  }
+
+  .glossary-tag {
+    font-family: 'Cinzel', serif;
+    font-size: 0.65rem;
+    letter-spacing: 0.2em;
+    color: var(--lapis);
+    margin-bottom: 6px;
+    display: block;
+  }
+
+  .glossary-name {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--clay-dark);
+    margin-bottom: 2px;
+  }
+
+  .glossary-name-en {
+    font-size: 0.78rem;
+    color: var(--clay);
+    font-style: italic;
+    margin-bottom: 10px;
+  }
+
+  .glossary-desc {
+    font-size: 0.85rem;
+    line-height: 1.7;
+    color: var(--ink);
+    opacity: 0.85;
+    margin-bottom: 10px;
+  }
+
+  .glossary-modern {
+    font-size: 0.78rem;
+    color: var(--lapis);
+    background: rgba(26,58,92,0.07);
+    padding: 6px 10px;
+    border-left: 2px solid var(--lapis);
+  }
+
+  .glossary-modern strong {
+    display: block;
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    margin-bottom: 2px;
+    opacity: 0.7;
+  }
+
+  .ingredient-link {
+    color: var(--lapis);
+    text-decoration: underline dotted;
+    text-underline-offset: 3px;
+    cursor: pointer;
+    transition: color 0.15s;
+  }
+
+  .ingredient-link:hover {
+    color: var(--gold);
+  }
+
+  /* ===== SCROLL TO TOP ===== */
+  #scroll-top {
+    position: fixed;
+    bottom: 32px;
+    right: 32px;
+    width: 44px;
+    height: 44px;
+    background: var(--clay-dark);
+    color: var(--cream);
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    padding-bottom: 0;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s, transform 0.3s;
+    z-index: 100;
+    transform: translateY(8px);
+  }
+
+  #scroll-top.visible {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(0);
+  }
+
+  #scroll-top:hover {
+    background: var(--clay);
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <span class="cuneiform-deco">𒀭 𒂗𒍪 𒌓𒆳𒆳 𒀭</span>
+  <h1>王の食卓
+    <span>The Royal Table of Ancient Mesopotamia</span>
+  </h1>
+  <p class="header-sub">紀元前1700年頃の粘土板に記された、世界最古のレシピ集</p>
+</header>
+
+<div class="gilgamesh-banner">
+  「エンキドゥよ、ウルクの民はパンを食らい、麦酒を飲む。これが人の道というものだ。」— ギルガメッシュ叙事詩より
+</div>
+
+<nav>
+  <button class="nav-btn" onclick="location.href='index.html'" style="opacity:0.6;">← 館にもどる</button>
+  <button class="nav-btn active" id="nav-list" onclick="showList()">📜 一覧</button>
+  <button class="nav-btn" id="nav-daily" onclick="showDaily()">🌅 今日の王の食卓</button>
+  <button class="nav-btn" id="nav-glossary" onclick="showGlossary()">📖 食材用語集</button>
+</nav>
+
+<main>
+  <div id="daily-view" style="display:none; max-width:780px; margin:0 auto; padding:20px 0 60px;">
+    <div id="daily-content"></div>
+  </div>
+
+  <div id="glossary-view" style="display:none; max-width:900px; margin:0 auto; padding:20px 0 60px;">
+    <div id="glossary-content"></div>
+  </div>
+
+  <div id="list-view">
+    <div class="filter-bar">
+      <span class="filter-label">カテゴリ：</span>
+      <button class="filter-btn active" onclick="filterRecipes('all', this)">すべて</button>
+      <button class="filter-btn" onclick="filterRecipes('meat', this)">肉料理</button>
+      <button class="filter-btn" onclick="filterRecipes('soup', this)">スープ・シチュー</button>
+      <button class="filter-btn" onclick="filterRecipes('grain', this)">穀物・パン</button>
+      <button class="filter-btn" onclick="filterRecipes('dessert', this)">デザート・菓子</button>
+      <button class="filter-btn" onclick="filterRecipes('drink', this)">飲み物</button>
+      <button class="filter-btn" onclick="filterRecipes('cookable', this)">🍳 今日作れる</button>
+    </div>
+    <div id="cards-container"></div>
+  </div>
+
+  <div id="detail-view">
+    <button class="back-btn" onclick="showList()">← 一覧に戻る</button>
+    <div id="detail-content"></div>
+  </div>
+</main>
+
+<footer>
+  <p>出典：Yale Culinary Tablets（イェール大学所蔵 楔形文字粘土板、紀元前1700年頃）</p>
+  <p style="margin-top:6px;">Jean Bottéro "The Oldest Cuisine in the World" (2004) を参考に構成</p>
+  <p style="margin-top:12px;">𒀭𒂗𒍪 𒌓𒆳𒆳 𒀭 — 王の食卓</p>
+</footer>
+
+<button id="scroll-top" onclick="window.scrollTo({top:0,behavior:'smooth'})" title="トップへ">𒀭</button>
+
+<script>
+const recipes = [
+  {
+    id: 1,
+    name: 'ラムのシチュー',
+    nameEn: 'Lamb Stew (UZU)',
+    category: 'soup',
+    categoryLabel: '肉・スープ',
+    source: 'Yale Culinary Tablet A, 粘土板第一番',
+    cookable: true,
+    description: 'もっとも多く記録された料理のひとつ。ラム肉を香辛料と玉ねぎ、にんにく、ネギで煮込んだシチュー。記録によれば宴会の主役として何度も登場する。現代のラムシチューと驚くほど近い構成を持つ。',
+    ingredients: [
+      'ラム肉（骨付き）：500g',
+      '玉ねぎ：2個（粗みじん）',
+      'にんにく：4片',
+      'ネギ（リーキ）：2本',
+      'クレス（またはルッコラ）：ひとつかみ',
+      '塩：適量',
+      '動物性脂（ラード または バター）：大さじ2',
+      '水：1.5L',
+    ],
+    steps: [
+      'ラム肉を大きく切り、脂で表面を焼く。',
+      '水を加え、塩を入れて煮立てる。',
+      '玉ねぎ、にんにく、ネギを加え、弱火で1〜1.5時間煮込む。',
+      '最後にクレス（またはルッコラ）を加え、ひと煮立ちして完成。',
+    ],
+    gilgamesh: '「ウルクの壁を見よ。その城市を建てた者の食卓には、このシチューがあった。ラムの骨からしみ出た旨みは、神々への捧げ物にも使われた。簡素にして力強い——これが我の料理の基本だ。」（ギルガメッシュ）',
+    tags: ['肉', '煮込み', 'メイン'],
+  },
+  {
+    id: 2,
+    name: '子羊の山ガラシ煮',
+    nameEn: 'Kid in Mustard Sauce',
+    category: 'meat',
+    categoryLabel: '肉料理',
+    source: 'Yale Culinary Tablet B',
+    cookable: true,
+    description: '子羊（または子ヤギ）を山ガラシ（またはマスタード）とともに調理する料理。粘土板には「脂で炒め、血で味をつけよ」とある。現代の解釈ではマスタードシードを使ったソースで代替できる。',
+    ingredients: [
+      '子羊（または子ヤギ）の肉：400g',
+      'マスタードシード：大さじ1',
+      '玉ねぎ：1個',
+      'にんにく：3片',
+      '血（現代ではビーフブロスで代替）：200ml',
+      '塩：適量',
+      '脂（バター）：大さじ2',
+    ],
+    steps: [
+      '肉を一口大に切る。脂でよく炒め、焼き色をつける。',
+      'マスタードシードを加えて香りを出す。',
+      '玉ねぎ、にんにくを加え炒める。',
+      'ビーフブロス（または水）を加え、30分ほど煮込む。塩で調整。',
+    ],
+    gilgamesh: '「この料理、最初は辛かった。野にいた頃は生肉しか知らなかったから。でも今は食べられる。ギルガメッシュが祭の前夜に必ず出させる。」（エンキドゥ）',
+    tags: ['肉', '香辛料', 'メイン'],
+  },
+  {
+    id: 3,
+    name: '魚のクミン焼き',
+    nameEn: 'Roasted Fish with Cumin',
+    category: 'meat',
+    categoryLabel: '魚料理',
+    source: 'Yale Culinary Tablet A',
+    cookable: true,
+    description: 'チグリス・ユーフラテス川の魚を使ったシンプルな料理。クミンとニンニク、ネギで味付けして焼く。メソポタミアでは魚は庶民から王族まで広く食べられた重要なタンパク源だった。',
+    ingredients: [
+      '白身魚（鯛、スズキなど）：1尾',
+      'クミンシード：小さじ2',
+      'にんにく：3片（潰す）',
+      'ネギ：1本',
+      '塩：適量',
+      'オリーブオイル（または動物性脂）：大さじ2',
+    ],
+    steps: [
+      '魚の表面に切り込みを入れ、塩をまぶして10分置く。',
+      'クミン、にんにく、ネギを混ぜてペーストを作る。',
+      '魚にペーストを塗り、オイルをかける。',
+      'オーブン（または直火）で20〜30分、こんがりと焼く。',
+    ],
+    gilgamesh: '「川の恵みは神々からの贈り物だ。エア神は水の主——その領域から取れる魚に、クミンの香りをまとわせて焼く。シンプルだが、正直な料理だ。飾らない強さがある。我はそういうものが好きだ。」（ギルガメッシュ）',
+    tags: ['魚', '焼き', '香辛料'],
+  },
+  {
+    id: 4,
+    name: 'シカルの麦ビール',
+    nameEn: 'Sikaru — Barley Beer',
+    category: 'drink',
+    categoryLabel: '飲み物',
+    source: 'ニップール出土の粘土板 / ギルガメッシュ叙事詩',
+    cookable: false,
+    description: 'シュメルの基本飲料。大麦を発芽・乾燥させてエムマー麦のパンと混ぜ、発酵させた低アルコール飲料。ギルガメッシュ叙事詩でエンキドゥが人間になる儀式で飲んだのもこれ。神への供物でもあった。現代の再現は複雑だが、古代ビール醸造プロジェクトが各地で試みられている。',
+    ingredients: [
+      '発芽大麦（モルト）：大量',
+      'エムマー麦パン（ブッパ）：数枚',
+      '水：清潔なもの',
+      '日付椰子のシロップ（甘みを加える場合）',
+    ],
+    steps: [
+      '大麦を発芽させ、乾燥・焙煎してモルトを作る。',
+      '麦パンと砕いたモルトを大きな甕に入れ、水を加える。',
+      '数日間発酵させる（自然酵母を使用）。',
+      '葦のストローで濾しながら飲む（現代ではザルで濾す）。',
+    ],
+    gilgamesh: '「七杯飲んだ。その後、見えるものが変わった。星の形が、前と違った。ギルガメッシュはこれを人間の飲み物だと言った。苦かった。」（エンキドゥ）',
+    tags: ['発酵', 'アルコール', '儀式'],
+  },
+  {
+    id: 5,
+    name: '赤ビートのスープ',
+    nameEn: 'Red Beet Soup',
+    category: 'soup',
+    categoryLabel: 'スープ',
+    source: 'Yale Culinary Tablet C',
+    cookable: true,
+    description: 'ビートルートとネギ、ニンニクを煮込んだシンプルなスープ。鮮やかな赤い色が特徴で、粘土板の記述によればコリアンダーと塩で味付けされた。古代の食卓では野菜スープも重要な位置を占めていた。',
+    ingredients: [
+      'ビートルート：3個（角切り）',
+      'ネギ（リーキ）：2本',
+      'にんにく：3片',
+      'コリアンダー（乾燥）：小さじ1',
+      '塩：適量',
+      '水またはラム骨スープ：1L',
+      '動物性脂：大さじ1',
+    ],
+    steps: [
+      'ネギとにんにくを脂で炒める。',
+      'ビートルートを加えてさらに炒める。',
+      'スープを加えてコリアンダーと塩で味付けし、30分煮込む。',
+      'お好みでザクロ果汁を少量加えると酸味が増して当時の味に近くなる。',
+    ],
+    gilgamesh: '「この赤は血ではなく、大地の色だ。ビートは嵐の中でも根を手放さない。我もまたそうあらねばならぬ——フンババを倒した時も、死の海を渡った時も、根だけは離さなかった。」（ギルガメッシュ）',
+    tags: ['野菜', 'スープ', 'ベジタリアン'],
+  },
+  {
+    id: 6,
+    name: 'エムマー麦のパン（ナン）',
+    nameEn: 'Emmer Wheat Flatbread',
+    category: 'grain',
+    categoryLabel: '穀物・パン',
+    source: '各種粘土板 / ウル出土の記録',
+    cookable: true,
+    description: 'シュメルの主食。エムマー麦を挽いた粉で作る薄焼きパン。現代ではスペルト小麦やライ麦で代替可能。神殿の供物としても、日々の食事としても中心的存在だった。ニンカシ讃歌にも登場する「ブッパ」の原型。',
+    ingredients: [
+      'スペルト小麦粉（またはエムマー麦粉）：300g',
+      '塩：小さじ1',
+      '水：180ml程度',
+      '天然酵母（またはドライイースト）：適量（なくても可）',
+      '胡麻：大さじ1（飾り用）',
+    ],
+    steps: [
+      '粉と塩を混ぜ、水を少しずつ加えてこねる。',
+      '30分〜1時間休ませる（発酵させる場合はさらに長く）。',
+      'ピンポン球大に分けて、薄く伸ばす。',
+      '熱したフライパンまたは石板で両面を焼く（各2〜3分）。',
+    ],
+    gilgamesh: '「ギルガメッシュがパンをくれた。七枚あった。温かかった。野にいた時はこういうものを知らなかった。全部食べた。」（エンキドゥ）',
+    tags: ['パン', '主食', '簡単'],
+  },
+  {
+    id: 7,
+    name: 'チグリスのカモのロースト',
+    nameEn: 'Roasted Waterfowl',
+    category: 'meat',
+    categoryLabel: '鳥肉料理',
+    source: 'Yale Culinary Tablet B',
+    cookable: true,
+    description: '湿地帯に多く生息していた水鳥（カモ、ガチョウなど）を香辛料でローストした宮廷料理。チグリス・ユーフラテス流域の湿地帯は鳥獣が豊富で、王族の狩猟の獲物でもあった。クミンとネギ、ニンニクの組み合わせが基本。',
+    ingredients: [
+      'カモ（または鶏）：1羽',
+      'クミン：小さじ2',
+      '玉ねぎ：1個（みじん切り）',
+      'にんにく：4片',
+      'ネギ：2本',
+      '塩：適量',
+      'ザクロ果汁（あれば）：大さじ2',
+      '動物性脂：大さじ2',
+    ],
+    steps: [
+      '鳥の内側と外側に塩をまぶして30分置く。',
+      'クミン、にんにく、玉ねぎ、脂を混ぜたペーストを全体に塗る。',
+      '180℃のオーブンで1〜1.5時間ローストする。',
+      '仕上げにザクロ果汁をかけて10分追加で焼く。',
+    ],
+    gilgamesh: '「エンキドゥはかつて野で獣と並んで走っていた。今、我らは同じ宴の席でカモを食う。文明とは、獲物を火で焼いて香辛料をまぶすことだと我は思う。野蛮と洗練の差は——火と香辛料、それだけだ。」（ギルガメッシュ）',
+    tags: ['鳥肉', 'ロースト', '宮廷料理'],
+  },
+  {
+    id: 8,
+    name: 'ニンニクとネギの粥',
+    nameEn: 'Garlic and Leek Porridge',
+    category: 'grain',
+    categoryLabel: '穀物料理',
+    source: 'Yale Culinary Tablet A',
+    cookable: true,
+    description: 'エムマー麦やスペルト麦を長時間煮込み、ニンニクとネギを加えた粥。庶民から宮廷まで広く食された基本食。粘土板の記述は非常にシンプルで「麦を煮て、ニンニクとネギを加えよ」とだけある。これが世界最古のレシピのひとつとされる。',
+    ingredients: [
+      'スペルト麦（または大麦）：200g',
+      'にんにく：5片（粗みじん）',
+      'ネギ（リーキ）：3本',
+      '塩：適量',
+      '水：1.2L',
+      'バター：大さじ1（仕上げ）',
+    ],
+    steps: [
+      '麦を水に一晩浸けておく。',
+      '水と麦を鍋に入れ、沸騰させてから弱火で40分煮る。',
+      'みじん切りのニンニクとネギを加え、さらに20分煮る。',
+      '塩で調整し、仕上げにバターを溶かして完成。',
+    ],
+    gilgamesh: '「旅の朝に作った。ギルガメッシュは王の料理ではないと言ったが、毎回食べた。ニンニクは野にいた頃から知っていた。」（エンキドゥ）',
+    tags: ['粥', '庶民食', '簡単', 'ベジタリアン'],
+  },
+  {
+    id: 9,
+    name: 'ナツメヤシのデザート',
+    nameEn: 'Date Palm Sweet Cake',
+    category: 'dessert',
+    categoryLabel: 'デザート・菓子',
+    source: 'ラガシュ出土の記録 / 神殿供物リスト',
+    cookable: true,
+    description: 'ナツメヤシは古代メソポタミアで最も重要な甘味源。蜂蜜、チーズ、スパイスと合わせた菓子は神殿の供物としても、祝宴のデザートとしても供された。現代でも非常に作りやすい料理のひとつ。',
+    ingredients: [
+      'ドライデーツ（ナツメヤシ）：200g（種を取る）',
+      'クルミまたはピスタチオ：50g',
+      '蜂蜜：大さじ2',
+      'カルダモン：小さじ1/4',
+      'シナモン：小さじ1/4',
+      'ごま：大さじ1（飾り用）',
+    ],
+    steps: [
+      'デーツをフードプロセッサー（または手）で細かくする。',
+      'ナッツを粗く刻み、蜂蜜とスパイスと混ぜ合わせる。',
+      'デーツと混ぜてこね、小さなボール状に丸める。',
+      'ごまを表面にまぶして完成。冷蔵庫で固めるとより食べやすい。',
+    ],
+    gilgamesh: '「甘いものを食べる時、人は戦いのことを忘れる。我でさえ、このデザートを口にする瞬間は——少しだけ、静かになれる。エンキドゥが生きていた頃、これを一緒に食べた。あの味は今も変わらない。」（ギルガメッシュ）',
+    tags: ['デザート', '甘い', '簡単', 'ノークッキング'],
+  },
+  {
+    id: 10,
+    name: '子羊の香草詰め',
+    nameEn: 'Stuffed Lamb with Herbs',
+    category: 'meat',
+    categoryLabel: '肉料理',
+    source: 'Yale Culinary Tablet B / Bottéro解釈',
+    cookable: false,
+    description: '子羊の内側に香草とスパイスを詰めて調理する料理。粘土板の原文は難解で、Bottéroの解釈によれば複数の芳香性ハーブ（おそらくコリアンダー、クミン、キャラウェイ）が使われたとされる。調理法の詳細が不明な部分もあるため、「再現困難」に分類。',
+    ingredients: [
+      '子羊（またはラム）：1本（骨付きレッグ）',
+      'コリアンダーシード：大さじ1',
+      'クミン：大さじ1',
+      'キャラウェイ：小さじ1',
+      '玉ねぎ：1個（みじん切り）',
+      'にんにく：5片',
+      '塩：適量',
+      '動物性脂：適量',
+    ],
+    steps: [
+      'スパイスをすり鉢で挽き、脂と塩、にんにくと混ぜてペーストを作る。',
+      '肉に切り込みを入れ、ペーストを詰め込む。',
+      '表面にも塗り、焚き火（またはオーブン200℃）でゆっくり焼く。',
+      '粘土板の原文に「血を流しながら焼く」とあるため、ミディアム仕上げが近いかもしれない。',
+    ],
+    gilgamesh: '「祭典の日に出た。煙が高く上がった。ギルガメッシュは神々が喜ぶと言った。ワタシにはわからなかったが、香りは特別だった。」（エンキドゥ）',
+    tags: ['肉', '祭典料理', '本格派'],
+  },
+  {
+    id: 11,
+    name: 'ネギとニンニクのスープ',
+    nameEn: 'Leek and Garlic Broth',
+    category: 'soup',
+    categoryLabel: 'スープ',
+    source: 'Yale Culinary Tablet C',
+    cookable: true,
+    description: 'ネギ（リーキ）とニンニクを主体にした基本的なスープ。メソポタミアではネギとニンニクは最も重要な香味野菜で、ほぼすべての料理に登場する。これは最もシンプルなバリエーションで、おそらく毎日の食卓に上っていた。',
+    ingredients: [
+      'ネギ（リーキ）：4本',
+      'にんにく：6片',
+      'ラム骨または水：1L',
+      '塩：適量',
+      '動物性脂：大さじ1',
+      'クレス（またはパセリ）：飾り用',
+    ],
+    steps: [
+      'ネギを2cm幅に切る。にんにくは半分に割る。',
+      '脂でネギとニンニクを炒める。',
+      'スープ（または水）を加え、20分煮る。',
+      '塩で調整し、クレスを浮かべて供する。',
+    ],
+    gilgamesh: '「ウルクの台所からは常にこの香りがした。ネギとニンニクの匂いは、平和の匂いだ。戦場では嗅げない香り。我はこのスープを飲むたびに、エンキドゥと過ごした夜を思い出す。」（ギルガメッシュ）',
+    tags: ['スープ', '野菜', '簡単', '毎日の食事'],
+  },
+  {
+    id: 12,
+    name: '子豚の丸焼き',
+    nameEn: 'Roasted Suckling Pig',
+    category: 'meat',
+    categoryLabel: '肉料理',
+    source: 'Yale Culinary Tablet A / 宴会記録',
+    cookable: false,
+    description: 'シュメル時代（紀元前3000年頃）には豚も食されていたが、後のバビロニア時代には減少した。子豚をまるごと焼く料理は大宴会の中心だった。現代では丸焼きの設備が必要なため「要設備」だが、塊肉で代替可能。',
+    ingredients: [
+      '子豚（または豚肩ブロック）：2kg',
+      '塩：大さじ3',
+      'クミン：大さじ1',
+      'コリアンダー：大さじ1',
+      'にんにく：1玉',
+      'ネギ：4本',
+    ],
+    steps: [
+      '肉全体に塩とスパイスをまぶし、一晩置く。',
+      '焚き火または低温オーブン（160℃）でゆっくり3〜4時間焼く。',
+      'ネギとニンニクを周りに並べて一緒に焼く。',
+      '表面がカリカリになるまで最後に高温で焼き上げる。',
+    ],
+    gilgamesh: '「宴会の日は人が多かった。丸焼きが出ると皆が声を上げた。ギルガメッシュは楽しそうだった。食べることが人をそうさせるのだと思った。」（エンキドゥ）',
+    tags: ['豚肉', '大宴会', '祭典料理'],
+  },
+  {
+    id: 13,
+    name: '蜂蜜とチーズのフリット',
+    nameEn: 'Fried Cheese with Honey',
+    category: 'dessert',
+    categoryLabel: 'デザート・菓子',
+    source: 'ラガシュ神殿の供物記録 / Bottéro解釈',
+    cookable: true,
+    description: '山羊や羊のチーズを油で揚げ、蜂蜜をかけた菓子。神殿の供物リストに「チーズと蜂蜜」の組み合わせが繰り返し登場する。古代メソポタミアのチーズは現代のフェタチーズに近い塩味の固めのもので、蜂蜜との対比が絶妙だったとされる。',
+    ingredients: [
+      'フェタチーズ（または山羊チーズ）：200g',
+      '小麦粉：大さじ3',
+      '卵：1個',
+      '蜂蜜：大さじ3',
+      'ごま油または植物油：揚げ用',
+      'シナモン：少々（飾り用）',
+    ],
+    steps: [
+      'チーズを2cm角に切る。',
+      '溶き卵にくぐらせ、小麦粉をまぶす。',
+      '中温の油で全面をこんがり揚げる（2〜3分）。',
+      '皿に盛り、蜂蜜をたっぷりかけてシナモンを振る。',
+    ],
+    gilgamesh: '「甘いものと塩辛いものを一緒にするとは何事かと思っていた。だが食べてみると、これが正しいのだとわかった。対立するものが合わさる時、新しい何かが生まれる——料理も、人も、同じだ。」（ギルガメッシュ）',
+    tags: ['デザート', '甘い', '揚げ物', '簡単'],
+  },
+  {
+    id: 14,
+    name: 'ザクロと蜂蜜のシロップ菓子',
+    nameEn: 'Pomegranate and Honey Confection',
+    category: 'dessert',
+    categoryLabel: 'デザート・菓子',
+    source: 'ニップール出土の粘土板 / 神殿供物リスト',
+    cookable: true,
+    description: 'ザクロ果汁を煮詰めて蜂蜜と合わせたシロップに、砕いたナッツを混ぜて固めた菓子。ザクロは豊穣と死の両方を象徴する果物として神殿の儀式に多用された。このシロップは現代のザクロモラセスとほぼ同じ製法で作れる。',
+    ingredients: [
+      'ザクロ果汁：300ml（またはザクロジュース）',
+      '蜂蜜：大さじ3',
+      'ピスタチオ：50g（粗く砕く）',
+      'アーモンド：30g（粗く砕く）',
+      'カルダモン：小さじ1/4',
+    ],
+    steps: [
+      'ザクロ果汁を小鍋で半量になるまで弱火で煮詰める（15〜20分）。',
+      '蜂蜜とカルダモンを加えてさらに5分煮る。',
+      'ナッツを混ぜ込み、クッキングシートに薄く広げる。',
+      '冷蔵庫で1時間以上冷やして固め、割って供する。',
+    ],
+    gilgamesh: '「ザクロの赤は冥界の色でもある。ウトナピシュティムに会いに行く旅の途中、ワタシはこれを食べた。甘かった。でもザクロを見るたびに、帰れない場所のことを考えた。」（エンキドゥ）',
+    tags: ['デザート', '甘い', '簡単', 'ノークッキング'],
+  },
+  {
+    id: 15,
+    name: 'ナツメヤシとスパイスのケーキ',
+    nameEn: 'Date and Spice Cake',
+    category: 'dessert',
+    categoryLabel: 'デザート・菓子',
+    source: 'Yale Culinary Tablet C / ウル第三王朝期の記録',
+    cookable: true,
+    description: '潰したナツメヤシに小麦粉とスパイスを混ぜて焼いた菓子。ウル第三王朝（紀元前2100年頃）の配給記録には、特別な日に労働者にも菓子が配られたことが記されており、このケーキはその候補とされる。現代のデーツケーキの直接の祖先。',
+    ingredients: [
+      'ドライデーツ：250g（種を除く）',
+      'スペルト小麦粉（または薄力粉）：150g',
+      '卵：2個',
+      'バター：50g',
+      'カルダモン：小さじ1/2',
+      'シナモン：小さじ1/2',
+      'クミン：小さじ1/4（甘い中にスパイシーさを加える）',
+      'ごま：大さじ1（表面用）',
+    ],
+    steps: [
+      'デーツをフードプロセッサーまたは手で細かく潰す。',
+      'バターを溶かし、卵と合わせて混ぜる。',
+      'デーツ、小麦粉、スパイスをすべて混ぜ合わせる。',
+      'オーブン型に流し込み、表面にごまを散らして170℃で25〜30分焼く。',
+    ],
+    gilgamesh: '「これは祝いの日の菓子だ。フンババを倒した後、ウルクに戻った時に出た。民が集まって歓呼した。我はこの味を覚えている——勝利の味は、デーツとスパイスの香りがした。」（ギルガメッシュ）',
+    tags: ['デザート', '焼き菓子', '甘い'],
+  },
+  {
+    id: 16,
+    name: 'ニンカシの讃歌ビール（白ビール）',
+    nameEn: 'Ninkasi White Beer',
+    category: 'drink',
+    categoryLabel: '飲み物',
+    source: 'ニンカシ讃歌（紀元前1800年頃、ニップール出土）',
+    cookable: false,
+    description: 'ビール女神ニンカシへの讃歌は、同時に醸造レシピでもある。通常のシカル（大麦ビール）より小麦の比率が高く、白く濁った甘めのビール。讃歌には「甘い麦汁が広大な水がめに流れ込む」と記される。現代のベルギー式白ビールに近い風味とされる。',
+    ingredients: [
+      '発芽小麦（ヴァイツェンモルト）：大量',
+      '発芽大麦：小麦の半量',
+      'エムマー麦パン（ブッパ）：数枚',
+      '水：清潔なもの',
+      '蜂蜜：少量（甘みを加える場合）',
+    ],
+    steps: [
+      '小麦モルトと大麦モルトを混ぜ、砕く。',
+      '麦パンと水を加えた大甕に入れ、混ぜ合わせる。',
+      '暖かい場所で3〜5日発酵させる。',
+      '葦のストロー（または目の細かいザル）で濾しながら飲む。白く濁った状態が正しい。',
+    ],
+    gilgamesh: '「ニンカシ女神よ、汝の手から生まれるものは神々への捧げ物に値する。ワタシはこのビールを初めて飲んだ時、甘くて驚いた。シカルとは違う。もっと柔らかかった。」（エンキドゥ）',
+    tags: ['発酵', 'アルコール', '儀式', '白ビール'],
+  },
+  {
+    id: 17,
+    name: 'タマリンドの酸っぱい飲み物',
+    nameEn: 'Tamarind Sour Drink',
+    category: 'drink',
+    categoryLabel: '飲み物',
+    source: 'バビロニア期の医学・調理粘土板',
+    cookable: true,
+    description: 'タマリンド（酸棗）を水に溶かした酸味飲料。メソポタミアでは紀元前2000年頃からタマリンドが使われており、医学的な文脈（消化促進）でも、単純な嗜好品としても記録されている。ザクロ果汁や蜂蜜と混ぜることもあった。現代でもほぼそのまま再現できる。',
+    ingredients: [
+      'タマリンドペースト：大さじ2',
+      '水：500ml',
+      '蜂蜜：大さじ1〜2（好みで）',
+      'ザクロ果汁：50ml（あれば）',
+      '塩：ひとつまみ',
+    ],
+    steps: [
+      'タマリンドペーストを水に溶かし、よくかき混ぜる。',
+      '蜂蜜を加えて甘みを調整する。',
+      'ザクロ果汁を加えてさらに混ぜる。',
+      '冷やして飲む。塩をひとつまみ加えると味が締まる。',
+    ],
+    gilgamesh: '「酸っぱいものは頭を覚まさせる。長い宴会の後、これを飲むと正気に戻れる。我は政務の前にもこれを飲む。王たるもの、常に清明でなければならぬ。」（ギルガメッシュ）',
+    tags: ['飲み物', 'ノンアルコール', '酸っぱい', '簡単'],
+  },
+  {
+    id: 18,
+    name: 'ザクロとハーブのシャーベット',
+    nameEn: 'Pomegranate Herb Sherbet',
+    category: 'drink',
+    categoryLabel: '飲み物',
+    source: 'アッカド期の宮廷記録 / Bottéro解釈',
+    cookable: true,
+    description: '雪や氷をザグロス山脈から運ばせて冷やした飲み物。アッシリアやバビロニアの宮廷では、山から氷を運ぶ記録が残っている。ザクロ果汁に芳香性ハーブ（ミント、コリアンダー）を合わせた冷製飲料で、夏の宴会に供された。現代では冷凍庫で簡単に再現できる。',
+    ingredients: [
+      'ザクロ果汁：200ml',
+      '水：200ml',
+      '蜂蜜：大さじ2',
+      'フレッシュミント：10枚',
+      'コリアンダーシード：小さじ1/4（軽く砕く）',
+      '氷：たっぷり',
+    ],
+    steps: [
+      '蜂蜜を水に溶かし、ザクロ果汁と合わせる。',
+      'ミントとコリアンダーを加えて10分置いて香りを移す。',
+      '濾してハーブを取り除き、冷凍庫で1〜2時間冷やす。',
+      '完全に凍らせてシャーベットにしても、氷を浮かべてそのまま飲んでも。',
+    ],
+    gilgamesh: '「山から氷を運ばせた。夏の盛りに冷たいものを飲む——これが王の特権だ。民には真似できない。ザクロの赤とミントの緑が、器の中で混ざり合う様は美しかった。」（ギルガメッシュ）',
+    tags: ['飲み物', 'ノンアルコール', '冷製', '宮廷料理'],
+  },
+  {
+    id: 19,
+    name: 'レンズ豆のシチュー',
+    nameEn: 'Red Lentil Stew',
+    category: 'soup',
+    categoryLabel: 'スープ・シチュー',
+    source: 'Yale Culinary Tablet A / ニップール出土の配給記録',
+    cookable: true,
+    description: '古代メソポタミアで最も広く食された豆料理。神殿の配給記録に繰り返し登場し、労働者から王族まで食卓に上った。聖書にも登場する「一皿のレンズ豆」の料理がこれにあたるとされる。クミンとネギで味付けしたシンプルな煮込み。',
+    ingredients: [
+      '赤レンズ豆：200g',
+      '玉ねぎ：1個（みじん切り）',
+      'にんにく：4片',
+      'ネギ（リーキ）：1本',
+      'クミンシード：小さじ2',
+      'コリアンダー（乾燥）：小さじ1',
+      '塩：適量',
+      '動物性脂（またはオリーブオイル）：大さじ2',
+      '水：900ml',
+    ],
+    steps: [
+      '脂で玉ねぎ・にんにく・ネギを炒め、クミンとコリアンダーを加えて香りを出す。',
+      'レンズ豆と水を加えて強火で煮立てる。',
+      '弱火にして30〜40分、豆が完全に柔らかくなるまで煮込む。',
+      '塩で調整し、好みでザクロ果汁を少量加えると酸味が増す。',
+    ],
+    gilgamesh: '「これは民の食べ物だ。しかし我も遠征の折には何度も食べた。豆は保存が効き、火さえあれば作れる。軍を動かすのは武器ではなく、レンズ豆だと我は思っている。」（ギルガメッシュ）',
+    tags: ['豆', 'スープ', '庶民食', 'ベジタリアン', '簡単'],
+  },
+  {
+    id: 20,
+    name: 'マルザヒム（バターケーキ）',
+    nameEn: 'Marzahim — Butter Cake',
+    category: 'dessert',
+    categoryLabel: 'デザート・菓子',
+    source: 'Yale Culinary Tablet B（世界最古のバターケーキレシピ）',
+    cookable: true,
+    description: '世界最古のバターケーキレシピ。Yale粘土板に「バター、蜂蜜、卵、小麦粉を混ぜて焼け」と記される。紀元前1700年頃の記録で、現代のバターケーキとほぼ同じ製法に驚かされる。神殿の特別な供物として使われ、一般には祭典の日にのみ食べられた。',
+    ingredients: [
+      'スペルト小麦粉（または薄力粉）：200g',
+      'バター：100g（室温に戻す）',
+      '蜂蜜：大さじ4',
+      '卵：2個',
+      '塩：ひとつまみ',
+      'ごま：大さじ1（表面用）',
+    ],
+    steps: [
+      'バターと蜂蜜をよく混ぜ合わせる。',
+      '卵を一個ずつ加えながらさらに混ぜる。',
+      '小麦粉と塩をふるい入れ、さっくりと混ぜる。',
+      '型に流し込み、表面にごまを散らして170℃で25〜30分焼く。',
+    ],
+    gilgamesh: '「バター、蜂蜜、卵、小麦粉——これだけで十分だ。余計なものは要らない。我はこの単純さが好きだ。最も基本的なものが、最も長く残る。このレシピが何千年も伝わったように。」（ギルガメッシュ）',
+    tags: ['デザート', '焼き菓子', '甘い', '世界最古'],
+  },
+  {
+    id: 21,
+    name: 'ヤギのミルク粥',
+    nameEn: 'Goat Milk Porridge',
+    category: 'grain',
+    categoryLabel: '穀物料理',
+    source: '各種粘土板 / 神殿の朝食記録',
+    cookable: true,
+    description: 'ヤギのミルクで大麦を煮た粥。神殿の記録には朝の供物として繰り返し登場する。現代の牛乳粥とほぼ同じ製法で、蜂蜜やデーツを加えて甘くすることも多かった。エンキドゥが野から来てウルクで最初に口にした食事のひとつとも言われる。',
+    ingredients: [
+      '大麦（または押し麦）：150g',
+      'ヤギのミルク（または牛乳）：600ml',
+      '水：200ml',
+      '蜂蜜：大さじ2',
+      'ドライデーツ：4〜5粒（刻む）',
+      '塩：ひとつまみ',
+    ],
+    steps: [
+      '大麦を水に30分浸けておく。',
+      '鍋に水と大麦を入れ、沸騰したら弱火で15分煮る。',
+      'ヤギのミルクを加え、さらに20分ゆっくり煮る。',
+      '蜂蜜と塩で味を調え、刻んだデーツを散らして供する。',
+    ],
+    gilgamesh: '「ワタシが初めてウルクで食べた朝ごはん。温かくて、甘くて、白かった。野にいた頃は朝にこういうものを食べる習慣がなかった。人間はなぜ朝にこんなに丁寧に食べるんだろうと思った。」（エンキドゥ）',
+    tags: ['粥', '乳製品', '朝食', '簡単'],
+  },
+  {
+    id: 22,
+    name: 'ラブネ風フレッシュチーズ',
+    nameEn: 'Fresh Strained Cheese (Labneh-style)',
+    category: 'grain',
+    categoryLabel: '乳製品・副菜',
+    source: 'ラガシュ出土の乳製品記録（紀元前2500年頃）',
+    cookable: true,
+    description: 'ヤギや羊のミルクを水切りして作るフレッシュチーズ。ラガシュ出土の粘土板にはチーズ製造の詳細な記録があり、これが世界最古のチーズ製造記録とされる。塩とハーブで味付けして、パンに添えて食べた。現代のラブネ（レバノンの水切りヨーグルトチーズ）とほぼ同じ製法。',
+    ingredients: [
+      'プレーンヨーグルト（全脂）：500g',
+      '塩：小さじ1',
+      'オリーブオイル：大さじ1（仕上げ）',
+      'ドライタイム（またはコリアンダー）：少々',
+      'ザクロの実（飾り用、あれば）',
+    ],
+    steps: [
+      'ヨーグルトに塩を混ぜる。',
+      'さらしまたはキッチンペーパーを敷いたザルに入れ、冷蔵庫で一晩〜24時間水を切る。',
+      '好みの固さになったら皿に盛り、オリーブオイルをかける。',
+      'ハーブを散らし、パンや野菜を添えて供する。',
+    ],
+    gilgamesh: '「乳を搾り、布で絞り、一晩待つ。この単純な作業の中に、家畜を飼い始めた人類の歴史が詰まっている。我は時々、文明とはこういう「待つこと」の積み重ねだと思う。」（ギルガメッシュ）',
+    tags: ['乳製品', '副菜', '簡単', 'ベジタリアン'],
+  },
+  {
+    id: 23,
+    name: 'ミルクと蜂蜜の神酒',
+    nameEn: 'Milk and Honey Sacred Drink',
+    category: 'drink',
+    categoryLabel: '飲み物',
+    source: 'シュメル神殿の供物記録 / ニップール出土の讃歌',
+    cookable: true,
+    description: 'ヤギや羊のミルクに蜂蜜を溶かした飲み物。シュメルの神殿記録には「神々への供物」として繰り返し登場し、特に出産や豊穣の儀式で用いられた。「乳と蜂蜜の流れる地」という表現は聖書にも引き継がれており、この飲み物がその原型とも言われる。',
+    ingredients: [
+      'ヤギのミルク（または牛乳）：300ml',
+      '蜂蜜：大さじ2〜3',
+      'カルダモン：ひとつまみ',
+      'シナモン：ひとつまみ',
+    ],
+    steps: [
+      'ミルクを鍋で温める（沸騰させない）。',
+      '火を止めて蜂蜜を加え、よく溶かす。',
+      'カルダモンとシナモンを加えてひと混ぜする。',
+      '温かいまま、または冷やして飲む。',
+    ],
+    gilgamesh: '「ニンフルサグ女神が神々に授けたと伝わる飲み物。ワタシはこれを儀式の前に飲んだ。甘くて、温かくて、飲むと少し落ち着いた。神様に近づける気がした——本当かどうかはわからないけど。」（エンキドゥ）',
+    tags: ['飲み物', 'ノンアルコール', '儀式', '温かい', '簡単'],
+  },
+];
+
+let currentFilter = 'all';
+
+function speakerLabel(text) {
+  if (text.includes('（ギルガメッシュ）')) return '𒀭𒄑𒂆𒈦 いわく';
+  if (text.includes('（エンキドゥ）')) return '𒀭𒂗𒆠𒁺 いわく';
+  return 'いわく';
+}
+
+function commentHTML(recipe) {
+  return `<div class="gilgamesh-comment" data-speaker="${speakerLabel(recipe.gilgamesh)}"><p>${recipe.gilgamesh}</p></div>`;
+}
+
+function linkIngredient(text) {
+  const keywords = [
+    ['タマリンド', 'タマリンド'],
+    ['エムマー麦', 'エムマー麦'],
+    ['ザクロ', 'ザクロ（実・果汁）'],
+    ['コリアンダー', 'コリアンダー'],
+    ['クミン', 'クミン'],
+    ['カルダモン', 'カルダモン'],
+    ['キャラウェイ', 'キャラウェイ'],
+    ['ネギ（リーキ）', 'リーキ（西洋ネギ）'],
+    ['リーキ', 'リーキ（西洋ネギ）'],
+    ['クレス', 'クレス'],
+    ['スペルト', 'スペルト小麦'],
+    ['ドライデーツ', 'デーツ（ナツメヤシ）'],
+    ['デーツ', 'デーツ（ナツメヤシ）'],
+    ['ナツメヤシ', 'デーツ（ナツメヤシ）'],
+    ['フェタチーズ', 'フェタチーズ（山羊チーズ）'],
+    ['山羊チーズ', 'フェタチーズ（山羊チーズ）'],
+    ['赤レンズ豆', 'レンズ豆'],
+    ['レンズ豆', 'レンズ豆'],
+    ['ヤギのミルク', 'ヤギのミルク'],
+  ];
+  let result = text;
+  for (const [keyword, glossaryName] of keywords) {
+    if (result.includes(keyword)) {
+      result = result.replace(
+        keyword,
+        `<a href="#" class="ingredient-link" onclick="event.preventDefault();jumpToGlossary('${glossaryName}')">${keyword}</a>`
+      );
+      break;
+    }
+  }
+  return result;
+}
+
+function jumpToGlossary(name) {
+  showGlossary();
+  setTimeout(() => {
+    const cards = document.querySelectorAll('.glossary-card');
+    for (const card of cards) {
+      if (card.querySelector('.glossary-name')?.textContent === name) {
+        card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        card.style.outline = '3px solid var(--gold)';
+        setTimeout(() => card.style.outline = '', 1500);
+        break;
+      }
+    }
+  }, 150);
+}
+
+function renderCards(filter) {
+  const container = document.getElementById('cards-container');
+  container.style.display = 'grid';
+  container.style.gridTemplateColumns = 'repeat(auto-fill, minmax(300px, 1fr))';
+  container.style.gap = '24px';
+
+  let filtered = recipes;
+  if (filter === 'cookable') {
+    filtered = recipes.filter(r => r.cookable);
+  } else if (filter !== 'all') {
+    filtered = recipes.filter(r => r.category === filter);
+  }
+
+  container.innerHTML = filtered.map((r, i) => `
+    <div class="recipe-card" style="animation-delay:${i * 0.05}s" onclick="showDetail(${r.id})">
+      <div class="card-inner">
+        <div class="card-category">${r.categoryLabel}</div>
+        <div class="card-name">${r.name}</div>
+        <div class="card-name-en">${r.nameEn}</div>
+        <div class="card-desc">${r.description.substring(0, 80)}…</div>
+        <div class="card-tags">
+          ${r.cookable ? '<span class="tag cookable">🍳 今日作れる</span>' : ''}
+          ${r.tags.map(t => `<span class="tag">${t}</span>`).join('')}
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function filterRecipes(filter, btn) {
+  currentFilter = filter;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderCards(filter);
+}
+
+function showDetail(id) {
+  const recipe = recipes.find(r => r.id === id);
+  if (!recipe) return;
+
+  document.getElementById('list-view').style.display = 'none';
+  document.getElementById('daily-view').style.display = 'none';
+  document.getElementById('glossary-view').style.display = 'none';
+  const dv = document.getElementById('detail-view');
+  dv.style.display = 'block';
+
+  document.getElementById('detail-content').innerHTML = `
+    <div class="detail-tablet">
+      <div class="detail-category">${recipe.categoryLabel}</div>
+      <div class="detail-title">${recipe.name}</div>
+      <div class="detail-title-en">${recipe.nameEn}</div>
+      ${recipe.cookable ? '<span class="cookable-badge">🍳 現代でも作れるレシピ</span>' : ''}
+      <div class="detail-source">出典：${recipe.source}</div>
+
+      <hr class="divider">
+
+      <div class="detail-desc">${recipe.description}</div>
+
+      <div class="section-title">材料</div>
+      <ul class="ingredients-list">
+        ${recipe.ingredients.map(i => `<li>${linkIngredient(i)}</li>`).join('')}
+      </ul>
+
+      <div class="section-title">作り方</div>
+      <div class="recipe-steps">
+        ${recipe.steps.map((s, i) => `
+          <div class="step">
+            <div class="step-num">${i + 1}</div>
+            <div class="step-text">${s}</div>
+          </div>
+        `).join('')}
+      </div>
+
+      ${commentHTML(recipe)}
+    </div>
+  `;
+
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function setNav(active) {
+  document.getElementById('nav-list').classList.toggle('active', active === 'list');
+  document.getElementById('nav-daily').classList.toggle('active', active === 'daily');
+  document.getElementById('nav-glossary').classList.toggle('active', active === 'glossary');
+}
+
+function showList() {
+  document.getElementById('list-view').style.display = 'block';
+  document.getElementById('detail-view').style.display = 'none';
+  document.getElementById('daily-view').style.display = 'none';
+  document.getElementById('glossary-view').style.display = 'none';
+  setNav('list');
+}
+
+function showDaily() {
+  document.getElementById('list-view').style.display = 'none';
+  document.getElementById('detail-view').style.display = 'none';
+  document.getElementById('daily-view').style.display = 'block';
+  setNav('daily');
+  renderDaily();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function renderDaily() {
+  // 日付ベースのシードで今日の料理を決める（同日は同じ料理）
+  const today = new Date();
+  const seed = today.getFullYear() * 10000 + (today.getMonth() + 1) * 100 + today.getDate();
+  const idx = seed % recipes.length;
+  const recipe = recipes[idx];
+
+  const dateStr = today.toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' });
+
+  document.getElementById('daily-content').innerHTML = `
+    <div class="daily-header">
+      <div class="daily-title">今日の王の食卓</div>
+      <div class="daily-subtitle">ギルガメッシュ王が今日あなたに振る舞う一品</div>
+      <div class="daily-date">𒀭 ${dateStr} 𒀭</div>
+    </div>
+    <div class="detail-tablet" style="animation: fadeIn 0.4s ease both;">
+      <div class="detail-category">${recipe.categoryLabel}</div>
+      <div class="detail-title">${recipe.name}</div>
+      <div class="detail-title-en">${recipe.nameEn}</div>
+      ${recipe.cookable ? '<span class="cookable-badge">🍳 現代でも作れるレシピ</span>' : ''}
+      <div class="detail-source">出典：${recipe.source}</div>
+      <hr class="divider">
+      <div class="detail-desc">${recipe.description}</div>
+      <div class="section-title">材料</div>
+      <ul class="ingredients-list">
+        ${recipe.ingredients.map(i => `<li>${linkIngredient(i)}</li>`).join('')}
+      </ul>
+      <div class="section-title">作り方</div>
+      <div class="recipe-steps">
+        ${recipe.steps.map((s, i) => `
+          <div class="step">
+            <div class="step-num">${i + 1}</div>
+            <div class="step-text">${s}</div>
+          </div>
+        `).join('')}
+      </div>
+      ${commentHTML(recipe)}
+    </div>
+    <button class="reroll-btn" onclick="rerollDaily()">🎲 別の料理を見る（神託を乞う）</button>
+  `;
+}
+
+let rerollOffset = 0;
+function rerollDaily() {
+  rerollOffset = (rerollOffset + 1) % recipes.length;
+  const today = new Date();
+  const seed = today.getFullYear() * 10000 + (today.getMonth() + 1) * 100 + today.getDate();
+  const idx = (seed + rerollOffset) % recipes.length;
+  const recipe = recipes[idx];
+  const dateStr = today.toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' });
+
+  document.getElementById('daily-content').innerHTML = `
+    <div class="daily-header">
+      <div class="daily-title">今日の王の食卓</div>
+      <div class="daily-subtitle">神託により選ばれし一品</div>
+      <div class="daily-date">𒀭 ${dateStr} 𒀭</div>
+    </div>
+    <div class="detail-tablet" style="animation: fadeIn 0.4s ease both;">
+      <div class="detail-category">${recipe.categoryLabel}</div>
+      <div class="detail-title">${recipe.name}</div>
+      <div class="detail-title-en">${recipe.nameEn}</div>
+      ${recipe.cookable ? '<span class="cookable-badge">🍳 現代でも作れるレシピ</span>' : ''}
+      <div class="detail-source">出典：${recipe.source}</div>
+      <hr class="divider">
+      <div class="detail-desc">${recipe.description}</div>
+      <div class="section-title">材料</div>
+      <ul class="ingredients-list">
+        ${recipe.ingredients.map(i => `<li>${linkIngredient(i)}</li>`).join('')}
+      </ul>
+      <div class="section-title">作り方</div>
+      <div class="recipe-steps">
+        ${recipe.steps.map((s, i) => `
+          <div class="step">
+            <div class="step-num">${i + 1}</div>
+            <div class="step-text">${s}</div>
+          </div>
+        `).join('')}
+      </div>
+      ${commentHTML(recipe)}
+    </div>
+    <button class="reroll-btn" onclick="rerollDaily()">🎲 別の料理を見る（神託を乞う）</button>
+  `;
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// Init
+renderCards('all');
+
+// Scroll to top button
+window.addEventListener('scroll', () => {
+  document.getElementById('scroll-top').classList.toggle('visible', window.scrollY > 300);
+});
+
+// ===== GLOSSARY =====
+const glossary = [
+  {
+    name: 'タマリンド',
+    nameEn: 'Tamarind',
+    category: 'spice',
+    categoryLabel: '香辛料・調味料',
+    desc: 'マメ科の木の果実から作られる酸味調味料。茶色いペースト状で、強い酸味と甘みを持つ。古代メソポタミアでは消化促進薬としても使われた。',
+    modern: '現代での入手：アジア食材店やネットで「タマリンドペースト」として購入可能。インド・タイ料理でも多用される。ない場合はレモン汁＋少量の黒糖で代替できる。',
+  },
+  {
+    name: 'エムマー麦',
+    nameEn: 'Emmer Wheat',
+    category: 'grain',
+    categoryLabel: '穀物',
+    desc: '古代小麦の一種。現代の小麦より栄養価が高く、風味が強い。シュメル文明の主食で、パンにも酒造にも使われた。グルテン含量が低め。',
+    modern: '現代での入手：「スペルト小麦（スペルト）」または「ファッロ」という名前で自然食品店やネットで購入可能。通常の小麦粉で代替してもほぼ問題ない。',
+  },
+  {
+    name: 'ザクロ果汁・モラセス',
+    nameEn: 'Pomegranate Molasses',
+    category: 'condiment',
+    categoryLabel: '香辛料・調味料',
+    desc: 'ザクロ果汁を煮詰めた濃厚なシロップ。強い酸味と甘みを持ち、古代メソポタミアでは肉料理のソースにも、デザートにも使われた。豊穣と死を象徴する果物。',
+    modern: '現代での入手：中東食材店で「ザクロモラセス」として販売。ない場合はザクロジュースを煮詰めるか、バルサミコ酢＋蜂蜜で代替できる。',
+  },
+  {
+    name: 'クミン',
+    nameEn: 'Cumin',
+    category: 'spice',
+    categoryLabel: '香辛料・調味料',
+    desc: 'セリ科の植物の種子。古代メソポタミアで最も多用されたスパイスのひとつ。土っぽく温かみのある香りで、肉・魚・野菜どれにも合う。シュメル語では「kamūnu」。',
+    modern: '現代での入手：スーパーのスパイスコーナーで「クミン（シード・パウダー）」として入手可能。最も手に入りやすい古代スパイス。',
+  },
+  {
+    name: 'コリアンダー',
+    nameEn: 'Coriander',
+    category: 'spice',
+    categoryLabel: '香辛料・調味料',
+    desc: 'セリ科の植物で、葉はパクチー（香菜）として知られる。古代レシピではシードを乾燥させて使う。柑橘系の爽やかな香り。メソポタミアの料理には欠かせない脇役。',
+    modern: '現代での入手：スーパーで「コリアンダーシード」として入手可能。葉（パクチー）とは風味が異なるので注意。',
+  },
+  {
+    name: 'カルダモン',
+    nameEn: 'Cardamom',
+    category: 'spice',
+    categoryLabel: '香辛料・調味料',
+    desc: 'ショウガ科の植物の種子。甘く複雑な香りで「スパイスの女王」とも呼ばれる。古代メソポタミアのデザートや飲み物に多用された。',
+    modern: '現代での入手：スーパーのスパイスコーナーで「カルダモン（パウダー）」として入手可能。チャイにも使う香辛料。',
+  },
+  {
+    name: 'キャラウェイ',
+    nameEn: 'Caraway',
+    category: 'spice',
+    categoryLabel: '香辛料・調味料',
+    desc: 'セリ科の植物の種子。クミンに似た見た目だが風味は異なり、やや甘みとアニス系の香りを持つ。肉料理の詰め物やパンに使われた。',
+    modern: '現代での入手：製菓材料店や輸入食材店で入手可能。ない場合はクミンで代替できるが風味は変わる。',
+  },
+  {
+    name: 'リーキ（西洋ネギ）',
+    nameEn: 'Leek',
+    category: 'vegetable',
+    categoryLabel: '野菜・ハーブ',
+    desc: '長ネギに似た野菜だが、より太く、甘みが強い。古代メソポタミアで最も重要な香味野菜のひとつで、ほぼすべての料理に登場する。シュメル語では「karaššu」。',
+    modern: '現代での入手：スーパーで「リーキ」または「ポワロ」として販売。ない場合は長ネギで代替可能。',
+  },
+  {
+    name: 'クレス',
+    nameEn: 'Cress / Watercress',
+    category: 'vegetable',
+    categoryLabel: '野菜・ハーブ',
+    desc: 'アブラナ科の植物で、ピリッとした辛みと爽やかな香りを持つ。古代レシピでは仕上げに散らす使い方が多い。湿地帯のメソポタミアでは自生していた。',
+    modern: '現代での入手：スーパーの野菜売り場で「クレソン」として販売。ない場合はルッコラやラディッシュの芽で代替できる。',
+  },
+  {
+    name: 'スペルト小麦',
+    nameEn: 'Spelt Wheat',
+    category: 'grain',
+    categoryLabel: '穀物',
+    desc: '古代小麦の一種で、エムマー麦の近縁種。現代でも健康食品として流通しており、古代レシピの再現に最も適した代替穀物。風味が豊かでナッツのような香り。',
+    modern: '現代での入手：自然食品店やネットで「スペルト小麦粉」として購入可能。通常の小麦粉より高価だが、再現度が高まる。',
+  },
+  {
+    name: 'ザクロ（実・果汁）',
+    nameEn: 'Pomegranate',
+    category: 'vegetable',
+    categoryLabel: '野菜・ハーブ',
+    desc: '古代メソポタミア全域で栽培された果物。酸味と甘みのバランスが特徴で、料理のソースから神殿の供物まで幅広く使われた。豊穣・生命・冥界の象徴でもある。',
+    modern: '現代での入手：秋〜冬にスーパーで生のザクロが手に入る。果汁は年中ザクロジュースとして購入可能。',
+  },
+  {
+    name: 'デーツ（ナツメヤシ）',
+    nameEn: 'Dates',
+    category: 'vegetable',
+    categoryLabel: '野菜・ハーブ',
+    desc: 'ナツメヤシの果実。メソポタミアで最も重要な甘味源で、砂糖代わりに使われた。乾燥させると保存が効き、栄養価も高い。神殿の供物リストに必ず登場する。',
+    modern: '現代での入手：スーパーやカルディで「ドライデーツ」として購入可能。種を除いてそのまま使える。',
+  },
+  {
+    name: 'フェタチーズ（山羊チーズ）',
+    nameEn: 'Feta / Goat Cheese',
+    category: 'dairy',
+    categoryLabel: '乳製品',
+    desc: '古代メソポタミアのチーズは山羊や羊のミルクから作られた塩味の固めのもの。現代のフェタチーズが最も近い風味とされる。神殿の供物記録に繰り返し登場する。',
+    modern: '現代での入手：スーパーの乳製品コーナーで「フェタチーズ」として購入可能。なければモッツァレラやリコッタで代替できるが塩味が変わる。',
+  },
+  {
+    name: 'ザグロス産の氷・雪',
+    nameEn: 'Ice from the Zagros Mountains',
+    category: 'other',
+    categoryLabel: 'その他',
+    desc: 'バビロニア・アッシリアの宮廷では、ザグロス山脈から雪や氷を運ばせて食物を冷やした記録がある。当時の冷蔵技術は宮廷の特権で、冷たい飲み物は王族だけが楽しめた。',
+    modern: '現代での入手：冷凍庫で完全に再現できる。4000年分の技術の進歩をありがたく享受しよう。',
+  },
+  {
+    name: 'シカル（大麦ビール）',
+    nameEn: 'Sikaru',
+    category: 'other',
+    categoryLabel: 'その他',
+    desc: 'シュメル語でビールを指す言葉。大麦モルトと麦パンを発酵させた低アルコール飲料で、古代メソポタミアでは水より安全な飲み物として日常的に飲まれた。労働者への報酬としても支給された。',
+    modern: '現代での再現：本格的な再現はホームブルーイング設備が必要。市販のヴァイツェンビールやランビックビールが風味的に近いとされる。',
+  },
+  {
+    name: 'レンズ豆',
+    nameEn: 'Lentils',
+    category: 'vegetable',
+    categoryLabel: '野菜・果物',
+    desc: 'マメ科の植物の種子。古代メソポタミアで最も重要なタンパク源のひとつ。保存が効き、短時間で調理できるため庶民食の定番だった。赤・緑・黒など種類があるが、古代では主に赤レンズ豆が使われた。',
+    modern: '現代での入手：スーパーやカルディで「レンズ豆」として購入可能。赤レンズ豆は水に浸けなくてもそのまま煮られて便利。',
+  },
+  {
+    name: 'ヤギのミルク',
+    nameEn: 'Goat Milk',
+    category: 'dairy',
+    categoryLabel: '乳製品',
+    desc: '古代メソポタミアで最も一般的な乳製品の原料。牛乳より脂肪球が小さく消化しやすい。チーズ、粥、飲み物など幅広く使われた。神殿への供物記録にも頻繁に登場する。',
+    modern: '現代での入手：大型スーパーや自然食品店で「ヤギミルク」として購入可能。ない場合は牛乳で代替できる。風味はやや異なる。',
+  },
+];
+
+let glossaryFilter = 'all';
+
+function showGlossary() {
+  document.getElementById('list-view').style.display = 'none';
+  document.getElementById('detail-view').style.display = 'none';
+  document.getElementById('daily-view').style.display = 'none';
+  document.getElementById('glossary-view').style.display = 'block';
+  setNav('glossary');
+  renderGlossary('all');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function renderGlossary(filter) {
+  glossaryFilter = filter;
+  const filtered = filter === 'all' ? glossary : glossary.filter(g => g.category === filter);
+
+  document.getElementById('glossary-content').innerHTML = `
+    <div class="glossary-header">
+      <h2>食材・用語集</h2>
+      <p>古代メソポタミア料理に登場する、馴染みのない食材たちの解説</p>
+    </div>
+    <div class="glossary-filter filter-bar">
+      <span class="filter-label">分類：</span>
+      <button class="filter-btn ${filter === 'all' ? 'active' : ''}" onclick="renderGlossary('all')">すべて</button>
+      <button class="filter-btn ${filter === 'spice' ? 'active' : ''}" onclick="renderGlossary('spice')">香辛料・調味料</button>
+      <button class="filter-btn ${filter === 'grain' ? 'active' : ''}" onclick="renderGlossary('grain')">穀物</button>
+      <button class="filter-btn ${filter === 'vegetable' ? 'active' : ''}" onclick="renderGlossary('vegetable')">野菜・果物</button>
+      <button class="filter-btn ${filter === 'dairy' ? 'active' : ''}" onclick="renderGlossary('dairy')">乳製品</button>
+      <button class="filter-btn ${filter === 'other' ? 'active' : ''}" onclick="renderGlossary('other')">その他</button>
+    </div>
+    <div class="glossary-grid">
+      ${filtered.map((g, i) => `
+        <div class="glossary-card" style="animation-delay:${i * 0.04}s">
+          <span class="glossary-tag">${g.categoryLabel}</span>
+          <div class="glossary-name">${g.name}</div>
+          <div class="glossary-name-en">${g.nameEn}</div>
+          <div class="glossary-desc">${g.desc}</div>
+          <div class="glossary-modern"><strong>🛒 現代での入手・代替</strong>${g.modern}</div>
+        </div>
+      `).join('')}
+    </div>
+  `;
+}
+</script>
+</body>
+</html>
