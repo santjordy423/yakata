@@ -669,6 +669,45 @@
     color: var(--gold);
   }
 
+  /* ===== INLINE GLOSSARY ===== */
+  .inline-glossary {
+    max-width: 780px;
+    margin: 0 auto;
+    padding-bottom: 40px;
+  }
+
+  .inline-glossary-card {
+    background: var(--sand);
+    border: 1px solid var(--clay);
+    border-left: 3px solid var(--clay-dark);
+    padding: 16px 20px;
+    margin-bottom: 12px;
+    transition: outline 0.2s;
+  }
+
+  .inline-glossary-name {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--clay-dark);
+    margin-bottom: 6px;
+  }
+
+  .inline-glossary-en {
+    font-size: 0.78rem;
+    font-weight: 400;
+    color: var(--clay);
+    font-style: italic;
+    margin-left: 8px;
+  }
+
+  .inline-glossary-desc {
+    font-size: 0.85rem;
+    line-height: 1.7;
+    color: var(--ink);
+    opacity: 0.85;
+    margin-bottom: 10px;
+  }
+
   /* ===== SCROLL TO TOP ===== */
   #scroll-top {
     position: fixed;
@@ -1417,18 +1456,69 @@ function linkIngredient(text) {
 }
 
 function jumpToGlossary(name) {
-  showGlossary();
-  setTimeout(() => {
-    const cards = document.querySelectorAll('.glossary-card');
-    for (const card of cards) {
-      if (card.querySelector('.glossary-name')?.textContent === name) {
-        card.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        card.style.outline = '3px solid var(--gold)';
-        setTimeout(() => card.style.outline = '', 1500);
-        break;
+  // ページ内の用語カードにスクロール
+  const cards = document.querySelectorAll('.inline-glossary-card');
+  for (const card of cards) {
+    if (card.dataset.name === name) {
+      card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      card.style.outline = '3px solid var(--gold)';
+      setTimeout(() => card.style.outline = '', 1500);
+      break;
+    }
+  }
+}
+
+function inlineGlossaryHTML(recipe) {
+  // このレシピの食材リストに含まれる用語を抽出
+  const keywords = [
+    ['タマリンド', 'タマリンド'],
+    ['エムマー麦', 'エムマー麦'],
+    ['ザクロ', 'ザクロ（実・果汁）'],
+    ['コリアンダー', 'コリアンダー'],
+    ['クミン', 'クミン'],
+    ['カルダモン', 'カルダモン'],
+    ['キャラウェイ', 'キャラウェイ'],
+    ['ネギ（リーキ）', 'リーキ（西洋ネギ）'],
+    ['リーキ', 'リーキ（西洋ネギ）'],
+    ['クレス', 'クレス'],
+    ['スペルト', 'スペルト小麦'],
+    ['ドライデーツ', 'デーツ（ナツメヤシ）'],
+    ['デーツ', 'デーツ（ナツメヤシ）'],
+    ['ナツメヤシ', 'デーツ（ナツメヤシ）'],
+    ['フェタチーズ', 'フェタチーズ（山羊チーズ）'],
+    ['山羊チーズ', 'フェタチーズ（山羊チーズ）'],
+    ['赤レンズ豆', 'レンズ豆'],
+    ['レンズ豆', 'レンズ豆'],
+    ['ヤギのミルク', 'ヤギのミルク'],
+  ];
+
+  const allText = recipe.ingredients.join(' ');
+  const found = [];
+  const seen = new Set();
+  for (const [keyword, glossaryName] of keywords) {
+    if (allText.includes(keyword) && !seen.has(glossaryName)) {
+      const entry = glossary.find(g => g.name === glossaryName);
+      if (entry) {
+        found.push(entry);
+        seen.add(glossaryName);
       }
     }
-  }, 150);
+  }
+
+  if (found.length === 0) return '';
+
+  return `
+    <div class="inline-glossary">
+      <div class="section-title" style="margin-top:32px;">食材メモ</div>
+      ${found.map(g => `
+        <div class="inline-glossary-card" data-name="${g.name}">
+          <div class="inline-glossary-name">${g.name} <span class="inline-glossary-en">${g.nameEn}</span></div>
+          <div class="inline-glossary-desc">${g.desc}</div>
+          <div class="glossary-modern"><strong>🛒 現代での入手・代替</strong>${g.modern}</div>
+        </div>
+      `).join('')}
+    </div>
+  `;
 }
 
 function renderCards(filter) {
@@ -1503,6 +1593,7 @@ function showDetail(id) {
 
       ${commentHTML(recipe)}
     </div>
+    ${inlineGlossaryHTML(recipe)}
   `;
 
   window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -1532,6 +1623,7 @@ function showDaily() {
 }
 
 function renderDaily() {
+  document.getElementById('daily-content').innerHTML = '';
   // 日付ベースのシードで今日の料理を決める（同日は同じ料理）
   const today = new Date();
   const seed = today.getFullYear() * 10000 + (today.getMonth() + 1) * 100 + today.getDate();
