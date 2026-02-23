@@ -483,12 +483,81 @@
     letter-spacing: 0.1em;
   }
 
+  /* スクロールトップボタン */
+  .scroll-top-btn {
+    position: fixed;
+    bottom: 36px;
+    right: 32px;
+    z-index: 100;
+    width: 44px;
+    height: 44px;
+    border: 1px solid rgba(79,195,232,0.35);
+    background: rgba(2,11,20,0.85);
+    color: var(--shimmer);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(10px);
+    transition: opacity 0.35s, transform 0.35s, border-color 0.3s, background 0.3s;
+    backdrop-filter: blur(4px);
+  }
+
+  .scroll-top-btn.visible {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(0);
+  }
+
+  .scroll-top-btn:hover {
+    border-color: var(--shimmer);
+    background: rgba(4,24,39,0.95);
+  }
+
+  /* ページ末尾の「abyssal studioに戻る」ボタン */
+  .bottom-back {
+    text-align: center;
+    margin-top: 60px;
+    margin-bottom: 20px;
+  }
+
+  .bottom-back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    font-family: 'Space Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.45em;
+    color: rgba(122,184,204,0.5);
+    text-decoration: none;
+    padding: 14px 28px;
+    border: 1px solid rgba(79,195,232,0.15);
+    transition: color 0.3s, border-color 0.3s, background 0.3s;
+    text-transform: uppercase;
+  }
+
+  .bottom-back-link:hover {
+    color: var(--shimmer);
+    border-color: rgba(79,195,232,0.5);
+    background: rgba(79,195,232,0.04);
+  }
+
+  .bottom-back-link::before {
+    content: '←';
+    font-size: 12px;
+  }
+
 </style>
 </head>
 <body>
 
 <div class="sea-bg"></div>
 <div id="rays"></div>
+
+<button class="scroll-top-btn" id="scrollTopBtn" aria-label="ページトップへ戻る">▲</button>
 
 <div class="container">
 
@@ -873,6 +942,10 @@
     </div>
   </section>
 
+  <div class="bottom-back">
+    <a href="deep-sea-studio.html" class="bottom-back-link">ABYSSAL STUDIO に戻る</a>
+  </div>
+
   <footer class="footer">
     ABYSSAL STUDIO — 深海音響スタジオ — HOW TO USE
   </footer>
@@ -891,6 +964,19 @@
     ray.style.setProperty('--a2', (1 + Math.random() * 4) + 'deg');
     raysEl.appendChild(ray);
   }
+
+  // スクロールトップボタン
+  const scrollTopBtn = document.getElementById('scrollTopBtn');
+  window.addEventListener('scroll', () => {
+    if (window.scrollY > 300) {
+      scrollTopBtn.classList.add('visible');
+    } else {
+      scrollTopBtn.classList.remove('visible');
+    }
+  }, { passive: true });
+  scrollTopBtn.addEventListener('click', () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
 </script>
 </body>
 </html>
