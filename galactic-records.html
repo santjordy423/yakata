@@ -58,6 +58,18 @@
     background: linear-gradient(to bottom, rgba(10,10,15,0.95), rgba(10,10,15,0.7));
   }
 
+  .back-link {
+    display: inline-block;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.2em;
+    color: var(--text-dimmer);
+    text-decoration: none;
+    margin-bottom: 1rem;
+    transition: color 0.2s;
+  }
+  .back-link:hover { color: var(--accent); }
+
   .header-top {
     display: flex;
     align-items: baseline;
@@ -394,6 +406,7 @@
 <body>
 
 <header>
+  <a class="back-link" href="index.html">← 館にもどる</a>
   <div class="org-name">IGWR — Intergalactic World Record Registry</div>
   <h1>銀河間<em>記録</em>登録機構<br>公式データベース</h1>
   <div class="header-sub">地球時間換算 / 翻訳版 / 閲覧専用 / 登録件数：100件（第14分類群まで）</div>

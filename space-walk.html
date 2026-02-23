@@ -92,6 +92,11 @@ input[type=range]::-webkit-slider-thumb {
 .inv-name { color: #ffaa00; font-size: 11px; margin-bottom: 4px; }
 .inv-desc { font-size: 9px; color: #445566; letter-spacing: 1px; line-height: 1.4; }
 .inv-empty { color: #334466; font-size: 11px; letter-spacing: 3px; padding: 24px; text-align: center; grid-column: 1/-1; }
+#homeLink {
+  display: inline-block; font-size: 9px; letter-spacing: 2px;
+  color: #334466; text-decoration: none; transition: color 0.2s;
+}
+#homeLink:hover { color: #00ffff; }
 </style>
 </head>
 <body>
@@ -127,6 +132,7 @@ input[type=range]::-webkit-slider-thumb {
   <button class="tog-btn" id="tBGM">ON</button>
   <span class="ctrl-label">SE</span>
   <div class="vol-group"><input type="range" id="sSE" min="0" max="100" value="60"><span id="vSE">60</span></div>
+  <a id="homeLink" href="index.html">← 館にもどる</a>
 </div>
 
 <script>

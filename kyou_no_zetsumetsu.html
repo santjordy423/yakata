@@ -56,6 +56,8 @@
   .nav-btn.today:hover { opacity:1; background:rgba(139,32,32,.04); }
   .nav-btn.list-link { border-color:var(--blue-ink); color:var(--blue-ink); opacity:.75; }
   .nav-btn.list-link:hover { opacity:1; background:rgba(26,58,92,.04); }
+  .nav-btn.home-link { border-color:var(--ink-fade); color:var(--ink-fade); opacity:.7; }
+  .nav-btn.home-link:hover { opacity:1; background:rgba(100,80,40,.06); }
   .footnote { margin-top:28px; font-family:'Noto Sans JP',sans-serif; font-size:10px; font-weight:300; color:var(--ink-light); letter-spacing:.08em; line-height:1.9; padding-top:16px; border-top:1px solid var(--paper-dark); opacity:.7; }
   .page-fold { position:absolute; bottom:0; right:0; width:32px; height:32px; background:linear-gradient(135deg,transparent 50%,var(--paper-dark) 50%); box-shadow:-2px -2px 4px rgba(0,0,0,.08); }
   @keyframes pageOpen { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
@@ -80,6 +82,7 @@
         <button class="nav-btn" onclick="goRandom()">別の記録を開く</button>
         <button class="nav-btn today" onclick="goToday()">今日の記録に戻る</button>
         <button class="nav-btn list-link" onclick="location.href='zetsumetsu_ichiran.html'">一覧を見る</button>
+        <button class="nav-btn home-link" onclick="location.href='index.html'">館にもどる</button>
       </div>
       <div class="footnote">
         ※ 日付は創作です。生物の実在および地質年代はおおむね正確です。<br>
