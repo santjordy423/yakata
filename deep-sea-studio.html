@@ -1,0 +1,1529 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>深海音響スタジオ / ABYSSAL STUDIO</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&family=Space+Mono:wght@400;700&display=swap');
+
+  :root {
+    --abyss: #020b14;
+    --deep: #041827;
+    --mid: #062035;
+    --surface: #0a3050;
+    --glow: #1a7fa8;
+    --shimmer: #4fc3e8;
+    --ice: #a8e4f5;
+    --metal: #7ab8cc;
+    --foam: rgba(160, 220, 255, 0.08);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--abyss);
+    color: var(--ice);
+    font-family: 'Space Mono', monospace;
+    min-height: 100vh;
+    overflow-x: hidden;
+    cursor: crosshair;
+  }
+
+  /* 深海背景レイヤー */
+  .sea-bg {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    background:
+      radial-gradient(ellipse 120% 60% at 30% 80%, rgba(6,32,53,0.9) 0%, transparent 70%),
+      radial-gradient(ellipse 80% 80% at 70% 20%, rgba(10,48,80,0.6) 0%, transparent 60%),
+      linear-gradient(180deg, #010810 0%, #020f1e 40%, #041827 70%, #062035 100%);
+  }
+
+  /* 光のカーテン */
+  .light-ray {
+    position: fixed;
+    top: -10%;
+    width: 2px;
+    height: 120vh;
+    background: linear-gradient(180deg, rgba(79,195,232,0.15) 0%, rgba(79,195,232,0.03) 60%, transparent 100%);
+    transform-origin: top center;
+    animation: sway var(--duration, 8s) ease-in-out infinite alternate;
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  @keyframes sway {
+    0% { transform: rotate(var(--start-angle, -3deg)) scaleX(1); opacity: 0.4; }
+    100% { transform: rotate(var(--end-angle, 3deg)) scaleX(1.5); opacity: 0.8; }
+  }
+
+  /* 泡 */
+  .bubble {
+    position: fixed;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 35%, rgba(168,228,245,0.4), rgba(79,195,232,0.05));
+    border: 1px solid rgba(168,228,245,0.15);
+    animation: rise var(--rise-duration, 12s) ease-in infinite;
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  @keyframes rise {
+    0% { transform: translateY(110vh) translateX(0) scale(0.8); opacity: 0; }
+    10% { opacity: 0.6; }
+    90% { opacity: 0.3; }
+    100% { transform: translateY(-10vh) translateX(var(--drift, 20px)) scale(1.1); opacity: 0; }
+  }
+
+  /* メインコンテナ */
+  .container {
+    position: relative;
+    z-index: 10;
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 60px 30px 80px;
+  }
+
+  /* ヘッダー */
+  .header {
+    text-align: center;
+    margin-bottom: 60px;
+    position: relative;
+  }
+
+  .title-jp {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(14px, 2vw, 18px);
+    font-weight: 300;
+    letter-spacing: 0.4em;
+    color: rgba(168,228,245,0.5);
+    margin-bottom: 12px;
+    font-style: italic;
+  }
+
+  .title-main {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(36px, 7vw, 72px);
+    font-weight: 300;
+    letter-spacing: 0.1em;
+    line-height: 1;
+    color: var(--shimmer);
+    text-shadow:
+      0 0 40px rgba(79,195,232,0.4),
+      0 0 80px rgba(79,195,232,0.15);
+    animation: titleWave 6s ease-in-out infinite;
+  }
+
+  @keyframes titleWave {
+    0%, 100% { text-shadow: 0 0 40px rgba(79,195,232,0.4), 0 0 80px rgba(79,195,232,0.15); }
+    50% { text-shadow: 0 0 60px rgba(79,195,232,0.7), 0 0 120px rgba(79,195,232,0.3), 0 0 200px rgba(79,195,232,0.1); }
+  }
+
+  .title-sub {
+    font-size: 9px;
+    letter-spacing: 0.5em;
+    color: rgba(122,184,204,0.4);
+    margin-top: 16px;
+    text-transform: uppercase;
+  }
+
+  /* マスターコントロール */
+  .master-section {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    margin-bottom: 50px;
+    padding: 20px 28px;
+    background: rgba(4,24,39,0.6);
+    border: 1px solid rgba(79,195,232,0.12);
+    border-radius: 4px;
+    backdrop-filter: blur(10px);
+  }
+
+  .play-btn {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    border: 1px solid rgba(79,195,232,0.4);
+    background: rgba(79,195,232,0.06);
+    color: var(--shimmer);
+    font-size: 20px;
+    cursor: pointer;
+    transition: all 0.4s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .play-btn::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(79,195,232,0.2) 0%, transparent 70%);
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+
+  .play-btn:hover::before, .play-btn.active::before { opacity: 1; }
+  .play-btn.active {
+    border-color: rgba(79,195,232,0.8);
+    box-shadow: 0 0 20px rgba(79,195,232,0.3), inset 0 0 20px rgba(79,195,232,0.05);
+    animation: pulseRing 2s ease-in-out infinite;
+  }
+
+  @keyframes pulseRing {
+    0%, 100% { box-shadow: 0 0 20px rgba(79,195,232,0.3), inset 0 0 20px rgba(79,195,232,0.05); }
+    50% { box-shadow: 0 0 40px rgba(79,195,232,0.5), 0 0 60px rgba(79,195,232,0.15), inset 0 0 20px rgba(79,195,232,0.08); }
+  }
+
+  .master-info {
+    flex: 1;
+  }
+
+  .master-label {
+    font-size: 8px;
+    letter-spacing: 0.4em;
+    color: rgba(122,184,204,0.5);
+    margin-bottom: 6px;
+  }
+
+  .status-text {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 18px;
+    font-style: italic;
+    color: rgba(168,228,245,0.7);
+    animation: statusPulse 4s ease-in-out infinite;
+  }
+
+  @keyframes statusPulse {
+    0%, 100% { opacity: 0.7; }
+    50% { opacity: 1; }
+  }
+
+  .master-volume {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .master-volume span {
+    font-size: 8px;
+    letter-spacing: 0.3em;
+    color: rgba(122,184,204,0.4);
+  }
+
+  /* ビジュアライザー */
+  .visualizer {
+    width: 200px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    margin-bottom: 50px;
+    margin: 0 auto 50px;
+  }
+
+  .viz-bar {
+    flex: 1;
+    background: rgba(79,195,232,0.15);
+    border-radius: 1px;
+    transition: height 0.1s;
+    min-height: 2px;
+  }
+
+  /* チャンネルグリッド */
+  .channels {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 40px;
+  }
+
+  @media (max-width: 600px) {
+    .channels { grid-template-columns: 1fr; }
+  }
+
+  .channel {
+    padding: 24px;
+    background: rgba(2,11,20,0.7);
+    border: 1px solid rgba(79,195,232,0.08);
+    border-radius: 4px;
+    transition: all 0.4s ease;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .channel::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(79,195,232,0.4), transparent);
+    opacity: 0;
+    transition: opacity 0.4s;
+  }
+
+  .channel:hover::before, .channel.active::before { opacity: 1; }
+
+  .channel.active {
+    border-color: rgba(79,195,232,0.2);
+    background: rgba(4,24,39,0.85);
+  }
+
+  .channel-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 18px;
+  }
+
+  .channel-icon {
+    font-size: 22px;
+    width: 36px;
+    text-align: center;
+    filter: drop-shadow(0 0 6px currentColor);
+  }
+
+  .channel-name {
+    flex: 1;
+  }
+
+  .channel-name-jp {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 16px;
+    font-weight: 300;
+    color: var(--ice);
+    letter-spacing: 0.05em;
+  }
+
+  .channel-name-en {
+    font-size: 8px;
+    letter-spacing: 0.4em;
+    color: rgba(122,184,204,0.4);
+    margin-top: 2px;
+  }
+
+  .channel-toggle {
+    width: 28px;
+    height: 16px;
+    border-radius: 8px;
+    border: 1px solid rgba(79,195,232,0.3);
+    background: rgba(2,11,20,0.8);
+    cursor: pointer;
+    position: relative;
+    transition: all 0.3s;
+    flex-shrink: 0;
+  }
+
+  .channel-toggle::after {
+    content: '';
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: rgba(79,195,232,0.4);
+    transition: all 0.3s;
+  }
+
+  .channel-toggle.on {
+    background: rgba(79,195,232,0.1);
+    border-color: rgba(79,195,232,0.7);
+    box-shadow: 0 0 10px rgba(79,195,232,0.2);
+  }
+
+  .channel-toggle.on::after {
+    left: 14px;
+    background: var(--shimmer);
+    box-shadow: 0 0 6px rgba(79,195,232,0.8);
+  }
+
+  /* スライダー */
+  .slider-row {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .slider-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .slider-label {
+    font-size: 8px;
+    letter-spacing: 0.3em;
+    color: rgba(122,184,204,0.4);
+    width: 32px;
+    text-align: right;
+    flex-shrink: 0;
+  }
+
+  input[type="range"] {
+    -webkit-appearance: none;
+    flex: 1;
+    height: 2px;
+    background: rgba(79,195,232,0.1);
+    border-radius: 1px;
+    outline: none;
+    cursor: pointer;
+    position: relative;
+  }
+
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--shimmer);
+    box-shadow: 0 0 8px rgba(79,195,232,0.6);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  input[type="range"]::-webkit-slider-thumb:hover {
+    transform: scale(1.3);
+    box-shadow: 0 0 14px rgba(79,195,232,0.9);
+  }
+
+  .slider-value {
+    font-size: 9px;
+    color: rgba(79,195,232,0.6);
+    width: 28px;
+    text-align: right;
+    flex-shrink: 0;
+  }
+
+  /* プリセット */
+  .presets {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-bottom: 40px;
+  }
+
+  .preset-btn {
+    padding: 8px 18px;
+    border: 1px solid rgba(79,195,232,0.15);
+    background: rgba(2,11,20,0.6);
+    color: rgba(168,228,245,0.5);
+    font-family: 'Space Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.3em;
+    cursor: pointer;
+    border-radius: 2px;
+    transition: all 0.3s;
+    text-transform: uppercase;
+  }
+
+  .preset-btn:hover {
+    border-color: rgba(79,195,232,0.4);
+    color: var(--shimmer);
+    background: rgba(79,195,232,0.05);
+    box-shadow: 0 0 12px rgba(79,195,232,0.1);
+  }
+
+  /* ナビゲーション */
+  .nav-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 40px;
+  }
+
+  .nav-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 9px;
+    letter-spacing: 0.4em;
+    color: rgba(122,184,204,0.4);
+    text-decoration: none;
+    transition: color 0.3s;
+  }
+
+  .nav-link:hover { color: var(--shimmer); }
+
+  /* フッター */
+  .footer {
+    text-align: center;
+    font-size: 8px;
+    letter-spacing: 0.4em;
+    color: rgba(122,184,204,0.2);
+    margin-top: 60px;
+  }
+
+  /* 深度メーター */
+  .depth-meter {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    margin-bottom: 50px;
+    opacity: 0.6;
+  }
+
+  .depth-line {
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(79,195,232,0.2), transparent);
+  }
+
+  .depth-text {
+    font-size: 8px;
+    letter-spacing: 0.5em;
+    color: rgba(122,184,204,0.5);
+  }
+
+  /* メロディチャンネル強調 */
+  .channel-melody {
+    border-color: rgba(200,168,245,0.08);
+  }
+  .channel-melody.active {
+    border-color: rgba(200,168,245,0.25);
+    background: rgba(10,4,30,0.85);
+  }
+  .channel-melody::before {
+    background: linear-gradient(90deg, transparent, rgba(200,168,245,0.4), transparent) !important;
+  }
+
+  /* 波形アニメーション（アクティブチャンネル） */
+  .waveform {
+    height: 20px;
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    margin-top: 12px;
+    opacity: 0;
+    transition: opacity 0.5s;
+  }
+
+  .channel.active .waveform { opacity: 1; }
+
+  .wave-bar {
+    flex: 1;
+    background: rgba(79,195,232,0.3);
+    border-radius: 1px;
+    animation: waveAnim var(--wave-speed, 1s) ease-in-out infinite alternate;
+    min-height: 2px;
+  }
+
+  @keyframes waveAnim {
+    0% { height: 2px; }
+    100% { height: var(--wave-height, 14px); }
+  }
+
+</style>
+</head>
+<body>
+
+<!-- 深海背景 -->
+<div class="sea-bg"></div>
+
+<!-- 光のカーテン（JS生成） -->
+<div id="rays"></div>
+
+<!-- 泡（JS生成） -->
+<div id="bubbles"></div>
+
+<div class="container">
+  <nav class="nav-bar">
+    <a class="nav-link" href="index.html">← 館にもどる</a>
+    <a class="nav-link" href="deep-sea-studio-guide.html">使い方 →</a>
+  </nav>
+  <header class="header">
+    <p class="title-jp">深海音響スタジオ</p>
+    <h1 class="title-main">ABYSSAL</h1>
+    <p class="title-sub">ambient · metal · ice · depth</p>
+  </header>
+
+  <div class="depth-meter">
+    <div class="depth-line"></div>
+    <span class="depth-text">— 3,800m —</span>
+    <div class="depth-line"></div>
+  </div>
+
+  <!-- マスターコントロール -->
+  <div class="master-section">
+    <button class="play-btn" id="masterPlay" onclick="toggleMaster()">▶</button>
+    <div class="master-info">
+      <div class="master-label">// STATUS</div>
+      <div class="status-text" id="statusText">深海の静寂...</div>
+    </div>
+    <div class="master-volume">
+      <span>MASTER</span>
+      <input type="range" id="masterVol" min="0" max="100" value="70" style="width:80px" oninput="setMasterVolume(this.value)">
+    </div>
+  </div>
+
+  <!-- プリセット -->
+  <div class="presets">
+    <button class="preset-btn" onclick="loadPreset('abyss')">ABYSS</button>
+    <button class="preset-btn" onclick="loadPreset('glacier')">GLACIER</button>
+    <button class="preset-btn" onclick="loadPreset('wreck')">WRECK</button>
+    <button class="preset-btn" onclick="loadPreset('drift')">DRIFT</button>
+    <button class="preset-btn" onclick="loadPreset('void')">VOID</button>
+  </div>
+
+  <!-- チャンネル -->
+  <div class="channels" id="channels">
+
+    <div class="channel" id="ch-metal">
+      <div class="channel-header">
+        <div class="channel-icon" style="color:#7ab8cc">⚙</div>
+        <div class="channel-name">
+          <div class="channel-name-jp">金属の残響</div>
+          <div class="channel-name-en">METAL RESONANCE</div>
+        </div>
+        <div class="channel-toggle" id="tog-metal" onclick="toggleChannel('metal')"></div>
+      </div>
+      <div class="slider-row">
+        <div class="slider-item">
+          <span class="slider-label">VOL</span>
+          <input type="range" min="0" max="100" value="0" oninput="setParam('metal','vol',this.value)" id="sl-metal-vol">
+          <span class="slider-value" id="sv-metal-vol">0</span>
+        </div>
+        <div class="slider-item">
+          <span class="slider-label">RATE</span>
+          <input type="range" min="1" max="100" value="30" oninput="setParam('metal','rate',this.value)" id="sl-metal-rate">
+          <span class="slider-value" id="sv-metal-rate">30</span>
+        </div>
+        <div class="slider-item">
+          <span class="slider-label">DECAY</span>
+          <input type="range" min="1" max="100" value="70" oninput="setParam('metal','decay',this.value)" id="sl-metal-decay">
+          <span class="slider-value" id="sv-metal-decay">70</span>
+        </div>
+      </div>
+      <div class="waveform" id="wf-metal"></div>
+    </div>
+
+    <div class="channel" id="ch-ice">
+      <div class="channel-header">
+        <div class="channel-icon" style="color:#a8e4f5">❄</div>
+        <div class="channel-name">
+          <div class="channel-name-jp">氷の結晶</div>
+          <div class="channel-name-en">ICE CRYSTAL</div>
+        </div>
+        <div class="channel-toggle" id="tog-ice" onclick="toggleChannel('ice')"></div>
+      </div>
+      <div class="slider-row">
+        <div class="slider-item">
+          <span class="slider-label">VOL</span>
+          <input type="range" min="0" max="100" value="0" oninput="setParam('ice','vol',this.value)" id="sl-ice-vol">
+          <span class="slider-value" id="sv-ice-vol">0</span>
+        </div>
+        <div class="slider-item">
+          <span class="slider-label">PITCH</span>
+          <input type="range" min="1" max="100" value="60" oninput="setParam('ice','pitch',this.value)" id="sl-ice-pitch">
+          <span class="slider-value" id="sv-ice-pitch">60</span>
+        </div>
+        <div class="slider-item">
+          <span class="slider-label">SPARSE</span>
+          <input type="range" min="1" max="100" value="50" oninput="setParam('ice','sparse',this.value)" id="sl-ice-sparse">
+          <span class="slider-value" id="sv-ice-sparse">50</span>
+        </div>
+      </div>
+      <div class="waveform" id="wf-ice"></div>
+    </div>
+
+    <div class="channel" id="ch-water">
+      <div class="channel-header">
+        <div class="channel-icon" style="color:#4fc3e8">◈</div>
+        <div class="channel-name">
+          <div class="channel-name-jp">深層流</div>
+          <div class="channel-name-en">DEEP CURRENT</div>
+        </div>
+        <div class="channel-toggle" id="tog-water" onclick="toggleChannel('water')"></div>
+      </div>
+      <div class="slider-row">
+        <div class="slider-item">
+          <span class="slider-label">VOL</span>
+          <input type="range" min="0" max="100" value="0" oninput="setParam('water','vol',this.value)" id="sl-water-vol">
+          <span class="slider-value" id="sv-water-vol">0</span>
+        </div>
+        <div class="slider-item">
+          <span class="slider-label">DEPTH</span>
+          <input type="range" min="1" max="100" value="70" oninput="setParam('water','depth',this.value)" id="sl-water-depth">
+          <span class="slider-value" id="sv-water-depth">70</span>
+        </div>
+        <div class="slider-item">
+          <span class="slider-label">FLOW</span>
+          <input type="range" min="1" max="100" value="40" oninput="setParam('water','flow',this.value)" id="sl-water-flow">
+          <span class="slider-value" id="sv-water-flow">40</span>
+        </div>
+      </div>
+      <div class="waveform" id="wf-water"></div>
+    </div>
+
+    <div class="channel" id="ch-drone">
+      <div class="channel-header">
+        <div class="channel-icon" style="color:#1a7fa8">∿</div>
+        <div class="channel-name">
+          <div class="channel-name-jp">虚空の唸り</div>
+          <div class="channel-name-en">VOID DRONE</div>
+        </div>
+        <div class="channel-toggle" id="tog-drone" onclick="toggleChannel('drone')"></div>
+      </div>
+      <div class="slider-row">
+        <div class="slider-item">
+          <span class="slider-label">VOL</span>
+          <input type="range" min="0" max="100" value="0" oninput="setParam('drone','vol',this.value)" id="sl-drone-vol">
+          <span class="slider-value" id="sv-drone-vol">0</span>
+        </div>
+        <div class="slider-item">
+          <span class="slider-label">FREQ</span>
+          <input type="range" min="1" max="100" value="30" oninput="setParam('drone','freq',this.value)" id="sl-drone-freq">
+          <span class="slider-value" id="sv-drone-freq">30</span>
+        </div>
+        <div class="slider-item">
+          <span class="slider-label">WARP</span>
+          <input type="range" min="0" max="100" value="50" oninput="setParam('drone','warp',this.value)" id="sl-drone-warp">
+          <span class="slider-value" id="sv-drone-warp">50</span>
+        </div>
+      </div>
+      <div class="waveform" id="wf-drone"></div>
+    </div>
+
+    <div class="channel" id="ch-creak">
+      <div class="channel-header">
+        <div class="channel-icon" style="color:#7ab8cc">⋮⋮</div>
+        <div class="channel-name">
+          <div class="channel-name-jp">船体の軋み</div>
+          <div class="channel-name-en">HULL CREAK</div>
+        </div>
+        <div class="channel-toggle" id="tog-creak" onclick="toggleChannel('creak')"></div>
+      </div>
+      <div class="slider-row">
+        <div class="slider-item">
+          <span class="slider-label">VOL</span>
+          <input type="range" min="0" max="100" value="0" oninput="setParam('creak','vol',this.value)" id="sl-creak-vol">
+          <span class="slider-value" id="sv-creak-vol">0</span>
+        </div>
+        <div class="slider-item">
+          <span class="slider-label">HEAVY</span>
+          <input type="range" min="1" max="100" value="60" oninput="setParam('creak','heavy',this.value)" id="sl-creak-heavy">
+          <span class="slider-value" id="sv-creak-heavy">60</span>
+        </div>
+        <div class="slider-item">
+          <span class="slider-label">RAND</span>
+          <input type="range" min="0" max="100" value="70" oninput="setParam('creak','rand',this.value)" id="sl-creak-rand">
+          <span class="slider-value" id="sv-creak-rand">70</span>
+        </div>
+      </div>
+      <div class="waveform" id="wf-creak"></div>
+    </div>
+
+    <div class="channel" id="ch-bell">
+      <div class="channel-header">
+        <div class="channel-icon" style="color:#a8e4f5">♩</div>
+        <div class="channel-name">
+          <div class="channel-name-jp">深海の鐘</div>
+          <div class="channel-name-en">DEEP BELL</div>
+        </div>
+        <div class="channel-toggle" id="tog-bell" onclick="toggleChannel('bell')"></div>
+      </div>
+      <div class="slider-row">
+        <div class="slider-item">
+          <span class="slider-label">VOL</span>
+          <input type="range" min="0" max="100" value="0" oninput="setParam('bell','vol',this.value)" id="sl-bell-vol">
+          <span class="slider-value" id="sv-bell-vol">0</span>
+        </div>
+        <div class="slider-item">
+          <span class="slider-label">TONE</span>
+          <input type="range" min="1" max="100" value="50" oninput="setParam('bell','tone',this.value)" id="sl-bell-tone">
+          <span class="slider-value" id="sv-bell-tone">50</span>
+        </div>
+        <div class="slider-item">
+          <span class="slider-label">SPACE</span>
+          <input type="range" min="1" max="100" value="60" oninput="setParam('bell','space',this.value)" id="sl-bell-space">
+          <span class="slider-value" id="sv-bell-space">60</span>
+        </div>
+      </div>
+      <div class="waveform" id="wf-bell"></div>
+    </div>
+
+    <!-- PAD チャンネル -->
+    <div class="channel channel-melody" id="ch-pad">
+      <div class="channel-header">
+        <div class="channel-icon" style="color:#c8a8f5">◎</div>
+        <div class="channel-name">
+          <div class="channel-name-jp">深海パッド</div>
+          <div class="channel-name-en">SYNTH PAD</div>
+        </div>
+        <div class="channel-toggle" id="tog-pad" onclick="toggleChannel('pad')"></div>
+      </div>
+      <div class="slider-row">
+        <div class="slider-item">
+          <span class="slider-label">VOL</span>
+          <input type="range" min="0" max="100" value="0" oninput="setParam('pad','vol',this.value)" id="sl-pad-vol">
+          <span class="slider-value" id="sv-pad-vol">0</span>
+        </div>
+        <div class="slider-item">
+          <span class="slider-label">WARM</span>
+          <input type="range" min="1" max="100" value="60" oninput="setParam('pad','warm',this.value)" id="sl-pad-warm">
+          <span class="slider-value" id="sv-pad-warm">60</span>
+        </div>
+        <div class="slider-item">
+          <span class="slider-label">SWELL</span>
+          <input type="range" min="1" max="100" value="50" oninput="setParam('pad','swell',this.value)" id="sl-pad-swell">
+          <span class="slider-value" id="sv-pad-swell">50</span>
+        </div>
+        <div class="slider-item">
+          <span class="slider-label">CHORD</span>
+          <select id="sl-pad-chord" onchange="setParam('pad','chord',this.value)" style="flex:1;background:rgba(2,11,20,0.8);border:1px solid rgba(79,195,232,0.2);color:rgba(168,228,245,0.7);font-family:'Space Mono',monospace;font-size:9px;padding:4px 6px;border-radius:2px;cursor:pointer;">
+            <option value="0">Am — 悲しみの海</option>
+            <option value="1">Dm — 深淵</option>
+            <option value="2">Em — 霧の底</option>
+            <option value="3">Cm — 廃船</option>
+            <option value="4">F — 水面の温もり</option>
+            <option value="5">A — 光の柱</option>
+          </select>
+        </div>
+      </div>
+      <div class="waveform" id="wf-pad"></div>
+    </div>
+
+    <!-- MELODY チャンネル -->
+    <div class="channel channel-melody" id="ch-melody">
+      <div class="channel-header">
+        <div class="channel-icon" style="color:#f5c8e8">♪</div>
+        <div class="channel-name">
+          <div class="channel-name-jp">漂流する旋律</div>
+          <div class="channel-name-en">DRIFTING MELODY</div>
+        </div>
+        <div class="channel-toggle" id="tog-melody" onclick="toggleChannel('melody')"></div>
+      </div>
+      <div class="slider-row">
+        <div class="slider-item">
+          <span class="slider-label">VOL</span>
+          <input type="range" min="0" max="100" value="0" oninput="setParam('melody','vol',this.value)" id="sl-melody-vol">
+          <span class="slider-value" id="sv-melody-vol">0</span>
+        </div>
+        <div class="slider-item">
+          <span class="slider-label">TEMPO</span>
+          <input type="range" min="1" max="100" value="35" oninput="setParam('melody','tempo',this.value)" id="sl-melody-tempo">
+          <span class="slider-value" id="sv-melody-tempo">35</span>
+        </div>
+        <div class="slider-item">
+          <span class="slider-label">GHOST</span>
+          <input type="range" min="0" max="100" value="60" oninput="setParam('melody','ghost',this.value)" id="sl-melody-ghost">
+          <span class="slider-value" id="sv-melody-ghost">60</span>
+        </div>
+        <div class="slider-item">
+          <span class="slider-label">SCALE</span>
+          <select id="sl-melody-scale" onchange="setParam('melody','scale',this.value)" style="flex:1;background:rgba(2,11,20,0.8);border:1px solid rgba(79,195,232,0.2);color:rgba(168,228,245,0.7);font-family:'Space Mono',monospace;font-size:9px;padding:4px 6px;border-radius:2px;cursor:pointer;">
+            <option value="0">Aeolian — 深海の夜</option>
+            <option value="1">Dorian — 海の記憶</option>
+            <option value="2">Phrygian — 沈没船</option>
+            <option value="3">Pentatonic — 水面の光</option>
+          </select>
+        </div>
+      </div>
+      <div class="waveform" id="wf-melody"></div>
+    </div>
+
+  </div>
+
+  <div class="footer">
+    ABYSSAL STUDIO — 深海音響スタジオ — v1.0 — Web Audio API
+  </div>
+</div>
+
+<script>
+// ===== 背景エフェクト生成 =====
+(function() {
+  const raysEl = document.getElementById('rays');
+  for (let i = 0; i < 8; i++) {
+    const ray = document.createElement('div');
+    ray.className = 'light-ray';
+    ray.style.left = (10 + Math.random() * 80) + '%';
+    ray.style.setProperty('--duration', (6 + Math.random() * 8) + 's');
+    ray.style.setProperty('--start-angle', (-4 + Math.random() * 2) + 'deg');
+    ray.style.setProperty('--end-angle', (2 + Math.random() * 4) + 'deg');
+    ray.style.width = (1 + Math.random() * 3) + 'px';
+    raysEl.appendChild(ray);
+  }
+
+  const bubblesEl = document.getElementById('bubbles');
+  function makeBubble() {
+    const b = document.createElement('div');
+    b.className = 'bubble';
+    const size = 4 + Math.random() * 12;
+    b.style.width = size + 'px';
+    b.style.height = size + 'px';
+    b.style.left = (5 + Math.random() * 90) + '%';
+    b.style.bottom = '-20px';
+    b.style.setProperty('--rise-duration', (10 + Math.random() * 15) + 's');
+    b.style.setProperty('--drift', (-30 + Math.random() * 60) + 'px');
+    b.style.animationDelay = (Math.random() * 10) + 's';
+    bubblesEl.appendChild(b);
+    setTimeout(() => b.remove(), 25000);
+  }
+  for (let i = 0; i < 15; i++) makeBubble();
+  setInterval(makeBubble, 2000);
+})();
+
+// ===== Web Audio =====
+let ctx = null;
+let masterGain = null;
+let isPlaying = false;
+
+const channels = {
+  metal:  { active: false, nodes: [], params: { vol: 0, rate: 30, decay: 70 } },
+  ice:    { active: false, nodes: [], params: { vol: 0, pitch: 60, sparse: 50 } },
+  water:  { active: false, nodes: [], params: { vol: 0, depth: 70, flow: 40 } },
+  drone:  { active: false, nodes: [], params: { vol: 0, freq: 30, warp: 50 } },
+  creak:  { active: false, nodes: [], params: { vol: 0, heavy: 60, rand: 70 } },
+  bell:   { active: false, nodes: [], params: { vol: 0, tone: 50, space: 60 } },
+  pad:    { active: false, nodes: [], params: { vol: 0, warm: 60, swell: 50, chord: 0 } },
+  melody: { active: false, nodes: [], params: { vol: 0, tempo: 35, ghost: 60, scale: 0 } },
+};
+
+function initAudio() {
+  if (ctx) return;
+  ctx = new (window.AudioContext || window.webkitAudioContext)();
+  masterGain = ctx.createGain();
+  masterGain.gain.value = 0.7;
+  masterGain.connect(ctx.destination);
+}
+
+function toggleMaster() {
+  initAudio();
+  isPlaying = !isPlaying;
+  const btn = document.getElementById('masterPlay');
+  const status = document.getElementById('statusText');
+
+  if (isPlaying) {
+    btn.textContent = '⏸';
+    btn.classList.add('active');
+    status.textContent = '深海の音を聴いている...';
+    Object.keys(channels).forEach(ch => {
+      if (channels[ch].active) startChannel(ch);
+    });
+  } else {
+    btn.textContent = '▶';
+    btn.classList.remove('active');
+    status.textContent = '深海の静寂...';
+    Object.keys(channels).forEach(ch => stopChannel(ch));
+  }
+}
+
+function setMasterVolume(v) {
+  if (masterGain) masterGain.gain.setTargetAtTime(v / 100, ctx.currentTime, 0.1);
+}
+
+function toggleChannel(ch) {
+  channels[ch].active = !channels[ch].active;
+  const tog = document.getElementById('tog-' + ch);
+  const card = document.getElementById('ch-' + ch);
+
+  if (channels[ch].active) {
+    tog.classList.add('on');
+    card.classList.add('active');
+    if (isPlaying) startChannel(ch);
+    // sliderのvolumeを0から上げる
+    const volSlider = document.getElementById('sl-' + ch + '-vol');
+    if (parseInt(volSlider.value) === 0) {
+      volSlider.value = 60;
+      setParam(ch, 'vol', 60);
+    }
+  } else {
+    tog.classList.remove('on');
+    card.classList.remove('active');
+    stopChannel(ch);
+  }
+  generateWaveform(ch);
+  updateStatus();
+}
+
+function updateStatus() {
+  const active = Object.keys(channels).filter(c => channels[c].active);
+  const names = { metal:'金属', ice:'氷', water:'深層流', drone:'虚空', creak:'船体', bell:'鐘', pad:'パッド', melody:'旋律' };
+  if (active.length === 0) {
+    document.getElementById('statusText').textContent = '深海の静寂...';
+  } else {
+    document.getElementById('statusText').textContent = active.map(c => names[c]).join(' · ') + 'が響く...';
+  }
+}
+
+function setParam(ch, param, value) {
+  channels[ch].params[param] = parseInt(value);
+
+  // 数値表示（セレクトボックスには sv- 要素がないのでスキップ）
+  const svEl = document.getElementById('sv-' + ch + '-' + param);
+  if (svEl) svEl.textContent = value;
+
+  if (param === 'vol' && channels[ch].gainNode) {
+    channels[ch].gainNode.gain.setTargetAtTime(value / 100 * 0.8, ctx.currentTime, 0.1);
+  }
+
+  // chord/scale 変更時はチャンネルを再起動して反映
+  if ((param === 'chord' || param === 'scale') && channels[ch].active && isPlaying) {
+    startChannel(ch);
+  }
+}
+
+// ===== チャンネル別音生成 =====
+
+function startChannel(ch) {
+  stopChannel(ch); // 二重起動防止
+  switch(ch) {
+    case 'metal':  startMetal(); break;
+    case 'ice':    startIce(); break;
+    case 'water':  startWater(); break;
+    case 'drone':  startDrone(); break;
+    case 'creak':  startCreak(); break;
+    case 'bell':   startBell(); break;
+    case 'pad':    startPad(); break;
+    case 'melody': startMelody(); break;
+  }
+}
+
+function stopChannel(ch) {
+  if (channels[ch].gainNode) {
+    try {
+      channels[ch].gainNode.gain.setTargetAtTime(0, ctx.currentTime, 0.3);
+      setTimeout(() => {
+        channels[ch].nodes.forEach(n => { try { n.stop?.(); n.disconnect?.(); } catch(e){} });
+        channels[ch].nodes = [];
+        channels[ch].gainNode = null;
+      }, 1000);
+    } catch(e) {}
+  }
+  if (channels[ch].timer) {
+    clearInterval(channels[ch].timer);
+    channels[ch].timer = null;
+  }
+  if (channels[ch].timer2) {
+    clearTimeout(channels[ch].timer2);
+    channels[ch].timer2 = null;
+  }
+}
+
+// --- METAL: メタリックノイズバースト ---
+function startMetal() {
+  const ch = channels.metal;
+  const g = ctx.createGain();
+  g.gain.value = ch.params.vol / 100 * 0.8;
+  g.connect(masterGain);
+  ch.gainNode = g;
+
+  const scheduleMetal = () => {
+    if (!ch.active || !isPlaying) return;
+    const rate = ch.params.rate;
+    const decay = ch.params.decay;
+
+    // メタリックなサウンド：複数の正弦波で金属感
+    const freqs = [800 + Math.random() * 400, 1200 + Math.random() * 600, 2000 + Math.random() * 800];
+    const now = ctx.currentTime;
+    const dur = 0.5 + (decay / 100) * 2;
+
+    freqs.forEach((f, i) => {
+      const osc = ctx.createOscillator();
+      const env = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.value = f;
+      env.gain.setValueAtTime(0.3 / (i + 1), now);
+      env.gain.exponentialRampToValueAtTime(0.001, now + dur);
+      osc.connect(env);
+      env.connect(g);
+      osc.start(now);
+      osc.stop(now + dur + 0.1);
+      ch.nodes.push(osc, env);
+    });
+
+    const interval = (101 - rate) * 80 + 500 + Math.random() * 1000;
+    ch.timer2 = setTimeout(scheduleMetal, interval);
+  };
+  scheduleMetal();
+}
+
+// --- ICE: 高周波クリスタル音 ---
+function startIce() {
+  const ch = channels.ice;
+  const g = ctx.createGain();
+  g.gain.value = ch.params.vol / 100 * 0.6;
+  g.connect(masterGain);
+  ch.gainNode = g;
+
+  const scheduleIce = () => {
+    if (!ch.active || !isPlaying) return;
+    const pitch = ch.params.pitch;
+    const sparse = ch.params.sparse;
+
+    const baseFreq = 1500 + (pitch / 100) * 3000;
+    const now = ctx.currentTime;
+
+    // 氷のクリック音
+    const osc = ctx.createOscillator();
+    const env = ctx.createGain();
+    const filter = ctx.createBiquadFilter();
+    filter.type = 'highpass';
+    filter.frequency.value = 2000;
+
+    osc.type = 'triangle';
+    osc.frequency.value = baseFreq * (0.8 + Math.random() * 0.4);
+    env.gain.setValueAtTime(0.5, now);
+    env.gain.exponentialRampToValueAtTime(0.001, now + 0.3 + Math.random() * 0.5);
+
+    osc.connect(filter);
+    filter.connect(env);
+    env.connect(g);
+    osc.start(now);
+    osc.stop(now + 1);
+    ch.nodes.push(osc, env, filter);
+
+    const interval = (sparse / 100) * 4000 + 500 + Math.random() * 2000;
+    ch.timer2 = setTimeout(scheduleIce, interval);
+  };
+  scheduleIce();
+}
+
+// --- WATER: 深海流アンビエント ---
+function startWater() {
+  const ch = channels.water;
+  const g = ctx.createGain();
+  g.gain.value = ch.params.vol / 100 * 0.7;
+  g.connect(masterGain);
+  ch.gainNode = g;
+
+  // ブラウンノイズ的な低域うねり
+  const bufferSize = ctx.sampleRate * 2;
+  const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+  const data = buffer.getChannelData(0);
+  let lastOut = 0;
+  for (let i = 0; i < bufferSize; i++) {
+    const white = Math.random() * 2 - 1;
+    data[i] = (lastOut + (0.02 * white)) / 1.02;
+    lastOut = data[i];
+    data[i] *= 3.5;
+  }
+
+  const source = ctx.createBufferSource();
+  source.buffer = buffer;
+  source.loop = true;
+
+  const filter = ctx.createBiquadFilter();
+  filter.type = 'lowpass';
+  filter.frequency.value = 200 + (ch.params.depth / 100) * 300;
+
+  const lfo = ctx.createOscillator();
+  const lfoGain = ctx.createGain();
+  lfo.frequency.value = 0.1 + (ch.params.flow / 100) * 0.3;
+  lfoGain.gain.value = 100;
+  lfo.connect(lfoGain);
+  lfoGain.connect(filter.frequency);
+
+  source.connect(filter);
+  filter.connect(g);
+  lfo.start();
+  source.start();
+
+  ch.nodes.push(source, filter, lfo, lfoGain);
+}
+
+// --- DRONE: 低周波ドローン ---
+function startDrone() {
+  const ch = channels.drone;
+  const g = ctx.createGain();
+  g.gain.value = ch.params.vol / 100 * 0.5;
+  g.connect(masterGain);
+  ch.gainNode = g;
+
+  const baseFreq = 30 + (ch.params.freq / 100) * 60;
+
+  [1, 1.5, 2, 2.5].forEach((ratio, i) => {
+    const osc = ctx.createOscillator();
+    const oscGain = ctx.createGain();
+    osc.type = i === 0 ? 'sine' : 'sine';
+    osc.frequency.value = baseFreq * ratio;
+    oscGain.gain.value = 0.5 / (i + 1);
+
+    // ワープ（LFOで揺らす）
+    const lfo = ctx.createOscillator();
+    const lfoG = ctx.createGain();
+    lfo.frequency.value = 0.05 + Math.random() * 0.1;
+    lfoG.gain.value = (ch.params.warp / 100) * baseFreq * 0.1;
+    lfo.connect(lfoG);
+    lfoG.connect(osc.frequency);
+
+    osc.connect(oscGain);
+    oscGain.connect(g);
+    osc.start();
+    lfo.start();
+    ch.nodes.push(osc, oscGain, lfo, lfoG);
+  });
+}
+
+// --- CREAK: 金属の軋み ---
+function startCreak() {
+  const ch = channels.creak;
+  const g = ctx.createGain();
+  g.gain.value = ch.params.vol / 100 * 0.6;
+  g.connect(masterGain);
+  ch.gainNode = g;
+
+  const scheduleCreak = () => {
+    if (!ch.active || !isPlaying) return;
+    const heavy = ch.params.heavy;
+    const rand = ch.params.rand;
+
+    const now = ctx.currentTime;
+    const freq = 150 + (100 - heavy) * 3 + Math.random() * 100;
+    const dur = 0.3 + (heavy / 100) * 1.5;
+
+    const osc = ctx.createOscillator();
+    const env = ctx.createGain();
+    const filter = ctx.createBiquadFilter();
+
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(freq, now);
+    osc.frequency.exponentialRampToValueAtTime(freq * 0.3, now + dur);
+
+    filter.type = 'bandpass';
+    filter.frequency.value = freq;
+    filter.Q.value = 5;
+
+    env.gain.setValueAtTime(0.4, now);
+    env.gain.exponentialRampToValueAtTime(0.001, now + dur);
+
+    osc.connect(filter);
+    filter.connect(env);
+    env.connect(g);
+    osc.start(now);
+    osc.stop(now + dur + 0.2);
+    ch.nodes.push(osc, env, filter);
+
+    const interval = 2000 + (rand / 100) * 8000 + Math.random() * 3000;
+    ch.timer2 = setTimeout(scheduleCreak, interval);
+  };
+  scheduleCreak();
+}
+
+// --- BELL: 深海の鐘 ---
+function startBell() {
+  const ch = channels.bell;
+  const g = ctx.createGain();
+  g.gain.value = ch.params.vol / 100 * 0.7;
+  g.connect(masterGain);
+  ch.gainNode = g;
+
+  // リバーブ生成
+  const convolver = ctx.createConvolver();
+  const revBuf = ctx.createBuffer(2, ctx.sampleRate * 4, ctx.sampleRate);
+  for (let c = 0; c < 2; c++) {
+    const d = revBuf.getChannelData(c);
+    for (let i = 0; i < d.length; i++) {
+      d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / d.length, 2);
+    }
+  }
+  convolver.buffer = revBuf;
+  const revGain = ctx.createGain();
+  revGain.gain.value = 0.5;
+  convolver.connect(revGain);
+  revGain.connect(masterGain);
+  ch.nodes.push(convolver, revGain);
+
+  // 音程マッピング（ペンタトニックスケール的に）
+  const bellNotes = [220, 261.63, 293.66, 349.23, 392, 440, 523.25];
+
+  const scheduleBell = () => {
+    if (!ch.active || !isPlaying) return;
+    const tone = ch.params.tone;
+    const space = ch.params.space;
+
+    const now = ctx.currentTime;
+    const noteIdx = Math.floor(Math.random() * bellNotes.length);
+    const freq = bellNotes[noteIdx] * (0.5 + (tone / 100));
+    const dur = 2 + (space / 100) * 4;
+
+    const freqs = [freq, freq * 2.756, freq * 5.404];
+    freqs.forEach((f, i) => {
+      const osc = ctx.createOscillator();
+      const env = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.value = f;
+      const amp = 0.3 / (i + 1);
+      env.gain.setValueAtTime(amp, now);
+      env.gain.exponentialRampToValueAtTime(0.001, now + dur);
+      osc.connect(env);
+      env.connect(g);
+      env.connect(convolver);
+      osc.start(now);
+      osc.stop(now + dur + 0.5);
+      ch.nodes.push(osc, env);
+    });
+
+    const interval = (space / 100) * 8000 + 1000 + Math.random() * 4000;
+    ch.timer2 = setTimeout(scheduleBell, interval);
+  };
+  scheduleBell();
+}
+
+// --- PAD: シンセパッド ---
+function startPad() {
+  const ch = channels.pad;
+  const g = ctx.createGain();
+  g.gain.value = ch.params.vol / 100 * 0.5;
+  g.connect(masterGain);
+  ch.gainNode = g;
+
+  // コード定義（ルート音の周波数）
+  const chordDefs = [
+    [220.00, 261.63, 329.63, 392.00],  // Am: A C E G
+    [146.83, 174.61, 220.00, 261.63],  // Dm: D F A C
+    [164.81, 196.00, 246.94, 293.66],  // Em: E G B D
+    [130.81, 155.56, 196.00, 233.08],  // Cm: C Eb G Bb
+    [174.61, 220.00, 261.63, 329.63],  // F:  F A C E
+    [220.00, 277.18, 329.63, 415.30],  // A:  A C# E G#
+  ];
+  const chordIdx = parseInt(ch.params.chord) || 0;
+  const notes = chordDefs[chordIdx];
+
+  // リバーブ
+  const convolver = ctx.createConvolver();
+  const revBuf = ctx.createBuffer(2, ctx.sampleRate * 5, ctx.sampleRate);
+  for (let c = 0; c < 2; c++) {
+    const d = revBuf.getChannelData(c);
+    for (let i = 0; i < d.length; i++) {
+      d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / d.length, 1.5);
+    }
+  }
+  convolver.buffer = revBuf;
+  const revGain = ctx.createGain();
+  revGain.gain.value = 0.6;
+  convolver.connect(revGain);
+  revGain.connect(masterGain);
+  ch.nodes.push(convolver, revGain);
+
+  const warmth = ch.params.warm / 100;
+  const swellTime = 1 + (ch.params.swell / 100) * 6;
+
+  notes.forEach((freq, i) => {
+    const osc1 = ctx.createOscillator();
+    const osc2 = ctx.createOscillator();
+    const oscGain = ctx.createGain();
+    const filter = ctx.createBiquadFilter();
+
+    osc1.type = 'sine';
+    osc2.type = 'triangle';
+    osc1.frequency.value = freq;
+    osc2.frequency.value = freq * 1.003; // わずかなデチューン → うねり感
+
+    filter.type = 'lowpass';
+    filter.frequency.value = 800 + warmth * 2000;
+    filter.Q.value = 1;
+
+    // LFOでゆっくり揺れる
+    const lfo = ctx.createOscillator();
+    const lfoG = ctx.createGain();
+    lfo.frequency.value = 0.08 + Math.random() * 0.05;
+    lfoG.gain.value = freq * 0.003;
+    lfo.connect(lfoG);
+    lfoG.connect(osc1.frequency);
+
+    // スウェル（ゆっくりフェードイン）
+    oscGain.gain.setValueAtTime(0, ctx.currentTime);
+    oscGain.gain.linearRampToValueAtTime(0.2 / (i + 1), ctx.currentTime + swellTime);
+
+    osc1.connect(filter);
+    osc2.connect(filter);
+    filter.connect(oscGain);
+    oscGain.connect(g);
+    oscGain.connect(convolver);
+
+    osc1.start();
+    osc2.start();
+    lfo.start();
+    ch.nodes.push(osc1, osc2, oscGain, filter, lfo, lfoG);
+  });
+}
+
+// --- MELODY: 漂流する旋律 ---
+function startMelody() {
+  const ch = channels.melody;
+  const g = ctx.createGain();
+  g.gain.value = ch.params.vol / 100 * 0.55;
+  g.connect(masterGain);
+  ch.gainNode = g;
+
+  // スケール定義（Aを基音）
+  const scaleDefs = [
+    [220, 246.94, 261.63, 293.66, 329.63, 349.23, 392.00, 440, 493.88, 523.25], // Aeolian
+    [220, 246.94, 261.63, 293.66, 329.63, 369.99, 392.00, 440, 493.88, 523.25], // Dorian (6th raised)
+    [220, 233.08, 261.63, 293.66, 329.63, 349.23, 392.00, 440, 466.16, 523.25], // Phrygian (2nd lowered)
+    [220, 261.63, 293.66, 329.63, 392.00, 440, 523.25, 587.33, 659.25],         // Pentatonic
+  ];
+
+  // リバーブ
+  const convolver = ctx.createConvolver();
+  const revBuf = ctx.createBuffer(2, ctx.sampleRate * 6, ctx.sampleRate);
+  for (let c = 0; c < 2; c++) {
+    const d = revBuf.getChannelData(c);
+    for (let i = 0; i < d.length; i++) {
+      d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / d.length, 1.2);
+    }
+  }
+  convolver.buffer = revBuf;
+  const revGain = ctx.createGain();
+  revGain.gain.value = 0.7;
+  convolver.connect(revGain);
+  revGain.connect(masterGain);
+  ch.nodes.push(convolver, revGain);
+
+  let lastNoteIdx = 4; // 中間から始める
+
+  const scheduleNote = () => {
+    if (!ch.active || !isPlaying) return;
+
+    const scaleIdx = parseInt(ch.params.scale) || 0;
+    const scale = scaleDefs[scaleIdx];
+    const ghost = ch.params.ghost / 100;
+    const tempo = ch.params.tempo / 100;
+
+    // 次の音を選ぶ（近い音から確率的に選択）
+    const move = Math.random();
+    let delta;
+    if (move < 0.5)      delta = 0;        // 同音（休符感）
+    else if (move < 0.75) delta = 1;
+    else if (move < 0.88) delta = -1;
+    else if (move < 0.94) delta = 2;
+    else                  delta = -2;
+
+    // たまに休符（音を鳴らさない）
+    const isSilent = Math.random() < 0.2;
+
+    lastNoteIdx = Math.max(0, Math.min(scale.length - 1, lastNoteIdx + delta));
+    const freq = scale[lastNoteIdx];
+    const now = ctx.currentTime;
+    const noteDur = 1.5 + ghost * 3;
+
+    if (!isSilent) {
+      const osc = ctx.createOscillator();
+      const env = ctx.createGain();
+      const filter = ctx.createBiquadFilter();
+
+      osc.type = 'sine';
+      osc.frequency.value = freq;
+
+      filter.type = 'lowpass';
+      filter.frequency.value = 2000 + Math.random() * 1000;
+
+      // ソフトなアタック・ロングディケイ
+      env.gain.setValueAtTime(0, now);
+      env.gain.linearRampToValueAtTime(0.3, now + 0.15);
+      env.gain.exponentialRampToValueAtTime(0.001, now + noteDur);
+
+      osc.connect(filter);
+      filter.connect(env);
+      env.connect(g);
+      env.connect(convolver);
+      osc.start(now);
+      osc.stop(now + noteDur + 0.5);
+      ch.nodes.push(osc, env, filter);
+    }
+
+    const interval = (1.2 - tempo) * 3000 + 600 + Math.random() * 1000;
+    ch.timer2 = setTimeout(scheduleNote, interval);
+  };
+  scheduleNote();
+}
+
+// ===== 波形表示 =====
+function generateWaveform(ch) {
+  const wf = document.getElementById('wf-' + ch);
+  if (!wf) return;
+  wf.innerHTML = '';
+  const count = 20;
+  for (let i = 0; i < count; i++) {
+    const bar = document.createElement('div');
+    bar.className = 'wave-bar';
+    const h = 3 + Math.random() * 14;
+    bar.style.setProperty('--wave-height', h + 'px');
+    bar.style.setProperty('--wave-speed', (0.4 + Math.random() * 0.8) + 's');
+    bar.style.animationDelay = (Math.random() * 0.5) + 's';
+    bar.style.height = channels[ch].active ? h + 'px' : '2px';
+    wf.appendChild(bar);
+  }
+}
+
+// ===== プリセット =====
+const presets = {
+  abyss: {
+    water:  { active: true, vol: 55, depth: 85, flow: 20 },
+    drone:  { active: true, vol: 40, freq: 20, warp: 60 },
+    creak:  { active: true, vol: 20, heavy: 80, rand: 80 },
+    pad:    { active: true, vol: 45, warm: 40, swell: 70, chord: 1 },
+    melody: { active: true, vol: 35, tempo: 20, ghost: 85, scale: 2 },
+  },
+  glacier: {
+    ice:    { active: true, vol: 45, pitch: 75, sparse: 70 },
+    bell:   { active: true, vol: 35, tone: 65, space: 80 },
+    drone:  { active: true, vol: 25, freq: 15, warp: 30 },
+    pad:    { active: true, vol: 50, warm: 30, swell: 80, chord: 0 },
+    melody: { active: true, vol: 40, tempo: 25, ghost: 75, scale: 3 },
+  },
+  wreck: {
+    metal:  { active: true, vol: 40, rate: 20, decay: 80 },
+    creak:  { active: true, vol: 50, heavy: 90, rand: 60 },
+    water:  { active: true, vol: 30, depth: 90, flow: 15 },
+    pad:    { active: true, vol: 35, warm: 70, swell: 60, chord: 3 },
+  },
+  drift: {
+    water:  { active: true, vol: 45, depth: 60, flow: 55 },
+    bell:   { active: true, vol: 30, tone: 45, space: 70 },
+    ice:    { active: true, vol: 20, pitch: 55, sparse: 80 },
+    pad:    { active: true, vol: 55, warm: 55, swell: 50, chord: 0 },
+    melody: { active: true, vol: 50, tempo: 40, ghost: 60, scale: 1 },
+  },
+  void: {
+    drone:  { active: true, vol: 65, freq: 10, warp: 90 },
+    water:  { active: true, vol: 15, depth: 95, flow: 5 },
+    pad:    { active: true, vol: 40, warm: 20, swell: 90, chord: 3 },
+  },
+};
+
+function loadPreset(name) {
+  initAudio();
+  // 全チャンネルリセット
+  Object.keys(channels).forEach(ch => {
+    if (channels[ch].active) toggleChannel(ch);
+  });
+
+  const preset = presets[name];
+
+  setTimeout(() => {
+    Object.entries(preset).forEach(([ch, cfg]) => {
+      // パラメータ設定
+      Object.entries(cfg).forEach(([param, val]) => {
+        if (param === 'active') return;
+        channels[ch].params[param] = val;
+        const sl = document.getElementById('sl-' + ch + '-' + param);
+        const sv = document.getElementById('sv-' + ch + '-' + param);
+        if (sl) sl.value = val;
+        if (sv) sv.textContent = val;
+      });
+      if (cfg.active) toggleChannel(ch);
+    });
+
+    // 再生開始
+    if (!isPlaying) toggleMaster();
+  }, 200);
+}
+
+// 初期波形
+Object.keys(channels).forEach(generateWaveform);
+
+</script>
+</body>
+</html>

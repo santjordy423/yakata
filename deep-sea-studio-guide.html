@@ -1,0 +1,896 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>使い方 / ABYSSAL STUDIO — GUIDE</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Space+Mono:wght@400;700&display=swap');
+
+  :root {
+    --abyss: #020b14;
+    --deep: #041827;
+    --shimmer: #4fc3e8;
+    --ice: #a8e4f5;
+    --metal: #7ab8cc;
+    --pale: rgba(168,228,245,0.6);
+    --faint: rgba(122,184,204,0.35);
+    --purple: #c8a8f5;
+    --pink: #f5c8e8;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--abyss);
+    color: var(--ice);
+    font-family: 'Cormorant Garamond', serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+    cursor: crosshair;
+  }
+
+  /* 背景 */
+  .sea-bg {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    background:
+      radial-gradient(ellipse 100% 50% at 20% 90%, rgba(6,32,53,0.8) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 60% at 80% 10%, rgba(10,48,80,0.4) 0%, transparent 50%),
+      linear-gradient(180deg, #010810 0%, #020f1e 50%, #041827 100%);
+  }
+
+  .light-ray {
+    position: fixed;
+    top: -10%;
+    width: 1px;
+    height: 110vh;
+    background: linear-gradient(180deg, rgba(79,195,232,0.1) 0%, rgba(79,195,232,0.02) 70%, transparent 100%);
+    transform-origin: top center;
+    animation: sway var(--dur, 9s) ease-in-out infinite alternate;
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  @keyframes sway {
+    0% { transform: rotate(var(--a1, -3deg)); opacity: 0.3; }
+    100% { transform: rotate(var(--a2, 3deg)); opacity: 0.7; }
+  }
+
+  /* コンテナ */
+  .container {
+    position: relative;
+    z-index: 10;
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 70px 32px 100px;
+  }
+
+  /* 戻るリンク */
+  .back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: 'Space Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.4em;
+    color: rgba(122,184,204,0.4);
+    text-decoration: none;
+    margin-bottom: 60px;
+    transition: color 0.3s;
+  }
+  .back-link:hover { color: var(--shimmer); }
+  .back-link::before { content: '←'; }
+
+  /* ヘッダー */
+  .header {
+    text-align: center;
+    margin-bottom: 80px;
+  }
+
+  .header-eyebrow {
+    font-family: 'Space Mono', monospace;
+    font-size: 8px;
+    letter-spacing: 0.6em;
+    color: var(--faint);
+    text-transform: uppercase;
+    margin-bottom: 20px;
+  }
+
+  .header-title {
+    font-size: clamp(42px, 8vw, 80px);
+    font-weight: 300;
+    font-style: italic;
+    color: var(--shimmer);
+    letter-spacing: 0.05em;
+    line-height: 1;
+    text-shadow: 0 0 60px rgba(79,195,232,0.3);
+    animation: glow 5s ease-in-out infinite;
+  }
+
+  @keyframes glow {
+    0%, 100% { text-shadow: 0 0 40px rgba(79,195,232,0.25); }
+    50% { text-shadow: 0 0 80px rgba(79,195,232,0.5), 0 0 160px rgba(79,195,232,0.15); }
+  }
+
+  .header-sub {
+    font-family: 'Space Mono', monospace;
+    font-size: 8px;
+    letter-spacing: 0.5em;
+    color: var(--faint);
+    margin-top: 16px;
+  }
+
+  /* 目次 */
+  .toc {
+    border: 1px solid rgba(79,195,232,0.1);
+    padding: 28px 32px;
+    margin-bottom: 70px;
+    position: relative;
+  }
+
+  .toc::before {
+    content: '// INDEX';
+    position: absolute;
+    top: -9px;
+    left: 20px;
+    font-family: 'Space Mono', monospace;
+    font-size: 8px;
+    letter-spacing: 0.4em;
+    color: var(--faint);
+    background: var(--abyss);
+    padding: 0 8px;
+  }
+
+  .toc-list {
+    list-style: none;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px 40px;
+  }
+
+  @media (max-width: 500px) { .toc-list { grid-template-columns: 1fr; } }
+
+  .toc-list a {
+    font-size: 16px;
+    font-weight: 300;
+    color: var(--pale);
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: color 0.3s;
+  }
+
+  .toc-list a:hover { color: var(--shimmer); }
+
+  .toc-num {
+    font-family: 'Space Mono', monospace;
+    font-size: 8px;
+    color: var(--faint);
+    width: 20px;
+    flex-shrink: 0;
+  }
+
+  /* セクション */
+  .section {
+    margin-bottom: 70px;
+    opacity: 0;
+    transform: translateY(20px);
+    animation: fadeUp 0.7s ease forwards;
+  }
+
+  .section:nth-child(1) { animation-delay: 0.1s; }
+  .section:nth-child(2) { animation-delay: 0.2s; }
+  .section:nth-child(3) { animation-delay: 0.3s; }
+  .section:nth-child(4) { animation-delay: 0.4s; }
+  .section:nth-child(5) { animation-delay: 0.5s; }
+  .section:nth-child(6) { animation-delay: 0.6s; }
+
+  @keyframes fadeUp {
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .section-header {
+    display: flex;
+    align-items: baseline;
+    gap: 16px;
+    margin-bottom: 28px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid rgba(79,195,232,0.08);
+  }
+
+  .section-num {
+    font-family: 'Space Mono', monospace;
+    font-size: 9px;
+    color: var(--faint);
+    letter-spacing: 0.2em;
+  }
+
+  .section-title {
+    font-size: clamp(22px, 4vw, 32px);
+    font-weight: 300;
+    font-style: italic;
+    color: var(--shimmer);
+    letter-spacing: 0.05em;
+  }
+
+  .section-title-en {
+    font-family: 'Space Mono', monospace;
+    font-size: 8px;
+    letter-spacing: 0.4em;
+    color: var(--faint);
+    margin-left: auto;
+    text-transform: uppercase;
+  }
+
+  /* 本文 */
+  p {
+    font-size: 18px;
+    font-weight: 300;
+    line-height: 1.9;
+    color: rgba(168,228,245,0.75);
+    margin-bottom: 16px;
+  }
+
+  /* 手順ブロック */
+  .steps {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin: 24px 0;
+  }
+
+  .step {
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+    padding: 20px 24px;
+    background: rgba(4,24,39,0.5);
+    border: 1px solid rgba(79,195,232,0.07);
+    border-left: 2px solid rgba(79,195,232,0.3);
+    transition: border-color 0.3s, background 0.3s;
+  }
+
+  .step:hover {
+    border-left-color: var(--shimmer);
+    background: rgba(4,24,39,0.8);
+  }
+
+  .step-num {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    color: var(--shimmer);
+    width: 24px;
+    flex-shrink: 0;
+    padding-top: 3px;
+  }
+
+  .step-body { flex: 1; }
+
+  .step-title {
+    font-size: 18px;
+    font-weight: 400;
+    color: var(--ice);
+    margin-bottom: 6px;
+  }
+
+  .step-desc {
+    font-size: 15px;
+    font-weight: 300;
+    color: rgba(168,228,245,0.6);
+    line-height: 1.7;
+    margin: 0;
+  }
+
+  /* チャンネルカード一覧 */
+  .channel-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin: 24px 0;
+  }
+
+  @media (max-width: 500px) { .channel-grid { grid-template-columns: 1fr; } }
+
+  .channel-card {
+    padding: 18px 20px;
+    background: rgba(2,11,20,0.7);
+    border: 1px solid rgba(79,195,232,0.07);
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.3s;
+  }
+
+  .channel-card:hover { border-color: rgba(79,195,232,0.2); }
+
+  .channel-card.melody-card {
+    border-color: rgba(200,168,245,0.1);
+  }
+  .channel-card.melody-card:hover {
+    border-color: rgba(200,168,245,0.3);
+  }
+
+  .ch-icon {
+    font-size: 20px;
+    margin-bottom: 10px;
+    display: block;
+  }
+
+  .ch-name {
+    font-size: 17px;
+    font-weight: 400;
+    color: var(--ice);
+    margin-bottom: 4px;
+  }
+
+  .ch-name-en {
+    font-family: 'Space Mono', monospace;
+    font-size: 7px;
+    letter-spacing: 0.4em;
+    color: var(--faint);
+    margin-bottom: 10px;
+    display: block;
+  }
+
+  .ch-desc {
+    font-size: 14px;
+    font-weight: 300;
+    color: rgba(168,228,245,0.55);
+    line-height: 1.65;
+    margin: 0;
+  }
+
+  /* パラメータ表 */
+  .param-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 20px 0;
+    font-size: 15px;
+  }
+
+  .param-table th {
+    font-family: 'Space Mono', monospace;
+    font-size: 8px;
+    letter-spacing: 0.4em;
+    color: var(--faint);
+    text-align: left;
+    padding: 8px 16px;
+    border-bottom: 1px solid rgba(79,195,232,0.1);
+    font-weight: 400;
+  }
+
+  .param-table td {
+    padding: 12px 16px;
+    border-bottom: 1px solid rgba(79,195,232,0.04);
+    vertical-align: top;
+  }
+
+  .param-table tr:last-child td { border-bottom: none; }
+
+  .param-name {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    color: var(--shimmer);
+    white-space: nowrap;
+  }
+
+  .param-desc {
+    color: rgba(168,228,245,0.6);
+    font-weight: 300;
+    line-height: 1.6;
+  }
+
+  /* プリセット紹介 */
+  .preset-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin: 24px 0;
+  }
+
+  @media (max-width: 500px) { .preset-grid { grid-template-columns: 1fr; } }
+
+  .preset-card {
+    padding: 20px 22px;
+    background: rgba(2,11,20,0.6);
+    border: 1px solid rgba(79,195,232,0.07);
+    transition: all 0.3s;
+  }
+
+  .preset-card:hover {
+    border-color: rgba(79,195,232,0.2);
+    background: rgba(4,24,39,0.8);
+  }
+
+  .preset-name {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.4em;
+    color: var(--shimmer);
+    margin-bottom: 8px;
+  }
+
+  .preset-jp {
+    font-size: 18px;
+    font-style: italic;
+    color: var(--ice);
+    margin-bottom: 8px;
+  }
+
+  .preset-desc {
+    font-size: 14px;
+    font-weight: 300;
+    color: rgba(168,228,245,0.5);
+    line-height: 1.65;
+    margin: 0;
+  }
+
+  /* ヒント */
+  .hint-box {
+    padding: 20px 24px;
+    background: rgba(79,195,232,0.04);
+    border: 1px solid rgba(79,195,232,0.12);
+    margin: 20px 0;
+    position: relative;
+  }
+
+  .hint-box::before {
+    content: '// HINT';
+    font-family: 'Space Mono', monospace;
+    font-size: 8px;
+    letter-spacing: 0.4em;
+    color: var(--shimmer);
+    display: block;
+    margin-bottom: 10px;
+  }
+
+  .hint-box p {
+    font-size: 16px;
+    margin: 0;
+    color: rgba(168,228,245,0.65);
+  }
+
+  /* セパレーター */
+  .divider {
+    width: 100%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(79,195,232,0.15), transparent);
+    margin: 60px 0;
+  }
+
+  /* フッター */
+  .footer {
+    text-align: center;
+    font-family: 'Space Mono', monospace;
+    font-size: 8px;
+    letter-spacing: 0.4em;
+    color: rgba(122,184,204,0.2);
+    margin-top: 80px;
+  }
+
+  /* インラインコード風 */
+  .tag {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    background: rgba(79,195,232,0.08);
+    color: var(--shimmer);
+    padding: 1px 6px;
+    letter-spacing: 0.1em;
+  }
+
+</style>
+</head>
+<body>
+
+<div class="sea-bg"></div>
+<div id="rays"></div>
+
+<div class="container">
+
+  <a href="deep-sea-studio.html" class="back-link">ABYSSAL STUDIO に戻る</a>
+
+  <header class="header">
+    <p class="header-eyebrow">ABYSSAL STUDIO</p>
+    <h1 class="header-title">使い方</h1>
+    <p class="header-sub">HOW TO USE — FIELD GUIDE</p>
+  </header>
+
+  <!-- 目次 -->
+  <nav>
+    <ul class="toc">
+      <li><a href="#start"><span class="toc-num">01</span>はじめに</a></li>
+      <li><a href="#channels"><span class="toc-num">02</span>チャンネル一覧</a></li>
+      <li><a href="#params"><span class="toc-num">03</span>パラメータの意味</a></li>
+      <li><a href="#presets"><span class="toc-num">04</span>プリセット紹介</a></li>
+      <li><a href="#tips"><span class="toc-num">05</span>おすすめの使い方</a></li>
+      <li><a href="#trouble"><span class="toc-num">06</span>音が出ないとき</a></li>
+    </ul>
+  </nav>
+
+  <!-- 01 はじめに -->
+  <section class="section" id="start">
+    <div class="section-header">
+      <span class="section-num">01</span>
+      <h2 class="section-title">はじめに</h2>
+      <span class="section-title-en">GETTING STARTED</span>
+    </div>
+
+    <p>ABYSSAL STUDIOは、深海の音をブレンドして自分だけのアンビエント空間を作るミキサーです。金属音・氷の音・水流・旋律など8種類のチャンネルを自由に組み合わせて使います。</p>
+
+    <div class="steps">
+      <div class="step">
+        <span class="step-num">01</span>
+        <div class="step-body">
+          <p class="step-title">▶ ボタンを押す</p>
+          <p class="step-desc">画面上部の丸いボタンを押すと再生が始まります。最初は無音です。チャンネルをオンにしてから音が出ます。</p>
+        </div>
+      </div>
+      <div class="step">
+        <span class="step-num">02</span>
+        <div class="step-body">
+          <p class="step-title">チャンネルのスイッチをオンにする</p>
+          <p class="step-desc">各チャンネル右上の小さなトグルをクリックするとオンになります。同時に複数オンにできます。VOLスライダーで音量を調整してください。</p>
+        </div>
+      </div>
+      <div class="step">
+        <span class="step-num">03</span>
+        <div class="step-body">
+          <p class="step-title">または — プリセットを試す</p>
+          <p class="step-desc"><span class="tag">ABYSS</span> <span class="tag">GLACIER</span> などのボタンを押すと、おすすめの組み合わせが自動で設定されます。いちばん手軽に試せる方法です。</p>
+        </div>
+      </div>
+      <div class="step">
+        <span class="step-num">04</span>
+        <div class="step-body">
+          <p class="step-title">スライダーで好みに調整する</p>
+          <p class="step-desc">各チャンネルのスライダーを動かすと音の質感が変わります。直感的に動かしてみてください。正解はありません。</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="hint-box">
+      <p>ブラウザを開いたまま作業BGMとして流しっぱなしにするのが一番おすすめの使い方です。タブを切り替えても音は鳴り続けます。</p>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- 02 チャンネル -->
+  <section class="section" id="channels">
+    <div class="section-header">
+      <span class="section-num">02</span>
+      <h2 class="section-title">チャンネル一覧</h2>
+      <span class="section-title-en">ALL CHANNELS</span>
+    </div>
+
+    <p>8つのチャンネルはそれぞれ異なる音を生成します。すべてブラウザ内で合成される音です（音声ファイルは使っていません）。</p>
+
+    <div class="channel-grid">
+      <div class="channel-card">
+        <span class="ch-icon" style="color:#7ab8cc">⚙</span>
+        <p class="ch-name">金属の残響</p>
+        <span class="ch-name-en">METAL RESONANCE</span>
+        <p class="ch-desc">金属が響く音。高い倍音が複数重なってランダムな間隔で鳴ります。廃工場や沈没船の雰囲気に。</p>
+      </div>
+      <div class="channel-card">
+        <span class="ch-icon" style="color:#a8e4f5">❄</span>
+        <p class="ch-name">氷の結晶</p>
+        <span class="ch-name-en">ICE CRYSTAL</span>
+        <p class="ch-desc">氷がパチッと割れる高周波の音。まばらに降ってくる感じ。SPARSEを上げると間隔が広がります。</p>
+      </div>
+      <div class="channel-card">
+        <span class="ch-icon" style="color:#4fc3e8">◈</span>
+        <p class="ch-name">深層流</p>
+        <span class="ch-name-en">DEEP CURRENT</span>
+        <p class="ch-desc">低域のうねるノイズ。深海の水流。他のチャンネルの土台になります。ベースとして常時オンがおすすめ。</p>
+      </div>
+      <div class="channel-card">
+        <span class="ch-icon" style="color:#1a7fa8">∿</span>
+        <p class="ch-name">虚空の唸り</p>
+        <span class="ch-name-en">VOID DRONE</span>
+        <p class="ch-desc">超低周波のドローン音。聴こえるというより「感じる」ような音です。WARPを上げると気持ち悪いくらいゆらぎます。</p>
+      </div>
+      <div class="channel-card">
+        <span class="ch-icon" style="color:#7ab8cc">⋮⋮</span>
+        <p class="ch-name">船体の軋み</p>
+        <span class="ch-name-en">HULL CREAK</span>
+        <p class="ch-desc">金属がギギッと軋む音。ランダムな間隔で突然鳴ります。聴いてると不安になる系の音。</p>
+      </div>
+      <div class="channel-card">
+        <span class="ch-icon" style="color:#a8e4f5">♩</span>
+        <p class="ch-name">深海の鐘</p>
+        <span class="ch-name-en">DEEP BELL</span>
+        <p class="ch-desc">長く伸びるベルの音。リバーブがたっぷりかかっています。SPACEを上げると音の間隔が広がります。</p>
+      </div>
+      <div class="channel-card melody-card">
+        <span class="ch-icon" style="color:#c8a8f5">◎</span>
+        <p class="ch-name">深海パッド</p>
+        <span class="ch-name-en">SYNTH PAD</span>
+        <p class="ch-desc">コードを鳴らすシンセパッド。ゆっくりとスウェルしながら浮かび上がってきます。旋律チャンネルの土台に。CHORDで和音を変えられます。</p>
+      </div>
+      <div class="channel-card melody-card">
+        <span class="ch-icon" style="color:#f5c8e8">♪</span>
+        <p class="ch-name">漂流する旋律</p>
+        <span class="ch-name-en">DRIFTING MELODY</span>
+        <p class="ch-desc">AIが即興するような単音メロディ。次の音は「近い音から確率的に選ぶ」ルールで生成されます。同じメロディは二度と繰り返されません。</p>
+      </div>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- 03 パラメータ -->
+  <section class="section" id="params">
+    <div class="section-header">
+      <span class="section-num">03</span>
+      <h2 class="section-title">パラメータの意味</h2>
+      <span class="section-title-en">PARAMETERS</span>
+    </div>
+
+    <p>各チャンネルのスライダーは以下の意味を持ちます。数値は0〜100で、感覚的に動かして大丈夫です。</p>
+
+    <table class="param-table">
+      <thead>
+        <tr>
+          <th>パラメータ</th>
+          <th>説明</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="param-name">VOL</span></td>
+          <td class="param-desc">音量。0にすると無音。チャンネルをオンにしても VOL が0だと聴こえません。</td>
+        </tr>
+        <tr>
+          <td><span class="param-name">RATE</span></td>
+          <td class="param-desc">金属音が鳴る頻度。上げると頻繁に鳴ります。</td>
+        </tr>
+        <tr>
+          <td><span class="param-name">DECAY</span></td>
+          <td class="param-desc">音の余韻の長さ。上げると音が長く伸びます。</td>
+        </tr>
+        <tr>
+          <td><span class="param-name">PITCH</span></td>
+          <td class="param-desc">音の高さ。上げると高い氷の音になります。</td>
+        </tr>
+        <tr>
+          <td><span class="param-name">SPARSE</span></td>
+          <td class="param-desc">音の間隔の広さ。上げると音がまばらになります。</td>
+        </tr>
+        <tr>
+          <td><span class="param-name">DEPTH</span></td>
+          <td class="param-desc">水の深さ感。上げると低域が強調されより深海っぽくなります。</td>
+        </tr>
+        <tr>
+          <td><span class="param-name">FLOW</span></td>
+          <td class="param-desc">水流の揺れの速さ。上げると流れが速くなります。</td>
+        </tr>
+        <tr>
+          <td><span class="param-name">FREQ</span></td>
+          <td class="param-desc">ドローンの基本周波数。上げるとやや高い唸りになります。</td>
+        </tr>
+        <tr>
+          <td><span class="param-name">WARP</span></td>
+          <td class="param-desc">ドローンの揺らぎ量。上げると音程がぐにゃっと揺れます。</td>
+        </tr>
+        <tr>
+          <td><span class="param-name">HEAVY</span></td>
+          <td class="param-desc">軋みの重さ。上げると低くて重い軋み音になります。</td>
+        </tr>
+        <tr>
+          <td><span class="param-name">RAND</span></td>
+          <td class="param-desc">軋みのランダム性。上げると不規則な間隔で鳴ります。</td>
+        </tr>
+        <tr>
+          <td><span class="param-name">TONE</span></td>
+          <td class="param-desc">鐘の音域。上げると高い音程の鐘になります。</td>
+        </tr>
+        <tr>
+          <td><span class="param-name">SPACE</span></td>
+          <td class="param-desc">鐘の鳴る間隔。上げると間隔が広がりより静かな空間になります。</td>
+        </tr>
+        <tr>
+          <td><span class="param-name">WARM</span></td>
+          <td class="param-desc">パッドの音の温かさ。下げると冷たくクリアに、上げるとこもった温かい音になります。</td>
+        </tr>
+        <tr>
+          <td><span class="param-name">SWELL</span></td>
+          <td class="param-desc">パッドのフェードイン時間。上げると音がゆっくり浮かび上がってきます。</td>
+        </tr>
+        <tr>
+          <td><span class="param-name">CHORD</span></td>
+          <td class="param-desc">パッドのコード選択。Am・Dm・Em・Cm（マイナー）、F・A（メジャー）の6種類から選べます。マイナーは深海感が強く、F・Aは光が差し込むような明るさが加わります。</td>
+        </tr>
+        <tr>
+          <td><span class="param-name">TEMPO</span></td>
+          <td class="param-desc">メロディの音符の間隔。上げると速く音が流れます。</td>
+        </tr>
+        <tr>
+          <td><span class="param-name">GHOST</span></td>
+          <td class="param-desc">音の余韻。上げると音が長く尾を引き、溶けるような感覚になります。</td>
+        </tr>
+        <tr>
+          <td><span class="param-name">SCALE</span></td>
+          <td class="param-desc">メロディのスケール（音階）。雰囲気が変わります。</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="hint-box">
+      <p>SCALE の選び方：<br>
+      <strong style="color:var(--pale)">Aeolian（深海の夜）</strong>— 暗くて美しい。いちばん使いやすい。<br>
+      <strong style="color:var(--pale)">Dorian（海の記憶）</strong>— 少し希望がある暗さ。<br>
+      <strong style="color:var(--pale)">Phrygian（沈没船）</strong>— 不穏でエキゾチック。<br>
+      <strong style="color:var(--pale)">Pentatonic（水面の光）</strong>— 澄んでいてチルい。</p>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- 04 プリセット -->
+  <section class="section" id="presets">
+    <div class="section-header">
+      <span class="section-num">04</span>
+      <h2 class="section-title">プリセット紹介</h2>
+      <span class="section-title-en">PRESETS</span>
+    </div>
+
+    <p>プリセットボタンを押すと複数チャンネルが自動でオンになり、おすすめの組み合わせが設定されます。そこからスライダーで微調整するのが楽しい。</p>
+
+    <div class="preset-grid">
+      <div class="preset-card">
+        <p class="preset-name">ABYSS</p>
+        <p class="preset-jp">奈落の底</p>
+        <p class="preset-desc">深層流・虚空のドローン・船体の軋み・パッド・旋律。いちばん深海っぽい。作業中に流すのに向いてます。</p>
+      </div>
+      <div class="preset-card">
+        <p class="preset-name">GLACIER</p>
+        <p class="preset-jp">氷河の静寂</p>
+        <p class="preset-desc">氷の結晶・深海の鐘・ドローン・パッド・旋律。透明感があって明るめ。読書や集中作業に。</p>
+      </div>
+      <div class="preset-card">
+        <p class="preset-name">WRECK</p>
+        <p class="preset-jp">廃船</p>
+        <p class="preset-desc">金属の残響・船体の軋み・深層流・パッド。不穏で緊張感がある。旋律なし版。</p>
+      </div>
+      <div class="preset-card">
+        <p class="preset-name">DRIFT</p>
+        <p class="preset-jp">漂流</p>
+        <p class="preset-desc">深層流・深海の鐘・氷・パッド・旋律。いちばんチルで穏やか。眠れない夜に。</p>
+      </div>
+      <div class="preset-card">
+        <p class="preset-name">VOID</p>
+        <p class="preset-jp">虚無</p>
+        <p class="preset-desc">ドローン・深層流・パッドのみ。最小構成。旋律なし・金属なし。深く沈んでいく感覚。</p>
+      </div>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- 05 おすすめ -->
+  <section class="section" id="tips">
+    <div class="section-header">
+      <span class="section-num">05</span>
+      <h2 class="section-title">おすすめの使い方</h2>
+      <span class="section-title-en">TIPS</span>
+    </div>
+
+    <div class="steps">
+      <div class="step">
+        <span class="step-num">✦</span>
+        <div class="step-body">
+          <p class="step-title">まず DRIFT を試す</p>
+          <p class="step-desc">初めて触るなら DRIFT プリセットが入門として最適です。チルで聴きやすく、各チャンネルの役割が分かりやすい。</p>
+        </div>
+      </div>
+      <div class="step">
+        <span class="step-num">✦</span>
+        <div class="step-body">
+          <p class="step-title">深層流は常時オンにしておく</p>
+          <p class="step-desc">深層流（DEEP CURRENT）は他のすべての音の土台になります。DEPTH を高めにして VOL を50前後に設定して、常にオンにしておくとバランスが取りやすいです。</p>
+        </div>
+      </div>
+      <div class="step">
+        <span class="step-num">✦</span>
+        <div class="step-body">
+          <p class="step-title">パッド → 旋律の順でオンにする</p>
+          <p class="step-desc">旋律（DRIFTING MELODY）は単体だと浮いて聴こえることがあります。先にパッド（SYNTH PAD）をオンにしてコードを鳴らしてから、旋律を重ねると馴染みやすいです。</p>
+        </div>
+      </div>
+      <div class="step">
+        <span class="step-num">✦</span>
+        <div class="step-body">
+          <p class="step-title">WARP と GHOST を上げると没入感が増す</p>
+          <p class="step-desc">虚空の唸りの WARP と漂流する旋律の GHOST を両方高めにすると、音が溶け合って深い没入感が生まれます。</p>
+        </div>
+      </div>
+      <div class="step">
+        <span class="step-num">✦</span>
+        <div class="step-body">
+          <p class="step-title">MASTER ボリュームを下げ気味に</p>
+          <p class="step-desc">複数チャンネルをオンにすると音が重なって大きくなりがちです。MASTER ボリュームを50〜60あたりにしておくと聴き疲れしません。</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- 06 トラブル -->
+  <section class="section" id="trouble">
+    <div class="section-header">
+      <span class="section-num">06</span>
+      <h2 class="section-title">音が出ないとき</h2>
+      <span class="section-title-en">TROUBLESHOOTING</span>
+    </div>
+
+    <div class="steps">
+      <div class="step">
+        <span class="step-num">?</span>
+        <div class="step-body">
+          <p class="step-title">▶ ボタンを押しましたか？</p>
+          <p class="step-desc">再生ボタンがアクティブ（光っている）状態でないと音は出ません。まず ▶ を押してください。</p>
+        </div>
+      </div>
+      <div class="step">
+        <span class="step-num">?</span>
+        <div class="step-body">
+          <p class="step-title">チャンネルのトグルはオンですか？</p>
+          <p class="step-desc">各チャンネル右上のスイッチが光っている（オン）状態にしてください。オフのままでは音は生成されません。</p>
+        </div>
+      </div>
+      <div class="step">
+        <span class="step-num">?</span>
+        <div class="step-body">
+          <p class="step-title">VOL スライダーを上げましたか？</p>
+          <p class="step-desc">チャンネルをオンにしても VOL が 0 だと無音です。チャンネルトグルをオンにすると VOL が自動で 60 になりますが、手動でスライダーを動かした場合は確認してください。</p>
+        </div>
+      </div>
+      <div class="step">
+        <span class="step-num">?</span>
+        <div class="step-body">
+          <p class="step-title">ブラウザがミュートになっていませんか？</p>
+          <p class="step-desc">ブラウザのタブをミュートにしていると音が出ません。タブを右クリックして「サイトのミュートを解除」を試してください。</p>
+        </div>
+      </div>
+      <div class="step">
+        <span class="step-num">?</span>
+        <div class="step-body">
+          <p class="step-title">それでも出ない場合はページを再読み込み</p>
+          <p class="step-desc">Web Audio API はブラウザの操作前に起動できない制限があります。一度ページをリロードして、ボタンをクリックしてから試してください。</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="hint-box">
+      <p>金属音・軋み・鐘など一部のチャンネルはランダムな間隔で音が鳴ります。「音が出ていない？」と思っても、しばらく待つと鳴ることがあります。間隔が気になる場合は RATE・RAND・SPACE などのスライダーを調整してください。</p>
+    </div>
+  </section>
+
+  <footer class="footer">
+    ABYSSAL STUDIO — 深海音響スタジオ — HOW TO USE
+  </footer>
+
+</div>
+
+<script>
+  // 光のカーテン
+  const raysEl = document.getElementById('rays');
+  for (let i = 0; i < 6; i++) {
+    const ray = document.createElement('div');
+    ray.className = 'light-ray';
+    ray.style.left = (10 + Math.random() * 80) + '%';
+    ray.style.setProperty('--dur', (7 + Math.random() * 8) + 's');
+    ray.style.setProperty('--a1', (-3 + Math.random() * 2) + 'deg');
+    ray.style.setProperty('--a2', (1 + Math.random() * 4) + 'deg');
+    raysEl.appendChild(ray);
+  }
+</script>
+</body>
+</html>
