@@ -14,13 +14,14 @@
 <script type="text/babel" data-presets="react">
 const { useState, useEffect, useRef } = React;
 
-
-const WARMUP_START = 9 * 60;
-const WARMUP_END = 9 * 60 + 30;
-const MORNING_END = 12 * 60;
-const AFTERNOON_START = 13 * 60;
-const DAY_END = 17 * 60;
-const TOAST_DURATION = 4000;
+const WARMUP_START     = 9 * 60;
+const WARMUP_END       = 9 * 60 + 30;
+const MORNING_END      = 12 * 60;
+const AFTERNOON_START  = 13 * 60;
+const DAY_END          = 17 * 60;
+const TOAST_DURATION   = 4000;
+const INBOX_KEY        = 'yakata_scheduler_inbox';
+const CARRY_KEY        = 'yakata_carryover';
 
 function minutesToHHMM(m) {
   return `${String(Math.floor(m / 60)).padStart(2, "0")}:${String(m % 60).padStart(2, "0")}`;
@@ -28,6 +29,10 @@ function minutesToHHMM(m) {
 function nowInMinutes() {
   const d = new Date();
   return d.getHours() * 60 + d.getMinutes();
+}
+function todayStr() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 }
 function getAvailableSlots(from) {
   return [
@@ -88,7 +93,6 @@ const PALETTES = [
 ];
 const EMOJIS = ["📝","💻","📊","🎨","📞","🔍","✍️","📚","🛠️","💡","🎯","📮"];
 
-// インライントースト（カード内上部に表示）
 function InlineToast({ task, onUndo, onDismiss }) {
   const [progress, setProgress] = useState(100);
   useEffect(() => {
@@ -128,31 +132,185 @@ function InlineToast({ task, onUndo, onDismiss }) {
   );
 }
 
-function App() {
-  const [tasks, setTasks] = useState([]);
-  const [name, setName] = useState("");
-  const [hours, setHours] = useState("");
-  const [mins, setMins] = useState("");
-  const [pomodoroRaw, setPomodoroRaw] = useState("25");
-  const [breakRaw, setBreakRaw] = useState("5");
-  const [scheduled, setScheduled] = useState(null);
-  const [completedNames, setCompletedNames] = useState(new Set());
-  const [palIdx, setPalIdx] = useState(0);
-  const [emojiIdx, setEmojiIdx] = useState(0);
-  const [dragging, setDragging] = useState(null);
-  const [dragOver, setDragOver] = useState(null);
-  const [currentTime, setCurrentTime] = useState(nowInMinutes());
-  const [rescheduleAnim, setRescheduleAnim] = useState(false);
-  const [toast, setToast] = useState(null);
+// ── Inbox Banner (tasks from memo app) ──
+function InboxBanner({ inbox, onAddAll, onAddOne, onDismiss }) {
+  return (
+    <div style={{
+      background: "#eff6ff", border: "1.5px solid #93c5fd", borderRadius: 16,
+      padding: "1rem 1.25rem", marginBottom: "1.25rem",
+    }}>
+      <div style={{ display: "flex", alignItems: "center", gap: ".6rem", marginBottom: ".65rem" }}>
+        <span style={{ fontSize: "1.2rem" }}>📬</span>
+        <span style={{ fontWeight: 800, color: "#1d4ed8", fontSize: ".9rem", flex: 1 }}>
+          タスクメモから {inbox.length}件 届いています
+        </span>
+        <button onClick={onDismiss} style={{
+          cursor: "pointer", background: "none", border: "none",
+          color: "#93c5fd", fontSize: "1rem", padding: "2px 4px", lineHeight: 1,
+        }} title="閉じる">✕</button>
+      </div>
+      <div style={{ display: "flex", flexDirection: "column", gap: ".3rem", marginBottom: ".75rem" }}>
+        {inbox.map((t, i) => (
+          <div key={i} style={{
+            display: "flex", alignItems: "center", gap: ".5rem",
+            background: "#dbeafe", borderRadius: 8, padding: ".35rem .75rem",
+          }}>
+            <span style={{ flex: 1, fontSize: ".83rem", color: "#1e40af", fontWeight: 600 }}>{t.name}</span>
+            <span style={{ fontSize: ".74rem", color: "#60a5fa", fontWeight: 700 }}>{t.minutes}min</span>
+            <button onClick={() => onAddOne(t)} style={{
+              cursor: "pointer", background: "#2563eb", color: "#fff", border: "none",
+              borderRadius: 6, padding: ".25rem .65rem", fontSize: ".72rem",
+              fontFamily: "'Nunito',sans-serif", fontWeight: 800,
+            }}>追加</button>
+          </div>
+        ))}
+      </div>
+      <button onClick={onAddAll} style={{
+        cursor: "pointer", background: "linear-gradient(135deg,#2563eb,#60a5fa)",
+        color: "#fff", border: "none", borderRadius: 20, padding: ".4rem 1.2rem",
+        fontSize: ".82rem", fontFamily: "'Nunito',sans-serif", fontWeight: 800,
+        boxShadow: "0 2px 10px rgba(37,99,235,.3)",
+      }}>＋ 全部追加</button>
+    </div>
+  );
+}
 
-  const pomodoro = Math.max(parseInt(pomodoroRaw) || 1, 1);
+// ── Carryover Banner (tasks from previous day) ──
+function CarryoverBanner({ carryover, onAddAll, onAddOne, onDismiss }) {
+  return (
+    <div style={{
+      background: "#f5f3ff", border: "1.5px solid #c4b5fd", borderRadius: 16,
+      padding: "1rem 1.25rem", marginBottom: "1.25rem",
+    }}>
+      <div style={{ display: "flex", alignItems: "center", gap: ".6rem", marginBottom: ".65rem" }}>
+        <span style={{ fontSize: "1.2rem" }}>🌙</span>
+        <span style={{ fontWeight: 800, color: "#6d28d9", fontSize: ".9rem", flex: 1 }}>
+          昨日からの持ち越し {carryover.length}件
+        </span>
+        <button onClick={onDismiss} style={{
+          cursor: "pointer", background: "none", border: "none",
+          color: "#c4b5fd", fontSize: "1rem", padding: "2px 4px", lineHeight: 1,
+        }} title="閉じる">✕</button>
+      </div>
+      <div style={{ display: "flex", flexDirection: "column", gap: ".3rem", marginBottom: ".75rem" }}>
+        {carryover.map((t, i) => (
+          <div key={i} style={{
+            display: "flex", alignItems: "center", gap: ".5rem",
+            background: "#ede9fe", borderRadius: 8, padding: ".35rem .75rem",
+          }}>
+            <span style={{ flex: 1, fontSize: ".83rem", color: "#5b21b6", fontWeight: 600 }}>{t.name}</span>
+            <span style={{ fontSize: ".74rem", color: "#a78bfa", fontWeight: 700 }}>{t.minutes ? `${t.minutes}min` : "—"}</span>
+            <button onClick={() => onAddOne(t)} style={{
+              cursor: "pointer", background: "#7c3aed", color: "#fff", border: "none",
+              borderRadius: 6, padding: ".25rem .65rem", fontSize: ".72rem",
+              fontFamily: "'Nunito',sans-serif", fontWeight: 800,
+            }}>追加</button>
+          </div>
+        ))}
+      </div>
+      <button onClick={onAddAll} style={{
+        cursor: "pointer", background: "linear-gradient(135deg,#7c3aed,#a78bfa)",
+        color: "#fff", border: "none", borderRadius: 20, padding: ".4rem 1.2rem",
+        fontSize: ".82rem", fontFamily: "'Nunito',sans-serif", fontWeight: 800,
+        boxShadow: "0 2px 10px rgba(124,58,237,.3)",
+      }}>＋ 全部追加</button>
+    </div>
+  );
+}
+
+function App() {
+  const [tasks, setTasks]               = useState([]);
+  const [name, setName]                 = useState("");
+  const [hours, setHours]               = useState("");
+  const [mins, setMins]                 = useState("");
+  const [pomodoroRaw, setPomodoroRaw]   = useState("25");
+  const [breakRaw, setBreakRaw]         = useState("5");
+  const [scheduled, setScheduled]       = useState(null);
+  const [completedNames, setCompletedNames] = useState(new Set());
+  const [palIdx, setPalIdx]             = useState(0);
+  const [emojiIdx, setEmojiIdx]         = useState(0);
+  const [dragging, setDragging]         = useState(null);
+  const [dragOver, setDragOver]         = useState(null);
+  const [currentTime, setCurrentTime]   = useState(nowInMinutes());
+  const [rescheduleAnim, setRescheduleAnim] = useState(false);
+  const [toast, setToast]               = useState(null);
+
+  // ── 連携機能 ──
+  const [inbox, setInbox]                   = useState([]);
+  const [inboxVisible, setInboxVisible]     = useState(true);
+  const [carryover, setCarryover]           = useState([]);
+  const [carryoverVisible, setCarryoverVisible] = useState(true);
+  const [carryMarked, setCarryMarked]       = useState(new Set()); // task names marked this session
+
+  const pomodoro  = Math.max(parseInt(pomodoroRaw) || 1, 1);
   const breakTime = Math.max(parseInt(breakRaw) || 0, 0);
 
+  // ── 時刻更新 ──
   useEffect(() => {
     const id = setInterval(() => setCurrentTime(nowInMinutes()), 30000);
     return () => clearInterval(id);
   }, []);
 
+  // ── LocalStorage から持ち越し・受信タスクを読み込む ──
+  useEffect(() => {
+    const inboxData = JSON.parse(localStorage.getItem(INBOX_KEY) || '[]');
+    if (inboxData.length > 0) setInbox(inboxData);
+
+    const today = todayStr();
+    const carryData = JSON.parse(localStorage.getItem(CARRY_KEY) || '[]');
+    const prev = carryData.filter(t => t.carryoverDate < today);
+    if (prev.length > 0) setCarryover(prev);
+  }, []);
+
+  // ── タスクをリストに追加する共通処理 ──
+  const addTasksToList = (tasksToAdd, currentPalIdx, currentEmojiIdx) => {
+    const newTasks = tasksToAdd.map((t, offset) => {
+      const pal   = PALETTES[(currentPalIdx + offset) % PALETTES.length];
+      const emoji = EMOJIS[(currentEmojiIdx + offset) % EMOJIS.length];
+      return { name: t.name, minutes: t.minutes || 30, ...pal, emoji };
+    });
+    setTasks(prev => [...prev, ...newTasks]);
+    setPalIdx(p => p + tasksToAdd.length);
+    setEmojiIdx(e => e + tasksToAdd.length);
+    setScheduled(null);
+  };
+
+  // ── インボックスから追加 ──
+  const addFromInbox = (tasksToAdd) => {
+    addTasksToList(tasksToAdd, palIdx, emojiIdx);
+    const remaining = inbox.filter(t => !tasksToAdd.find(a => a.name === t.name));
+    setInbox(remaining);
+    if (remaining.length === 0) localStorage.removeItem(INBOX_KEY);
+    else localStorage.setItem(INBOX_KEY, JSON.stringify(remaining));
+  };
+
+  // ── 持ち越しから追加 ──
+  const addFromCarryover = (tasksToAdd) => {
+    addTasksToList(tasksToAdd, palIdx, emojiIdx);
+    const remaining = carryover.filter(t => !tasksToAdd.find(a => a.name === t.name));
+    setCarryover(remaining);
+    // LocalStorage の該当エントリだけ削除（将来分は残す）
+    const today    = todayStr();
+    const allCarry = JSON.parse(localStorage.getItem(CARRY_KEY) || '[]');
+    const updated  = allCarry.filter(t =>
+      t.carryoverDate >= today || !tasksToAdd.find(a => a.name === t.name)
+    );
+    if (updated.length === 0) localStorage.removeItem(CARRY_KEY);
+    else localStorage.setItem(CARRY_KEY, JSON.stringify(updated));
+  };
+
+  // ── タスクを持ち越し保存 ──
+  const markAsCarryover = (taskName, minutes) => {
+    const today   = todayStr();
+    const existing = JSON.parse(localStorage.getItem(CARRY_KEY) || '[]');
+    if (!existing.find(t => t.name === taskName)) {
+      existing.push({ name: taskName, minutes, carryoverDate: today });
+      localStorage.setItem(CARRY_KEY, JSON.stringify(existing));
+    }
+    setCarryMarked(prev => new Set([...prev, taskName]));
+  };
+
+  // ── 既存タスク操作 ──
   const addTask = () => {
     const h = parseInt(hours) || 0;
     const m = parseInt(mins) || 0;
@@ -187,28 +345,22 @@ function App() {
 
   const toggleComplete = (taskName) => {
     const newCompleted = new Set(completedNames);
-    if (newCompleted.has(taskName)) {
-      newCompleted.delete(taskName);
-    } else {
-      newCompleted.add(taskName);
-    }
+    if (newCompleted.has(taskName)) newCompleted.delete(taskName);
+    else newCompleted.add(taskName);
     setCompletedNames(newCompleted);
     const remaining = tasks.filter(t => !newCompleted.has(t.name));
     const from = Math.max(currentTime, WARMUP_END);
-    if (scheduled) {
-      triggerAnim();
-      setScheduled(scheduleBlocks(remaining, pomodoro, breakTime, from));
-    }
+    if (scheduled) { triggerAnim(); setScheduled(scheduleBlocks(remaining, pomodoro, breakTime, from)); }
   };
 
   const onDragStart = i => setDragging(i);
-  const onDragOver = (e, i) => { e.preventDefault(); setDragOver(i); };
-  const onDrop = i => {
+  const onDragOver  = (e, i) => { e.preventDefault(); setDragOver(i); };
+  const onDrop      = i => {
     if (dragging === null || dragging === i) return;
     const t = [...tasks]; const [moved] = t.splice(dragging, 1); t.splice(i, 0, moved);
     setTasks(t); setDragging(null); setDragOver(null); setScheduled(null);
   };
-  const onDragEnd = () => { setDragging(null); setDragOver(null); };
+  const onDragEnd   = () => { setDragging(null); setDragOver(null); };
 
   const run = (from = WARMUP_END) => {
     if (tasks.length === 0) return;
@@ -225,21 +377,24 @@ function App() {
   const triggerAnim = () => { setRescheduleAnim(true); setTimeout(() => setRescheduleAnim(false), 600); };
 
   const totalSlotMin = DAY_END - WARMUP_START;
-  const pct = m => ((m - WARMUP_START) / totalSlotMin) * 100;
+  const pct    = m => ((m - WARMUP_START) / totalSlotMin) * 100;
   const nowPct = pct(Math.min(Math.max(currentTime, WARMUP_START), DAY_END));
 
   const getBlockStyle = b => {
-    if (b.type === "task") return { background: b.bg, border: `2px solid ${b.border}` };
+    if (b.type === "task")   return { background: b.bg, border: `2px solid ${b.border}` };
     if (b.type === "warmup") return { background: "#fef9c3", border: "2px solid #fde047" };
-    if (b.type === "lunch") return { background: "#dcfce7", border: "2px solid #86efac" };
+    if (b.type === "lunch")  return { background: "#dcfce7", border: "2px solid #86efac" };
     return { background: "#e0f2fe", border: "2px solid #7dd3fc" };
   };
   const getTextColor = b => {
-    if (b.type === "task") return b.color;
+    if (b.type === "task")   return b.color;
     if (b.type === "warmup") return "#a16207";
-    if (b.type === "lunch") return "#166534";
+    if (b.type === "lunch")  return "#166534";
     return "#0369a1";
   };
+
+  const showInbox     = inbox.length > 0 && inboxVisible;
+  const showCarryover = carryover.length > 0 && carryoverVisible;
 
   return (
     <div style={{ minHeight: "100vh", background: "linear-gradient(160deg,#fff5fb 0%,#f0f4ff 55%,#f5fff8 100%)", fontFamily: "'Nunito',sans-serif", padding: "2rem 1rem" }}>
@@ -261,6 +416,9 @@ function App() {
         .check-btn:hover{transform:scale(1.15)}
         .del-btn{cursor:pointer;background:none;border:none;opacity:.35;font-size:1rem;padding:0 .2rem;transition:opacity .15s}
         .del-btn:hover{opacity:.85}
+        .carry-btn{cursor:pointer;background:none;border:none;opacity:.3;font-size:.85rem;padding:0 .2rem;transition:opacity .15s;line-height:1}
+        .carry-btn:hover{opacity:.9}
+        .carry-btn.marked{opacity:1;color:#7c3aed}
       `}</style>
 
       <div style={{ maxWidth: 680, margin: "0 auto" }}>
@@ -270,6 +428,26 @@ function App() {
           <h1 style={{ fontFamily: "'Pacifico',cursive", fontSize: "2.2rem", margin: "0 0 .3rem", background: "linear-gradient(90deg,#f472b6,#818cf8,#34d399)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>今日もがんばろ〜</h1>
           <p style={{ color: "#c0b0d8", fontSize: ".82rem", margin: 0, fontWeight: 600 }}>9:00–17:00 ちょろっとスケジューラー ✨</p>
         </div>
+
+        {/* ── インボックスバナー ── */}
+        {showInbox && (
+          <InboxBanner
+            inbox={inbox}
+            onAddAll={() => addFromInbox(inbox)}
+            onAddOne={t => addFromInbox([t])}
+            onDismiss={() => setInboxVisible(false)}
+          />
+        )}
+
+        {/* ── 持ち越しバナー ── */}
+        {showCarryover && (
+          <CarryoverBanner
+            carryover={carryover}
+            onAddAll={() => addFromCarryover(carryover)}
+            onAddOne={t => addFromCarryover([t])}
+            onDismiss={() => setCarryoverVisible(false)}
+          />
+        )}
 
         {/* 設定 */}
         <div className="card" style={{ display: "flex", gap: "1.5rem", alignItems: "center", flexWrap: "wrap", padding: "1rem 1.5rem" }}>
@@ -293,7 +471,6 @@ function App() {
         {/* 入力 */}
         <div className="card">
           <div style={{ display: "flex", flexDirection: "column", gap: ".6rem" }}>
-            {/* 1行目：タスク名 */}
             <input
               style={{ width: "100%", fontFamily: "'Nunito',sans-serif", background: "#faf5ff", border: "2.5px solid #e5d4f5", borderRadius: 14, padding: ".55rem 1rem", fontSize: ".95rem", fontWeight: 700, color: "#3b1d6e", outline: "none" }}
               placeholder="タスク名…" value={name}
@@ -302,7 +479,6 @@ function App() {
               onFocus={e => e.target.style.borderColor = "#a78bfa"}
               onBlur={e => e.target.style.borderColor = "#e5d4f5"}
             />
-            {/* 2行目：時間＋追加ボタン（折り返しなし） */}
             <div style={{ display: "flex", gap: ".5rem", alignItems: "center" }}>
               <input className="ni" placeholder="0" type="number" min="0" value={hours} onChange={e => setHours(e.target.value)} onKeyDown={e => e.key === "Enter" && addTask()} style={{ width: 52 }} />
               <span style={{ color: "#c0a8e8", fontWeight: 800, fontSize: ".8rem" }}>h</span>
@@ -316,13 +492,13 @@ function App() {
         {/* タスクリスト */}
         {tasks.length > 0 && (
           <div className="card">
-            {/* インライントースト */}
             {toast && (
               <InlineToast task={toast.task} onUndo={undoRemove} onDismiss={() => setToast(null)} />
             )}
-            <div style={{ fontSize: ".75rem", color: "#c0b0d8", fontWeight: 700, marginBottom: ".6rem" }}>↕ ドラッグで順番変更 · ✓ で完了トグル</div>
+            <div style={{ fontSize: ".75rem", color: "#c0b0d8", fontWeight: 700, marginBottom: ".6rem" }}>↕ ドラッグで順番変更 · ✓ で完了トグル · 🌙 で明日に持ち越す</div>
             {tasks.map((t, i) => {
-              const done = completedNames.has(t.name);
+              const done    = completedNames.has(t.name);
+              const marked  = carryMarked.has(t.name);
               return (
                 <div key={i}
                   className={dragOver === i && dragging !== i ? "drag-over" : ""}
@@ -350,6 +526,14 @@ function App() {
                   <span style={{ fontSize: ".8rem", color: done ? "#bbb" : t.color, opacity: .7, fontWeight: 700 }}>
                     {t.minutes >= 60 ? `${Math.floor(t.minutes / 60)}h${t.minutes % 60 > 0 ? `${t.minutes % 60}m` : ""}` : `${t.minutes}m`}
                   </span>
+                  {/* 持ち越しボタン */}
+                  {!done && (
+                    <button
+                      className={`carry-btn${marked ? " marked" : ""}`}
+                      onClick={() => markAsCarryover(t.name, t.minutes)}
+                      title={marked ? "持ち越し済み" : "明日に持ち越す"}
+                    >{marked ? "🌙✓" : "🌙"}</button>
+                  )}
                   <button className="del-btn" onClick={() => removeTask(i)} style={{ color: done ? "#bbb" : t.color }}>✕</button>
                 </div>
               );
@@ -390,7 +574,7 @@ function App() {
               </div>
               <div style={{ position: "relative", height: 40, background: "#f5f3ff", borderRadius: 14, overflow: "visible" }}>
                 {scheduled.timeline.map((b, i) => {
-                  const left = pct(b.start);
+                  const left  = pct(b.start);
                   const width = Math.max(pct(b.end) - left, 0.3);
                   return (
                     <div key={i} title={`${minutesToHHMM(b.start)}–${minutesToHHMM(b.end)} ${b.label}`}
@@ -412,7 +596,7 @@ function App() {
               {scheduled.timeline.map((b, i) => {
                 const isTask = b.type === "task";
                 const isPast = b.end <= currentTime;
-                const done = isTask && completedNames.has(b.taskName);
+                const done   = isTask && completedNames.has(b.taskName);
                 return (
                   <div key={i} style={{ display: "flex", alignItems: "center", gap: ".6rem", padding: ".45rem .85rem", borderRadius: 12, ...getBlockStyle(b), opacity: (isPast || done) ? 0.4 : (isTask ? 1 : 0.65) }}>
                     <span style={{ fontSize: ".95rem" }}>{b.emoji || (b.type === "warmup" ? "☕" : b.type === "lunch" ? "🍱" : "🌿")}</span>
@@ -452,15 +636,31 @@ function App() {
                   <div style={{ display: "flex", alignItems: "center", gap: ".6rem", marginBottom: ".7rem" }}>
                     <span style={{ fontSize: "1.4rem" }}>😅</span>
                     <span style={{ fontWeight: 800, color: "#e11d48" }}>今日は無理リスト</span>
+                    <span style={{ fontSize: ".72rem", color: "#fda4af", marginLeft: "auto", fontWeight: 700 }}>🌙 で明日に持ち越す</span>
                   </div>
-                  {scheduled.overflow.map((t, i) => (
-                    <div key={i} style={{ display: "flex", alignItems: "center", gap: ".5rem", background: t.bg, border: `1.5px solid ${t.border}`, borderRadius: 10, padding: ".4rem .75rem", marginBottom: ".3rem" }}>
-                      <span>{t.emoji}</span>
-                      <span style={{ fontWeight: 800, color: t.color, flex: 1, fontSize: ".85rem" }}>{t.name}</span>
-                      <span style={{ fontSize: ".75rem", color: t.color, opacity: .7, fontWeight: 700 }}>{t.minutes}min</span>
-                    </div>
-                  ))}
-                  <div style={{ fontSize: ".74rem", color: "#fda4af", marginTop: ".6rem", fontWeight: 700 }}>明日でいいや〜🌙</div>
+                  {scheduled.overflow.map((t, i) => {
+                    const oMarked = carryMarked.has(t.name);
+                    return (
+                      <div key={i} style={{ display: "flex", alignItems: "center", gap: ".5rem", background: t.bg, border: `1.5px solid ${t.border}`, borderRadius: 10, padding: ".4rem .75rem", marginBottom: ".3rem" }}>
+                        <span>{t.emoji}</span>
+                        <span style={{ fontWeight: 800, color: t.color, flex: 1, fontSize: ".85rem" }}>{t.name}</span>
+                        <span style={{ fontSize: ".75rem", color: t.color, opacity: .7, fontWeight: 700 }}>{t.minutes}min</span>
+                        <button
+                          onClick={() => markAsCarryover(t.name, t.minutes)}
+                          style={{
+                            cursor: "pointer", border: "none", borderRadius: 12,
+                            background: oMarked ? "#f5f3ff" : "rgba(124,58,237,.1)",
+                            color: oMarked ? "#7c3aed" : t.color,
+                            fontFamily: "'Nunito',sans-serif", fontWeight: 800,
+                            fontSize: ".72rem", padding: ".25rem .65rem",
+                            opacity: oMarked ? 1 : 0.75,
+                            transition: "all .15s",
+                          }}
+                          title={oMarked ? "持ち越し済み" : "明日に持ち越す"}
+                        >{oMarked ? "🌙 持ち越し済み" : "🌙 持ち越す"}</button>
+                      </div>
+                    );
+                  })}
                 </div>
               )}
             </div>
@@ -470,7 +670,6 @@ function App() {
     </div>
   );
 }
-
 
 ReactDOM.createRoot(document.getElementById('root')).render(<App />);
 </script>
