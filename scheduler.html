@@ -22,6 +22,7 @@ const DAY_END          = 17 * 60;
 const TOAST_DURATION   = 4000;
 const INBOX_KEY        = 'yakata_scheduler_inbox';
 const CARRY_KEY        = 'yakata_carryover';
+const SESSION_KEY      = 'yakata_scheduler_session';
 
 function minutesToHHMM(m) {
   return `${String(Math.floor(m / 60)).padStart(2, "0")}:${String(m % 60).padStart(2, "0")}`;
@@ -241,6 +242,9 @@ function App() {
   const [carryover, setCarryover]           = useState([]);
   const [carryoverVisible, setCarryoverVisible] = useState(true);
   const [carryMarked, setCarryMarked]       = useState(new Set()); // task names marked this session
+  const [carryModal, setCarryModal]         = useState(null); // { taskName, minutes }
+  const [carryModalMins, setCarryModalMins] = useState("");
+  const [copyDone, setCopyDone]             = useState(false);
 
   const pomodoro  = Math.max(parseInt(pomodoroRaw) || 1, 1);
   const breakTime = Math.max(parseInt(breakRaw) || 0, 0);
@@ -253,6 +257,18 @@ function App() {
 
   // ── LocalStorage から持ち越し・受信タスクを読み込む ──
   useEffect(() => {
+    // セッション復元（当日分のみ）
+    const session = JSON.parse(localStorage.getItem(SESSION_KEY) || 'null');
+    if (session && session.date === todayStr()) {
+      if (session.tasks && session.tasks.length > 0) {
+        setTasks(session.tasks);
+        setPalIdx(session.palIdx ?? session.tasks.length);
+        setEmojiIdx(session.emojiIdx ?? session.tasks.length);
+      }
+      if (session.completedNames) setCompletedNames(new Set(session.completedNames));
+      if (session.scheduled) setScheduled(session.scheduled);
+    }
+
     const inboxData = JSON.parse(localStorage.getItem(INBOX_KEY) || '[]');
     if (inboxData.length > 0) setInbox(inboxData);
 
@@ -261,6 +277,19 @@ function App() {
     const prev = carryData.filter(t => t.carryoverDate < today);
     if (prev.length > 0) setCarryover(prev);
   }, []);
+
+  // ── セッション保存（当日中ページを閉じても復元できるように）──
+  useEffect(() => {
+    if (tasks.length === 0 && completedNames.size === 0) return;
+    localStorage.setItem(SESSION_KEY, JSON.stringify({
+      date: todayStr(),
+      tasks,
+      completedNames: [...completedNames],
+      palIdx,
+      emojiIdx,
+      scheduled,
+    }));
+  }, [tasks, completedNames, scheduled, palIdx, emojiIdx]);
 
   // ── タスクをリストに追加する共通処理 ──
   const addTasksToList = (tasksToAdd, currentPalIdx, currentEmojiIdx) => {
@@ -308,6 +337,31 @@ function App() {
       localStorage.setItem(CARRY_KEY, JSON.stringify(existing));
     }
     setCarryMarked(prev => new Set([...prev, taskName]));
+  };
+
+  // ── 持ち越しモーダル ──
+  const openCarryModal = (taskName, minutes) => {
+    setCarryModal({ taskName, minutes });
+    setCarryModalMins(String(minutes));
+  };
+  const closeCarryModal = () => { setCarryModal(null); setCarryModalMins(""); };
+  const confirmCarryModal = () => {
+    if (!carryModal) return;
+    const m = Math.max(parseInt(carryModalMins) || 1, 1);
+    markAsCarryover(carryModal.taskName, m);
+    closeCarryModal();
+  };
+
+  // ── 完了タスク報告コピー ──
+  const copyReport = () => {
+    const text = tasks
+      .filter(t => completedNames.has(t.name))
+      .map(t => t.name.replace(' / ', ''))
+      .join('、');
+    navigator.clipboard.writeText(text).then(() => {
+      setCopyDone(true);
+      setTimeout(() => setCopyDone(false), 2000);
+    });
   };
 
   // ── 既存タスク操作 ──
@@ -530,7 +584,7 @@ function App() {
                   {!done && (
                     <button
                       className={`carry-btn${marked ? " marked" : ""}`}
-                      onClick={() => markAsCarryover(t.name, t.minutes)}
+                      onClick={() => openCarryModal(t.name, t.minutes)}
                       title={marked ? "持ち越し済み" : "明日に持ち越す"}
                     >{marked ? "🌙✓" : "🌙"}</button>
                   )}
@@ -538,8 +592,19 @@ function App() {
                 </div>
               );
             })}
-            <div style={{ fontSize: ".75rem", color: "#c0b0d8", textAlign: "right", marginTop: ".4rem", fontWeight: 700 }}>
-              {completedNames.size > 0 && <span style={{ color: "#34d399", marginRight: ".75rem" }}>✓ {completedNames.size}個完了！</span>}
+            <div style={{ fontSize: ".75rem", color: "#c0b0d8", marginTop: ".4rem", fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "flex-end", gap: ".5rem", flexWrap: "wrap" }}>
+              {completedNames.size > 0 && (
+                <>
+                  <span style={{ color: "#34d399" }}>✓ {completedNames.size}個完了！</span>
+                  <button onClick={copyReport} style={{
+                    cursor: "pointer", border: "none", borderRadius: 20,
+                    background: copyDone ? "#d1fae5" : "linear-gradient(135deg,#34d399,#60a5fa)",
+                    color: copyDone ? "#16a34a" : "#fff",
+                    fontFamily: "'Nunito',sans-serif", fontWeight: 800,
+                    fontSize: ".7rem", padding: ".2rem .75rem", transition: "all .2s",
+                  }}>{copyDone ? "✓ コピー済" : "📋 報告コピー"}</button>
+                </>
+              )}
               残り {tasks.filter(t => !completedNames.has(t.name)).reduce((s, t) => s + t.minutes, 0)} 分
             </div>
           </div>
@@ -646,7 +711,7 @@ function App() {
                         <span style={{ fontWeight: 800, color: t.color, flex: 1, fontSize: ".85rem" }}>{t.name}</span>
                         <span style={{ fontSize: ".75rem", color: t.color, opacity: .7, fontWeight: 700 }}>{t.minutes}min</span>
                         <button
-                          onClick={() => markAsCarryover(t.name, t.minutes)}
+                          onClick={() => openCarryModal(t.name, t.minutes)}
                           style={{
                             cursor: "pointer", border: "none", borderRadius: 12,
                             background: oMarked ? "#f5f3ff" : "rgba(124,58,237,.1)",
@@ -667,6 +732,50 @@ function App() {
           </div>
         )}
       </div>
+
+      {/* ── 持ち越しモーダル ── */}
+      {carryModal && (
+        <div style={{
+          position: "fixed", inset: 0, background: "rgba(0,0,0,0.35)",
+          display: "flex", alignItems: "center", justifyContent: "center", zIndex: 999,
+        }} onClick={closeCarryModal}>
+          <div style={{
+            background: "#fff", borderRadius: 20, padding: "1.5rem 1.75rem",
+            minWidth: 280, boxShadow: "0 8px 40px rgba(124,58,237,.25)",
+            border: "2px solid #e5d4f5", fontFamily: "'Nunito',sans-serif",
+          }} onClick={e => e.stopPropagation()}>
+            <div style={{ fontSize: "1.4rem", textAlign: "center", marginBottom: ".5rem" }}>🌙</div>
+            <div style={{ fontWeight: 800, color: "#5b21b6", fontSize: ".95rem", marginBottom: "1rem", textAlign: "center" }}>
+              「{carryModal.taskName}」を持ち越す
+            </div>
+            <label style={{ display: "block", fontSize: ".82rem", color: "#7c3aed", fontWeight: 700, marginBottom: ".4rem" }}>
+              明日の見積もり時間（分）
+            </label>
+            <input
+              className="ni"
+              type="number" min="1" value={carryModalMins}
+              onChange={e => setCarryModalMins(e.target.value)}
+              onKeyDown={e => { if (e.key === "Enter") confirmCarryModal(); if (e.key === "Escape") closeCarryModal(); }}
+              style={{ width: "100%", marginBottom: "1rem", fontSize: ".95rem", padding: ".5rem .75rem" }}
+              autoFocus
+            />
+            <div style={{ display: "flex", gap: ".75rem", justifyContent: "flex-end" }}>
+              <button onClick={closeCarryModal} style={{
+                cursor: "pointer", border: "1.5px solid #e5d4f5", background: "#faf5ff",
+                borderRadius: 20, padding: ".45rem 1.2rem", fontFamily: "'Nunito',sans-serif",
+                fontWeight: 800, fontSize: ".85rem", color: "#a78bfa",
+              }}>キャンセル</button>
+              <button onClick={confirmCarryModal} style={{
+                cursor: "pointer", border: "none", borderRadius: 20,
+                background: "linear-gradient(135deg,#7c3aed,#a78bfa)",
+                color: "#fff", padding: ".45rem 1.4rem",
+                fontFamily: "'Nunito',sans-serif", fontWeight: 800, fontSize: ".85rem",
+                boxShadow: "0 4px 16px rgba(124,58,237,.3)",
+              }}>🌙 持ち越す</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
