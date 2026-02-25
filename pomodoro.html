@@ -124,6 +124,44 @@ body { min-height: 100vh; overflow: auto; font-family: 'Zen Kaku Gothic New', sa
   opacity: 0.5;
   color: #808090;
 }
+#chime-control {
+  margin-top: 16px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+#chime-label {
+  font-size: 0.65rem;
+  color: rgba(128,128,144,0.5);
+}
+.chime-btn {
+  background: transparent;
+  border: 1px solid rgba(255,107,107,0.2);
+  color: rgba(255,107,107,0.45);
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-family: 'Zen Kaku Gothic New', sans-serif;
+  font-size: 0.7rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  letter-spacing: 0.05em;
+}
+.chime-btn:hover {
+  border-color: rgba(255,107,107,0.6);
+  color: rgba(255,107,107,0.8);
+}
+.chime-btn.active {
+  border-color: rgba(255,107,107,0.75);
+  color: #ff6b6b;
+  background: rgba(255,107,107,0.08);
+}
+.chime-btn.off-btn.active {
+  border-color: rgba(128,128,144,0.35);
+  color: rgba(128,128,144,0.55);
+  background: transparent;
+}
 </style>
 </head>
 <body>
@@ -158,6 +196,13 @@ body { min-height: 100vh; overflow: auto; font-family: 'Zen Kaku Gothic New', sa
     </div>
     <div id="current-time-wrap">
       現在時刻: <span id="current-time">00:00:00</span>
+    </div>
+    <div id="chime-control">
+      <span id="chime-label">🔔</span>
+      <button class="chime-btn active" onclick="setChime('poon')">ポーン</button>
+      <button class="chime-btn" onclick="setChime('chime')">チャイム</button>
+      <button class="chime-btn" onclick="setChime('pinpon')">ピンポン</button>
+      <button class="chime-btn off-btn" onclick="setChime('off')">OFF</button>
     </div>
   </div>
 </div>
@@ -220,7 +265,85 @@ function updateDisplay() {
   document.getElementById('current-time').textContent = new Date().toLocaleTimeString('ja-JP', { hour12: false });
 }
 
-setInterval(updateDisplay, 1000);
+// === チャイム機能 ===
+let audioCtx = null;
+let chimeMode = 'poon';
+let lastChimePlayed = '';
+
+function getAudioCtx() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+  return audioCtx;
+}
+
+function playTone(ctx, freq, startTime, duration, vol) {
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+  osc.type = 'sine';
+  osc.frequency.value = freq;
+  osc.connect(gain);
+  gain.connect(ctx.destination);
+  gain.gain.setValueAtTime(0, startTime);
+  gain.gain.linearRampToValueAtTime(vol, startTime + 0.01);
+  gain.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
+  osc.start(startTime); osc.stop(startTime + duration);
+
+  // ベルらしさを出す倍音
+  const osc2 = ctx.createOscillator();
+  const gain2 = ctx.createGain();
+  osc2.type = 'sine';
+  osc2.frequency.value = freq * 2.756;
+  osc2.connect(gain2);
+  gain2.connect(ctx.destination);
+  gain2.gain.setValueAtTime(0, startTime);
+  gain2.gain.linearRampToValueAtTime(vol * 0.35, startTime + 0.01);
+  gain2.gain.exponentialRampToValueAtTime(0.001, startTime + duration * 0.5);
+  osc2.start(startTime); osc2.stop(startTime + duration);
+}
+
+function playPoon() {
+  const ctx = getAudioCtx();
+  playTone(ctx, 523.25, ctx.currentTime, 3.5, 0.45);
+}
+
+function playChimeMelody(isNoon) {
+  const ctx = getAudioCtx();
+  const notes = isNoon
+    ? [523.25, 659.25, 783.99, 1046.5]   // C5→E5→G5→C6 上昇
+    : [783.99, 659.25, 523.25, 392.00];   // G5→E5→C5→G4 下降
+  notes.forEach((freq, i) => playTone(ctx, freq, ctx.currentTime + i * 0.45, 1.8, 0.3));
+}
+
+function playPinpon(isNoon) {
+  const ctx = getAudioCtx();
+  const [f1, f2] = isNoon ? [880, 659.25] : [523.25, 783.99];
+  playTone(ctx, f1, ctx.currentTime, 0.9, 0.38);
+  playTone(ctx, f2, ctx.currentTime + 0.38, 0.9, 0.38);
+}
+
+function setChime(mode) {
+  chimeMode = mode;
+  document.querySelectorAll('.chime-btn').forEach(btn => btn.classList.remove('active'));
+  const idx = { poon: 0, chime: 1, pinpon: 2, off: 3 }[mode];
+  document.querySelectorAll('.chime-btn')[idx].classList.add('active');
+  if (mode !== 'off') getAudioCtx(); // ユーザー操作でAudioContext初期化
+}
+
+function checkChime() {
+  if (chimeMode === 'off') return;
+  const now = new Date();
+  const h = now.getHours(), m = now.getMinutes(), s = now.getSeconds();
+  if (s !== 0 || m !== 0 || (h !== 12 && h !== 17)) return;
+  const key = `${h}:00`;
+  if (lastChimePlayed === key) return;
+  lastChimePlayed = key;
+  const isNoon = h === 12;
+  if (chimeMode === 'poon') playPoon();
+  else if (chimeMode === 'chime') playChimeMelody(isNoon);
+  else if (chimeMode === 'pinpon') playPinpon(isNoon);
+}
+
+setInterval(() => { updateDisplay(); checkChime(); }, 1000);
 updateDisplay();
 </script>
 </body>
