@@ -15,6 +15,14 @@ body { min-height: 100vh; overflow: auto; font-family: 'Zen Kaku Gothic New', sa
   letter-spacing: 0.1em; transition: color 0.2s;
 }
 .back-link:hover { color: #ff6b6b; }
+#settings-btn {
+  position: fixed; top: 16px; right: 16px; z-index: 100;
+  background: transparent; border: none;
+  color: rgba(255,107,107,0.45); font-size: 0.75rem;
+  cursor: pointer; letter-spacing: 0.08em; transition: color 0.2s;
+  font-family: 'Zen Kaku Gothic New', sans-serif; padding: 0;
+}
+#settings-btn:hover { color: #ff6b6b; }
 .timer-display {
   font-family: 'Orbitron', monospace;
   text-shadow: 0 0 30px currentColor, 0 0 60px currentColor;
@@ -28,144 +36,114 @@ body { min-height: 100vh; overflow: auto; font-family: 'Zen Kaku Gothic New', sa
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
 }
-.rotate-slow { animation: rotate 60s linear infinite; }
 .progress-ring { transition: stroke-dashoffset 1s linear; }
 
 #app-container {
-  min-height: 100vh;
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 64px 32px 32px;
-  position: relative;
+  min-height: 100vh; width: 100%;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 64px 32px 32px; position: relative;
   overflow: hidden;
   background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%);
 }
-.bg-deco {
-  position: absolute;
-  inset: 0;
-  overflow: hidden;
-  pointer-events: none;
-}
+.bg-deco { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
 .bg-circle-1 {
-  position: absolute;
-  top: 25%;
-  left: 25%;
-  width: 384px;
-  height: 384px;
-  border-radius: 50%;
-  opacity: 0.1;
+  position: absolute; top: 25%; left: 25%;
+  width: 384px; height: 384px; border-radius: 50%; opacity: 0.1;
   animation: rotate 60s linear infinite;
   background: radial-gradient(circle, #ff6b6b 0%, transparent 70%);
 }
 .bg-circle-2 {
-  position: absolute;
-  bottom: 25%;
-  right: 25%;
-  width: 320px;
-  height: 320px;
-  border-radius: 50%;
-  opacity: 0.1;
+  position: absolute; bottom: 25%; right: 25%;
+  width: 320px; height: 320px; border-radius: 50%; opacity: 0.1;
   animation: rotate 60s linear infinite reverse;
   background: radial-gradient(circle, #4ecdc4 0%, transparent 70%);
 }
-.content {
-  position: relative;
-  z-index: 10;
-  text-align: center;
-}
-#status-label {
-  font-size: 1.75rem;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  color: #ff6b6b;
-}
-.timer-wrapper {
-  position: relative;
-  display: inline-block;
-  margin: 32px 0;
-}
-.timer-svg {
-  width: 256px;
-  height: 256px;
-  transform: rotate(-90deg);
-}
+.content { position: relative; z-index: 10; text-align: center; }
+#status-label { font-size: 1.75rem; font-weight: 700; letter-spacing: 0.1em; color: #ff6b6b; }
+.timer-wrapper { position: relative; display: inline-block; margin: 32px 0; }
+.timer-svg { width: 256px; height: 256px; transform: rotate(-90deg); }
 @media (min-width: 768px) {
   .timer-svg { width: 320px; height: 320px; }
   #status-label { font-size: 2rem; }
 }
 .timer-inner {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
 }
-#timer-display {
-  font-size: 3rem;
-  font-weight: 900;
-  color: #ff6b6b;
-}
+#timer-display { font-size: 3rem; font-weight: 900; color: #ff6b6b; }
 @media (min-width: 768px) { #timer-display { font-size: 4rem; } }
-#cycle-info {
-  font-size: 0.875rem;
-  margin-top: 8px;
-  opacity: 0.6;
-  color: #e0e0e0;
-}
+#cycle-info { font-size: 0.875rem; margin-top: 8px; opacity: 0.6; color: #e0e0e0; }
 .session-info { color: #a0a0b0; }
 #completed-count { font-weight: 700; color: #4ecdc4; }
-#current-time-wrap {
-  margin-top: 32px;
-  font-size: 0.75rem;
-  opacity: 0.5;
-  color: #808090;
+#current-time-wrap { margin-top: 32px; font-size: 0.75rem; opacity: 0.5; color: #808090; }
+
+/* === 音声設定モーダル === */
+#settings-overlay {
+  display: none; position: fixed; inset: 0;
+  background: rgba(0,0,0,0.6); z-index: 200;
+  backdrop-filter: blur(2px);
 }
-#chime-control {
-  margin-top: 16px;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  flex-wrap: wrap;
-  justify-content: center;
+#settings-panel {
+  display: none; position: fixed;
+  top: 50%; left: 50%; transform: translate(-50%, -50%);
+  z-index: 300; background: #0f0f23;
+  border: 1px solid rgba(255,107,107,0.2); border-radius: 16px;
+  padding: 24px; width: min(360px, 90vw);
+  box-shadow: 0 0 60px rgba(255,107,107,0.08), 0 20px 60px rgba(0,0,0,0.5);
 }
-#chime-label {
-  font-size: 0.65rem;
-  color: rgba(128,128,144,0.5);
+.settings-header {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 20px;
 }
-.chime-btn {
-  background: transparent;
-  border: 1px solid rgba(255,107,107,0.2);
-  color: rgba(255,107,107,0.45);
-  padding: 4px 12px;
-  border-radius: 20px;
-  font-family: 'Zen Kaku Gothic New', sans-serif;
-  font-size: 0.7rem;
-  cursor: pointer;
-  transition: all 0.2s;
-  letter-spacing: 0.05em;
+.settings-header > span { font-size: 0.85rem; color: rgba(255,107,107,0.75); letter-spacing: 0.1em; }
+.settings-close {
+  background: transparent; border: none; color: rgba(128,128,144,0.5);
+  font-size: 1.3rem; cursor: pointer; padding: 0; line-height: 1; transition: color 0.2s;
 }
-.chime-btn:hover {
-  border-color: rgba(255,107,107,0.6);
-  color: rgba(255,107,107,0.8);
+.settings-close:hover { color: rgba(255,107,107,0.8); }
+.settings-section { border-top: 1px solid rgba(255,255,255,0.05); padding-top: 16px; margin-top: 16px; }
+.settings-section-title { font-size: 0.72rem; color: rgba(200,200,220,0.65); margin-bottom: 10px; letter-spacing: 0.1em; }
+.settings-desc { font-size: 0.63rem; color: rgba(128,128,144,0.45); margin-top: 2px; }
+.settings-row-space { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.sound-type-row { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.time-chime-row { display: flex; align-items: center; gap: 8px; }
+.sound-type-btn {
+  background: transparent; border: 1px solid rgba(255,107,107,0.2);
+  color: rgba(255,107,107,0.45); padding: 4px 12px; border-radius: 20px;
+  font-family: 'Zen Kaku Gothic New', sans-serif; font-size: 0.7rem;
+  cursor: pointer; transition: all 0.2s; letter-spacing: 0.05em;
 }
-.chime-btn.active {
-  border-color: rgba(255,107,107,0.75);
-  color: #ff6b6b;
-  background: rgba(255,107,107,0.08);
+.sound-type-btn:hover { border-color: rgba(255,107,107,0.6); color: rgba(255,107,107,0.8); }
+.sound-type-btn.active { border-color: rgba(255,107,107,0.75); color: #ff6b6b; background: rgba(255,107,107,0.08); }
+.toggle-btn {
+  background: rgba(255,107,107,0.08); border: 1px solid rgba(255,107,107,0.4);
+  color: #ff6b6b; padding: 4px 12px; border-radius: 20px;
+  font-family: 'Zen Kaku Gothic New', sans-serif; font-size: 0.7rem;
+  cursor: pointer; transition: all 0.2s; white-space: nowrap;
+  min-width: 40px; text-align: center;
 }
-.chime-btn.off-btn.active {
-  border-color: rgba(128,128,144,0.35);
-  color: rgba(128,128,144,0.55);
-  background: transparent;
+.toggle-btn.off { background: transparent; border-color: rgba(128,128,144,0.25); color: rgba(128,128,144,0.4); }
+.preview-btn {
+  background: transparent; border: 1px solid rgba(78,205,196,0.3);
+  color: rgba(78,205,196,0.55); padding: 4px 10px; border-radius: 20px;
+  font-family: 'Zen Kaku Gothic New', sans-serif; font-size: 0.7rem;
+  cursor: pointer; transition: all 0.2s; white-space: nowrap;
 }
+.preview-btn:hover { border-color: rgba(78,205,196,0.7); color: #4ecdc4; }
+.time-input {
+  background: rgba(255,255,255,0.04); border: 1px solid rgba(255,107,107,0.2);
+  color: rgba(200,200,220,0.8); padding: 4px 8px; border-radius: 8px;
+  font-family: 'Orbitron', monospace; font-size: 0.75rem; width: 100px;
+  color-scheme: dark;
+}
+.time-input:focus { outline: none; border-color: rgba(255,107,107,0.5); }
 </style>
 </head>
 <body>
 <a href="index.html" class="back-link">← もどる</a>
+<button id="settings-btn" onclick="openSettings()">⚙ 音声設定</button>
 
 <div id="app-container">
   <div class="bg-deco">
@@ -197,12 +175,48 @@ body { min-height: 100vh; overflow: auto; font-family: 'Zen Kaku Gothic New', sa
     <div id="current-time-wrap">
       現在時刻: <span id="current-time">00:00:00</span>
     </div>
-    <div id="chime-control">
-      <span id="chime-label">🔔</span>
-      <button class="chime-btn active" onclick="setChime('poon')">ポーン</button>
-      <button class="chime-btn" onclick="setChime('chime')">チャイム</button>
-      <button class="chime-btn" onclick="setChime('pinpon')">ピンポン</button>
-      <button class="chime-btn off-btn" onclick="setChime('off')">OFF</button>
+  </div>
+</div>
+
+<!-- 音声設定モーダル -->
+<div id="settings-overlay" onclick="closeSettings()"></div>
+<div id="settings-panel">
+  <div class="settings-header">
+    <span>🔊 音声設定</span>
+    <button class="settings-close" onclick="closeSettings()">×</button>
+  </div>
+
+  <div class="settings-section" style="border-top: none; padding-top: 0; margin-top: 0;">
+    <div class="settings-section-title">音の種類</div>
+    <div class="sound-type-row">
+      <button class="sound-type-btn active" id="stype-poon" onclick="setSoundType('poon')">ポーン</button>
+      <button class="sound-type-btn" id="stype-chime" onclick="setSoundType('chime')">チャイム</button>
+      <button class="sound-type-btn" id="stype-pinpon" onclick="setSoundType('pinpon')">ピンポン</button>
+      <button class="preview-btn" onclick="previewSound()">▶ 試聴</button>
+    </div>
+  </div>
+
+  <div class="settings-section">
+    <div class="settings-row-space">
+      <div>
+        <div class="settings-section-title">サイクル通知</div>
+        <div class="settings-desc">作業・休憩の切り替わりに鳴らす</div>
+      </div>
+      <button id="cycle-toggle" class="toggle-btn" onclick="toggleCycleChime()">ON</button>
+    </div>
+  </div>
+
+  <div class="settings-section">
+    <div class="settings-section-title">時刻チャイム</div>
+    <div class="time-chime-row">
+      <input type="time" id="chime0-time" class="time-input" value="12:00" onchange="onTimeChimeInput(0)">
+      <button id="chime0-toggle" class="toggle-btn" onclick="toggleTimeChime(0)">ON</button>
+      <button class="preview-btn" onclick="previewSound()">▶ 試聴</button>
+    </div>
+    <div class="time-chime-row" style="margin-top: 10px;">
+      <input type="time" id="chime1-time" class="time-input" value="17:00" onchange="onTimeChimeInput(1)">
+      <button id="chime1-toggle" class="toggle-btn" onclick="toggleTimeChime(1)">ON</button>
+      <button class="preview-btn" onclick="previewSound()">▶ 試聴</button>
     </div>
   </div>
 </div>
@@ -240,15 +254,13 @@ function formatTime(seconds) {
   return `${String(mins).padStart(2,'0')}:${String(secs).padStart(2,'0')}`;
 }
 
-function updateDisplay() {
-  const info = getCurrentPhaseInfo();
+function updateDisplay(info) {
   const primaryColor = '#ff6b6b';
   const secondaryColor = '#4ecdc4';
   const currentColor = info.isWorking ? primaryColor : secondaryColor;
-  const statusText = info.isWorking ? '作業中' : '休憩中';
 
   const statusLabel = document.getElementById('status-label');
-  statusLabel.textContent = statusText;
+  statusLabel.textContent = info.isWorking ? '作業中' : '休憩中';
   statusLabel.style.color = currentColor;
 
   const timerDisplay = document.getElementById('timer-display');
@@ -265,10 +277,15 @@ function updateDisplay() {
   document.getElementById('current-time').textContent = new Date().toLocaleTimeString('ja-JP', { hour12: false });
 }
 
-// === チャイム機能 ===
+// === 音声設定 ===
 let audioCtx = null;
-let chimeMode = 'poon';
-let lastChimePlayed = '';
+let soundType = 'poon';
+let cycleChimeEnabled = true;
+let timeChimes = [
+  { enabled: true, hour: 12, minute: 0, lastPlayed: '' },
+  { enabled: true, hour: 17, minute: 0, lastPlayed: '' }
+];
+let prevIsWorking = null;
 
 function getAudioCtx() {
   if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -301,50 +318,109 @@ function playTone(ctx, freq, startTime, duration, vol) {
   osc2.start(startTime); osc2.stop(startTime + duration);
 }
 
-function playPoon() {
-  const ctx = getAudioCtx();
+function playPoon(ctx) {
   playTone(ctx, 523.25, ctx.currentTime, 3.5, 0.45);
 }
 
-function playChimeMelody(isNoon) {
+function playChimeMelody(ctx, ascending) {
+  const t = ctx.currentTime;
+  const notes = ascending
+    ? [523.25, 659.25, 783.99, 1046.5]   // C5→E5→G5→C6
+    : [783.99, 659.25, 523.25, 392.00];   // G5→E5→C5→G4
+  notes.forEach((freq, i) => playTone(ctx, freq, t + i * 0.45, 1.8, 0.3));
+}
+
+function playPinpon(ctx, up) {
+  const t = ctx.currentTime;
+  const [f1, f2] = up ? [523.25, 783.99] : [880, 659.25];
+  playTone(ctx, f1, t, 0.9, 0.38);
+  playTone(ctx, f2, t + 0.38, 0.9, 0.38);
+}
+
+function playSound(ascending) {
   const ctx = getAudioCtx();
-  const notes = isNoon
-    ? [523.25, 659.25, 783.99, 1046.5]   // C5→E5→G5→C6 上昇
-    : [783.99, 659.25, 523.25, 392.00];   // G5→E5→C5→G4 下降
-  notes.forEach((freq, i) => playTone(ctx, freq, ctx.currentTime + i * 0.45, 1.8, 0.3));
+  if (soundType === 'poon') playPoon(ctx);
+  else if (soundType === 'chime') playChimeMelody(ctx, ascending);
+  else if (soundType === 'pinpon') playPinpon(ctx, ascending);
 }
 
-function playPinpon(isNoon) {
-  const ctx = getAudioCtx();
-  const [f1, f2] = isNoon ? [880, 659.25] : [523.25, 783.99];
-  playTone(ctx, f1, ctx.currentTime, 0.9, 0.38);
-  playTone(ctx, f2, ctx.currentTime + 0.38, 0.9, 0.38);
+// --- モーダル操作 ---
+function openSettings() {
+  getAudioCtx();
+  document.getElementById('settings-overlay').style.display = 'block';
+  document.getElementById('settings-panel').style.display = 'block';
 }
 
-function setChime(mode) {
-  chimeMode = mode;
-  document.querySelectorAll('.chime-btn').forEach(btn => btn.classList.remove('active'));
-  const idx = { poon: 0, chime: 1, pinpon: 2, off: 3 }[mode];
-  document.querySelectorAll('.chime-btn')[idx].classList.add('active');
-  if (mode !== 'off') getAudioCtx(); // ユーザー操作でAudioContext初期化
+function closeSettings() {
+  document.getElementById('settings-overlay').style.display = 'none';
+  document.getElementById('settings-panel').style.display = 'none';
 }
 
-function checkChime() {
-  if (chimeMode === 'off') return;
+function setSoundType(type) {
+  soundType = type;
+  document.querySelectorAll('.sound-type-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('stype-' + type).classList.add('active');
+}
+
+function toggleCycleChime() {
+  cycleChimeEnabled = !cycleChimeEnabled;
+  const btn = document.getElementById('cycle-toggle');
+  btn.textContent = cycleChimeEnabled ? 'ON' : 'OFF';
+  btn.classList.toggle('off', !cycleChimeEnabled);
+}
+
+function toggleTimeChime(idx) {
+  timeChimes[idx].enabled = !timeChimes[idx].enabled;
+  const btn = document.getElementById('chime' + idx + '-toggle');
+  btn.textContent = timeChimes[idx].enabled ? 'ON' : 'OFF';
+  btn.classList.toggle('off', !timeChimes[idx].enabled);
+}
+
+function onTimeChimeInput(idx) {
+  const val = document.getElementById('chime' + idx + '-time').value;
+  if (!val) return;
+  const [h, m] = val.split(':').map(Number);
+  timeChimes[idx].hour = h;
+  timeChimes[idx].minute = m;
+  timeChimes[idx].lastPlayed = ''; // 新しい時刻で再発火できるようリセット
+}
+
+function previewSound() {
+  playSound(true);
+}
+
+// --- チャイム判定 ---
+function checkCycleChime(info) {
+  if (!cycleChimeEnabled) return;
+  if (prevIsWorking === null) { prevIsWorking = info.isWorking; return; }
+  if (info.isWorking !== prevIsWorking) {
+    prevIsWorking = info.isWorking;
+    playSound(info.isWorking); // 作業開始=ascending、休憩開始=descending
+  }
+}
+
+function checkTimeChimes() {
   const now = new Date();
   const h = now.getHours(), m = now.getMinutes(), s = now.getSeconds();
-  if (s !== 0 || m !== 0 || (h !== 12 && h !== 17)) return;
-  const key = `${h}:00`;
-  if (lastChimePlayed === key) return;
-  lastChimePlayed = key;
-  const isNoon = h === 12;
-  if (chimeMode === 'poon') playPoon();
-  else if (chimeMode === 'chime') playChimeMelody(isNoon);
-  else if (chimeMode === 'pinpon') playPinpon(isNoon);
+  if (s !== 0) return;
+  timeChimes.forEach((chime, idx) => {
+    if (!chime.enabled || chime.hour !== h || chime.minute !== m) return;
+    const key = `${h}:${String(m).padStart(2, '0')}`;
+    if (chime.lastPlayed === key) return;
+    chime.lastPlayed = key;
+    playSound(true);
+  });
 }
 
-setInterval(() => { updateDisplay(); checkChime(); }, 1000);
-updateDisplay();
+function tick() {
+  const info = getCurrentPhaseInfo();
+  updateDisplay(info);
+  checkCycleChime(info);
+  checkTimeChimes();
+}
+
+setInterval(tick, 1000);
+tick();
 </script>
 </body>
 </html>
