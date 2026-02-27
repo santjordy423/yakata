@@ -4,143 +4,635 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>怠惰な雑種と王の館</title>
-<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700&family=Noto+Serif+JP:wght@300;400;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=WDXL+Lubrifont+JP+N&family=Zen+Maru+Gothic:wght@400;500;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js"></script>
 <style>
-:root { --gold: #c9a84c; --gold-light: #f0d080; --gold-dim: #7a6030; --black: #06060a; --text: #e8dcc0; }
+:root {
+  --bg: #05050a;
+  --gold: #c9a84c;
+  --gold-light: #f0d080;
+  --gold-dim: #6a5228;
+  --text: #e8dcc0;
+  --cyan: #00d4ff;
+  --cyan-dim: #0a3a4a;
+  --purple: #a06aff;
+  --purple-dim: #280e58;
+}
+
 * { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: 'Noto Serif JP', serif; background: var(--black); color: var(--text); min-height: 100vh; overflow-x: hidden; }
-body::before { content: ''; position: fixed; inset: 0; background: radial-gradient(ellipse 60% 40% at 50% 0%, #1a1408 0%, transparent 70%), repeating-linear-gradient(45deg, transparent, transparent 40px, rgba(201,168,76,0.015) 40px, rgba(201,168,76,0.015) 41px); pointer-events: none; z-index: 0; }
-.top-container { max-width: 540px; margin: 0 auto; padding: 60px 20px 80px; position: relative; z-index: 1; }
-.header { text-align: center; margin-bottom: 56px; }
-.header-icon { font-size: 2.8rem; display: block; margin-bottom: 12px; animation: float 4s ease-in-out infinite; filter: drop-shadow(0 0 16px rgba(201,168,76,0.5)); }
-@keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
-.site-label { font-family: 'Cinzel Decorative', serif; font-size: 0.7rem; letter-spacing: 0.4em; color: var(--gold-dim); text-transform: uppercase; margin-bottom: 10px; }
-h1.site-title { font-size: 1.8rem; font-weight: 600; color: var(--gold-light); letter-spacing: 0.2em; text-shadow: 0 0 30px rgba(201,168,76,0.35); margin-bottom: 10px; }
-.header-desc { font-size: 0.75rem; color: #555; letter-spacing: 0.1em; line-height: 1.8; }
-.divider { display: flex; align-items: center; gap: 12px; margin-bottom: 32px; }
-.divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: linear-gradient(90deg, transparent, var(--gold-dim), transparent); }
-.divider span { color: var(--gold); font-size: 0.65rem; letter-spacing: 0.25em; white-space: nowrap; }
-.cards { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-.card { display: block; background: #0e0d12; border: 1px solid #1e1c28; border-radius: 12px; padding: 24px 18px; text-decoration: none; color: var(--text); position: relative; overflow: hidden; transition: all 0.3s; text-align: left; }
-.card::before { content: ''; position: absolute; inset: 0; background: linear-gradient(135deg, rgba(201,168,76,0.05), transparent 60%); opacity: 0; transition: opacity 0.3s; }
-.card:hover { border-color: var(--gold-dim); transform: translateY(-3px); box-shadow: 0 8px 32px rgba(0,0,0,0.5), 0 0 20px rgba(201,168,76,0.08); }
-.card:hover::before { opacity: 1; }
-.card-icon { font-size: 2.2rem; display: block; margin-bottom: 12px; filter: drop-shadow(0 0 8px rgba(201,168,76,0.3)); line-height: 1; height: 2.6rem; }
-.card-title { font-size: 0.9rem; font-weight: 600; color: var(--gold-light); letter-spacing: 0.08em; margin-bottom: 6px; line-height: 1.4; }
-.card-desc { font-size: 0.72rem; color: #666; line-height: 1.7; letter-spacing: 0.04em; }
-.card-tag { display: inline-block; margin-top: 12px; padding: 3px 8px; border: 1px solid #2a2520; border-radius: 10px; font-size: 0.62rem; color: var(--gold-dim); letter-spacing: 0.1em; }
-.site-footer { text-align: center; margin-top: 56px; font-size: 0.65rem; color: #333; letter-spacing: 0.15em; line-height: 2; }
+
+body {
+  cursor: crosshair;
+  font-family: 'Zen Maru Gothic', 'Noto Sans JP', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ── 星空 ── */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    radial-gradient(1px 1px at  8%  6%, rgba(255,255,255,.70) 0%, transparent 100%),
+    radial-gradient(1px 1px at 22% 14%, rgba(255,255,255,.50) 0%, transparent 100%),
+    radial-gradient(1px 1px at 38%  9%, rgba(255,255,255,.60) 0%, transparent 100%),
+    radial-gradient(1px 1px at 55% 18%, rgba(255,255,255,.40) 0%, transparent 100%),
+    radial-gradient(1px 1px at 72% 11%, rgba(255,255,255,.65) 0%, transparent 100%),
+    radial-gradient(1px 1px at 88%  7%, rgba(255,255,255,.50) 0%, transparent 100%),
+    radial-gradient(1px 1px at 14% 33%, rgba(255,255,255,.30) 0%, transparent 100%),
+    radial-gradient(1px 1px at 48% 38%, rgba(255,255,255,.40) 0%, transparent 100%),
+    radial-gradient(1px 1px at 78% 28%, rgba(255,255,255,.50) 0%, transparent 100%),
+    radial-gradient(1px 1px at 33% 52%, rgba(255,255,255,.30) 0%, transparent 100%),
+    radial-gradient(1px 1px at 63% 47%, rgba(255,255,255,.35) 0%, transparent 100%),
+    radial-gradient(1px 1px at 18% 68%, rgba(255,255,255,.28) 0%, transparent 100%),
+    radial-gradient(1px 1px at 52% 72%, rgba(255,255,255,.25) 0%, transparent 100%),
+    radial-gradient(1px 1px at 84% 63%, rgba(255,255,255,.40) 0%, transparent 100%),
+    radial-gradient(1px 1px at 42% 83%, rgba(255,255,255,.30) 0%, transparent 100%),
+    radial-gradient(1px 1px at 68% 88%, rgba(255,255,255,.38) 0%, transparent 100%),
+    radial-gradient(1px 1px at 28% 92%, rgba(255,255,255,.22) 0%, transparent 100%),
+    radial-gradient(1px 1px at 91% 79%, rgba(255,255,255,.44) 0%, transparent 100%),
+    radial-gradient(1px 1px at  6% 82%, rgba(255,255,255,.28) 0%, transparent 100%),
+    radial-gradient(1px 1px at 15%  5%, rgba(255,255,255,.55) 0%, transparent 100%),
+    radial-gradient(1px 1px at 45%  3%, rgba(255,255,255,.42) 0%, transparent 100%),
+    radial-gradient(1px 1px at 75%  8%, rgba(255,255,255,.60) 0%, transparent 100%),
+    radial-gradient(1px 1px at 95% 20%, rgba(255,255,255,.35) 0%, transparent 100%),
+    radial-gradient(1px 1px at  5% 22%, rgba(255,255,255,.48) 0%, transparent 100%),
+    radial-gradient(1px 1px at 30% 17%, rgba(255,255,255,.38) 0%, transparent 100%),
+    radial-gradient(1px 1px at 62% 22%, rgba(255,255,255,.45) 0%, transparent 100%),
+    radial-gradient(1px 1px at 85% 35%, rgba(255,255,255,.32) 0%, transparent 100%),
+    radial-gradient(1px 1px at 25% 42%, rgba(255,255,255,.28) 0%, transparent 100%),
+    radial-gradient(1px 1px at 58% 35%, rgba(255,255,255,.36) 0%, transparent 100%),
+    radial-gradient(1px 1px at 92% 55%, rgba(255,255,255,.42) 0%, transparent 100%),
+    radial-gradient(1px 1px at 10% 58%, rgba(255,255,255,.26) 0%, transparent 100%),
+    radial-gradient(1px 1px at 40% 55%, rgba(255,255,255,.32) 0%, transparent 100%),
+    radial-gradient(1px 1px at 75% 52%, rgba(255,255,255,.30) 0%, transparent 100%),
+    radial-gradient(1px 1px at 20% 75%, rgba(255,255,255,.24) 0%, transparent 100%),
+    radial-gradient(1px 1px at 55% 78%, rgba(255,255,255,.28) 0%, transparent 100%),
+    radial-gradient(1px 1px at 82% 72%, rgba(255,255,255,.35) 0%, transparent 100%),
+    radial-gradient(1px 1px at 35% 88%, rgba(255,255,255,.22) 0%, transparent 100%),
+    radial-gradient(1px 1px at 70% 92%, rgba(255,255,255,.30) 0%, transparent 100%),
+    radial-gradient(1px 1px at  8% 92%, rgba(255,255,255,.20) 0%, transparent 100%),
+    radial-gradient(1px 1px at 96% 85%, rgba(255,255,255,.38) 0%, transparent 100%),
+    radial-gradient(1px 1px at 48% 25%, rgba(255,255,255,.44) 0%, transparent 100%),
+    radial-gradient(1px 1px at 16% 48%, rgba(255,255,255,.26) 0%, transparent 100%),
+    radial-gradient(1px 1px at 72% 65%, rgba(255,255,255,.32) 0%, transparent 100%),
+    radial-gradient(1px 1px at 38% 70%, rgba(255,255,255,.24) 0%, transparent 100%),
+    radial-gradient(1px 1px at 90% 30%, rgba(255,255,255,.48) 0%, transparent 100%),
+    radial-gradient(1px 1px at 12% 15%, rgba(255,255,255,.52) 0%, transparent 100%),
+    radial-gradient(1px 1px at 60% 12%, rgba(255,255,255,.46) 0%, transparent 100%),
+    radial-gradient(1.5px 1.5px at  4% 48%, rgba(0,212,255,.30)   0%, transparent 100%),
+    radial-gradient(1.5px 1.5px at 94% 42%, rgba(201,168,76,.24)  0%, transparent 100%),
+    radial-gradient(1.5px 1.5px at 50% 96%, rgba(160,106,255,.20) 0%, transparent 100%),
+    radial-gradient(2px 2px at 32%  4%, rgba(255,255,255,.55) 0%, transparent 100%),
+    radial-gradient(2px 2px at 80% 22%, rgba(201,168,76,.28)  0%, transparent 100%),
+    radial-gradient(2px 2px at 18% 88%, rgba(0,212,255,.22)   0%, transparent 100%);
+  pointer-events: none;
+  z-index: 0;
+  animation: twinkle 9s ease-in-out infinite alternate;
+}
+@keyframes twinkle { from { opacity:.65; } to { opacity:1; } }
+
+/* ── 流れ星 ── */
+@keyframes shoot {
+  0%, 1%      { opacity: 0; transform: rotate(-38deg) translateX(0); }
+  2%          { opacity: 1; }
+  6%          { opacity: 0; transform: rotate(-38deg) translateX(-700px); }
+  6.5%, 100%  { opacity: 0; transform: rotate(-38deg) translateX(0); }
+}
+.ss {
+  position: fixed;
+  width: 130px;
+  height: 1px;
+  background: linear-gradient(to right, rgba(255,255,255,1) 0%, rgba(255,255,255,.6) 25%, transparent 100%);
+  opacity: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+.ss-1 { top:  6%; right: 20%; animation: shoot 10s linear  2s infinite; }
+.ss-2 { top: 14%; right: 55%; animation: shoot 15s linear  8s infinite; }
+.ss-3 { top:  4%; right: 38%; animation: shoot 21s linear 14s infinite; }
+
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 110% 55% at 50% -8%, rgba(201,168,76,.1) 0%, transparent 58%),
+    radial-gradient(ellipse 55% 38% at   0% 105%, rgba(0,212,255,.05) 0%, transparent 50%),
+    radial-gradient(ellipse 55% 38% at 100% 105%, rgba(160,106,255,.05) 0%, transparent 50%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ── コンテナ ── */
+.top-container {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 56px 24px 100px;
+  position: relative;
+  z-index: 1;
+}
+
+/* ══════════════════════════
+   ヘッダー
+══════════════════════════ */
+.header {
+  position: relative;
+  text-align: center;
+  margin-bottom: 72px;
+  padding: 44px 20px 40px;
+  overflow: hidden;
+}
+
+/* 外枠ライン */
+.header-frame {
+  position: absolute;
+  inset: 0;
+  border: 1px solid rgba(201,168,76,.15);
+  pointer-events: none;
+}
+
+/* コーナーの十字マーク */
+.hc {
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  pointer-events: none;
+}
+.hc::before, .hc::after {
+  content: '';
+  position: absolute;
+  background: rgba(201,168,76,.55);
+}
+.hc::before { width: 1px; height: 100%; left: 50%; }
+.hc::after  { height: 1px; width: 100%; top: 50%; }
+.hc-tl { top: -1px;   left: -1px;   }
+.hc-tr { top: -1px;   right: -1px;  }
+.hc-bl { bottom: -1px; left: -1px;  }
+.hc-br { bottom: -1px; right: -1px; }
+
+/* 縦書きサイドラベル（デスクトップで使用） */
+.hsl {
+  display: none;
+  position: absolute;
+  font-family: 'Space Mono', monospace;
+  font-size: 0.48rem;
+  letter-spacing: 0.25em;
+  color: rgba(201,168,76,.28);
+  writing-mode: vertical-rl;
+  pointer-events: none;
+}
+.hsl-l { left: 7px; bottom: 16px; }
+.hsl-r { right: 7px; top: 16px; transform: rotate(180deg); }
+
+/* 斜めの装飾ライン */
+.deco-slash {
+  position: absolute;
+  left: -5%;
+  width: 110%;
+  height: 1px;
+  transform-origin: left center;
+  pointer-events: none;
+}
+.slash-1 {
+  top: 36%;
+  transform: rotate(-5.5deg);
+  background: linear-gradient(90deg, transparent 5%, rgba(0,212,255,.45) 25%, rgba(0,212,255,.45) 75%, transparent 95%);
+}
+.slash-2 {
+  top: 55%;
+  transform: rotate(-5.5deg);
+  background: linear-gradient(90deg, transparent 5%, rgba(201,168,76,.32) 25%, rgba(201,168,76,.32) 75%, transparent 95%);
+}
+
+/* ヘッダー内コンテンツ */
+.header-inner { position: relative; z-index: 1; }
+
+.header-eyebrow {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.5rem;
+  letter-spacing: 0.55em;
+  color: var(--gold-dim);
+  text-transform: uppercase;
+  margin-bottom: 18px;
+}
+
+.header-title-sub {
+  display: block;
+  font-family: 'WDXL Lubrifont JP N', serif;
+  font-size: clamp(.85rem, 2.4vw, 1rem);
+  font-weight: 800;
+  color: rgba(240,208,128,.38);
+  letter-spacing: 0.42em;
+  margin-bottom: 0;
+}
+
+h1.site-title {
+  font-family: 'WDXL Lubrifont JP N', serif;
+  font-size: clamp(4rem, 17.5vw, 8.5rem);
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  line-height: 1.0;
+  margin-bottom: 26px;
+  background: linear-gradient(
+    148deg,
+    #f5e490 0%,
+    #c9a84c 32%,
+    #50c8f0 66%,
+    #00d4ff 100%
+  );
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.header-desc {
+  font-size: 0.67rem;
+  color: #363028;
+  letter-spacing: 0.14em;
+  line-height: 2;
+}
+
+/* ══════════════════════════
+   セクションヘッダー
+══════════════════════════ */
+.section-heading {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: 52px 0 16px;
+}
+.section-heading::before,
+.section-heading::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+}
+.section-heading span {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.5rem;
+  letter-spacing: 0.42em;
+  white-space: nowrap;
+  text-transform: uppercase;
+}
+
+.section-utility .section-heading::before,
+.section-utility .section-heading::after {
+  background: linear-gradient(90deg, transparent, rgba(0,212,255,.28), transparent);
+}
+.section-utility .section-heading span {
+  color: var(--cyan);
+  text-shadow: 0 0 10px rgba(0,212,255,.55);
+}
+
+.section-fun .section-heading::before,
+.section-fun .section-heading::after {
+  background: linear-gradient(90deg, transparent, rgba(201,168,76,.28), transparent);
+}
+.section-fun .section-heading span {
+  color: var(--gold);
+  text-shadow: 0 0 10px rgba(201,168,76,.55);
+}
+
+/* ══════════════════════════
+   カードグリッド
+══════════════════════════ */
+.cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+/* カード基本 — 磨りガラス＋右上だけ丸 */
+.card {
+  display: block;
+  background: rgba(14, 12, 24, 0.50);
+  backdrop-filter: blur(16px) saturate(150%);
+  -webkit-backdrop-filter: blur(16px) saturate(150%);
+  border-radius: 0 38px 0 0;
+  padding: 20px 16px 18px;
+  text-decoration: none;
+  color: var(--text);
+  position: relative;
+  overflow: hidden;
+  transition: transform .22s, box-shadow .22s, background .22s;
+  text-align: left;
+}
+.card:hover { transform: translateY(-5px); box-shadow: 0 20px 44px rgba(0,0,0,.72); cursor: pointer; }
+
+/* 実用カード（シアン） */
+.section-utility .card { background: rgba(0, 40, 56, 0.46); }
+.section-utility .card:hover {
+  background: rgba(0, 56, 78, 0.58);
+  box-shadow: 0 20px 40px rgba(0,0,0,.65), 0 0 32px rgba(0,212,255,.10);
+}
+.section-utility .card-title { color: rgba(110,220,255,.92); }
+.section-utility .card-tag   { border-color: rgba(0,212,255,.30); color: rgba(0,212,255,.68); }
+
+/* 遊びカード（ゴールド） */
+.section-fun .card { background: rgba(42, 30, 6, 0.46); }
+.section-fun .card:hover {
+  background: rgba(60, 42, 8, 0.58);
+  box-shadow: 0 20px 40px rgba(0,0,0,.65), 0 0 32px rgba(201,168,76,.12);
+}
+.section-fun .card-title { color: rgba(240,204,100,.92); }
+.section-fun .card-tag   { border-color: rgba(201,168,76,.32); color: rgba(201,168,76,.78); }
+
+/* カード内コンテンツ */
+/* SVGアイコン：右下に大きくはみ出してカードでクリップ */
+.card-icon {
+  position: absolute;
+  right: -14px;
+  bottom: -10px;
+  width: 88px;
+  height: 88px;
+  opacity: 0.15;
+  pointer-events: none;
+  transition: opacity .22s;
+}
+.card-icon svg {
+  width: 100%;
+  height: 100%;
+  stroke-width: 1.2;
+  fill: none;
+}
+/* 絵文字アイコン（代替なし用）*/
+.card-icon-emoji {
+  position: absolute;
+  right: -8px;
+  bottom: -8px;
+  font-size: 5.5rem;
+  line-height: 1;
+  opacity: 0.16;
+  pointer-events: none;
+  filter: grayscale(88%) brightness(1.4) contrast(0.88);
+  transition: opacity .22s;
+}
+.card:hover .card-icon,
+.card:hover .card-icon-emoji { opacity: 0.28; }
+
+/* SVGカラーをテーマに合わせる */
+.section-utility .card-icon { color: rgba(0,212,255,1); }
+.section-fun     .card-icon { color: rgba(201,168,76,1); }
+
+.card-title {
+  font-family: 'WDXL Lubrifont JP N', serif;
+  font-size: .87rem;
+  font-weight: 700;
+  letter-spacing: .04em;
+  margin-bottom: 6px;
+  line-height: 1.4;
+  position: relative;
+  z-index: 1;
+}
+.card-desc {
+  font-family: 'Zen Maru Gothic', sans-serif;
+  font-size: .69rem;
+  color: #706858;
+  line-height: 1.78;
+  letter-spacing: .02em;
+  position: relative;
+  z-index: 1;
+}
+.card-tag {
+  display: inline-block;
+  margin-top: 10px;
+  padding: 2px 8px;
+  border: 1px solid;
+  border-radius: 8px;
+  font-family: 'Zen Maru Gothic', sans-serif;
+  font-size: .58rem;
+  font-weight: 500;
+  letter-spacing: .10em;
+  position: relative;
+  z-index: 1;
+}
+
+/* ── ワイドカード（横長・2列スパン） ── */
+.card-wide {
+  grid-column: span 2;
+  padding: 22px 22px 20px;
+}
+.card-wide .card-icon,
+.card-wide .card-icon-emoji {
+  width: 114px;
+  height: 114px;
+  right: -18px;
+  bottom: -14px;
+}
+.card-wide .card-icon-emoji { font-size: 7rem; }
+.card-wide .card-title { font-size: .95rem; }
+.card-wide .card-desc  { font-size: .72rem; }
+
+/* ── フッター ── */
+.site-footer {
+  text-align: center;
+  margin-top: 72px;
+  font-family: 'Space Mono', monospace;
+  font-size: .52rem;
+  color: #1e1c14;
+  letter-spacing: .22em;
+  line-height: 2.8;
+}
 .site-footer span { color: var(--gold-dim); }
+
+/* ══════════════════════════
+   PC レスポンシブ（800px以上）
+══════════════════════════ */
+@media (min-width: 800px) {
+
+  /* コンテナを広げる */
+  .top-container {
+    max-width: 1100px;
+    padding: 64px 48px 100px;
+  }
+
+  /* ヘッダー：左寄せ・より大きく */
+  .header {
+    text-align: left;
+    padding: 72px 48px 64px;
+  }
+
+  .header-eyebrow { justify-content: flex-start; }
+  .header-eyebrow::before,
+  .header-eyebrow::after { display: none; }
+
+  h1.site-title {
+    font-size: clamp(6rem, 10.5vw, 12rem);
+    letter-spacing: 0.2em;
+  }
+
+  /* 縦書きサイドラベルを表示 */
+  .hsl { display: block; }
+
+  /* スラッシュの位置調整 */
+  .slash-1 { top: 33%; }
+  .slash-2 { top: 54%; }
+
+  /* カード3列 */
+  .cards {
+    grid-template-columns: 1fr 1fr 1fr;
+  }
+
+  /* ワイドカードをリセット → 通常カードとして3列に流す */
+  .card-wide {
+    grid-column: span 1;
+    padding: 20px 16px 18px;
+  }
+  .card-wide .card-icon,
+  .card-wide .card-icon-emoji {
+    width: 88px;
+    height: 88px;
+    right: -14px;
+    bottom: -10px;
+  }
+  .card-wide .card-icon-emoji { font-size: 5.5rem; }
+  .card-wide .card-title { font-size: .87rem; }
+  .card-wide .card-desc  { font-size: .69rem; }
+
+  /* セクション間隔を少し広げる */
+  .section-heading { margin-top: 60px; }
+}
 </style>
 </head>
 <body>
+<span class="ss ss-1"></span>
+<span class="ss ss-2"></span>
+<span class="ss ss-3"></span>
 <div class="top-container">
+
+  <!-- ヘッダー -->
   <div class="header">
-    <span class="header-icon">🏛️</span>
-    <div class="site-label">My Tiny App Collection</div>
-    <h1 class="site-title">怠惰な雑種と王の館</h1>
-    <p class="header-desc">雑種のための使えるような使えないような道具集</p>
-  </div>
-  <div class="divider"><span>◆ APPS ◆</span></div>
+    <div class="header-frame"></div>
+    <span class="hc hc-tl"></span>
+    <span class="hc hc-tr"></span>
+    <span class="hc hc-bl"></span>
+    <span class="hc hc-br"></span>
+    <span class="hsl hsl-l">Yakata · Collection</span>
+    <span class="hsl hsl-r">Graphic · Typography</span>
+    <div class="deco-slash slash-1"></div>
+    <div class="deco-slash slash-2"></div>
 
-  <div class="divider"><span>実用っぽいやつ</span></div>
-  <div class="cards">
-    <a class="card" href="task-memo.html">
-      <span class="card-icon">📋</span>
-      <div class="card-title">タスクメモ</div>
-      <div class="card-desc">プロジェクト別にタスクを管理。スケジューラーに直接送れる</div>
-      <span class="card-tag">仕事</span>
-    </a>
-    <a class="card" href="pomodoro.html">
-      <span class="card-icon">🍅</span>
-      <div class="card-title">勝手にポモドーロ</div>
-      <div class="card-desc">ポモドーロタイマー、勝手にやってくれる</div>
-      <span class="card-tag">集中</span>
-    </a>
-    <a class="card" href="task-crusher.html">
-      <span class="card-icon">💥</span>
-      <div class="card-title">タスク粉砕機</div>
-      <div class="card-desc">大きなタスクを極小ステップに分解する</div>
-      <span class="card-tag">仕事</span>
-    </a>
-    <a class="card" href="scheduler.html">
-      <span class="card-icon">🌸</span>
-      <div class="card-title">ちょろっとスケジューラー</div>
-      <div class="card-desc">今日のタスクをポモドーロで自動配分、前倒しにも対応</div>
-      <span class="card-tag">仕事</span>
-    </a>
-    <a class="card" href="storage-tracker.html">
-      <span class="card-icon">📦</span>
-      <div class="card-title">保存食管理</div>
-      <div class="card-desc">非常食の賞味期限と在庫をまとめて管理する</div>
-      <span class="card-tag">備蓄</span>
-    </a>
+    <div class="header-inner">
+      <div class="header-eyebrow">My Tiny App Collection</div>
+      <span class="header-title-sub">怠惰な雑種と</span>
+      <h1 class="site-title">王の館</h1>
+      <p class="header-desc">雑種のための使えるような使えないような道具集</p>
+    </div>
   </div>
 
-  <div class="divider" style="margin-top:32px"><span>全然実用じゃないやつ</span></div>
-  <div class="cards">
-    <a class="card" href="lazy-scoreboard.html">
-      <span class="card-icon">😴</span>
-      <div class="card-title">怠惰スコアボード</div>
-      <div class="card-desc">今日のサボり具合を診断して称号をもらう</div>
-      <span class="card-tag">在宅勤務</span>
-    </a>
-    <a class="card" href="king-mood.html">
-      <span class="card-icon">👑</span>
-      <div class="card-title">王の機嫌予報</div>
-      <div class="card-desc">今日のギルガメッシュの機嫌を理不尽に占う</div>
-      <span class="card-tag">推し活</span>
-    </a>
-    <a class="card" href="book-tracker.html">
-      <span class="card-icon">📚</span>
-      <div class="card-title">王の書架</div>
-      <div class="card-desc">積読・読書中・読了を管理する。王のお言葉つき</div>
-      <span class="card-tag">読書</span>
-    </a>
-    <a class="card" href="roulette.html">
-      <span class="card-icon">🎡</span>
-      <div class="card-title">昼ごはんルーレット</div>
-      <div class="card-desc">今日のランチを運命に委ねる</div>
-      <span class="card-tag">ごはん</span>
-    </a>
-    <a class="card" href="galactic-records.html">
-      <span class="card-icon">🌌</span>
-      <div class="card-title">銀河間記録登録機構</div>
-      <div class="card-desc">地球人の知らない架空の銀河のギネス記録。創作に役立つかもしれない</div>
-      <span class="card-tag">創作</span>
-    </a>
-    <a class="card" href="space-walk.html">
-      <span class="card-icon">🚶</span>
-      <div class="card-title">宇宙散歩</div>
-      <div class="card-desc">宇宙をぼんやり歩く。流星群や宇宙人にたまに会える</div>
-      <span class="card-tag">散歩</span>
-    </a>
-    <a class="card" href="space-sound-station.html">
-      <span class="card-icon">🎛️</span>
-      <div class="card-title">宇宙音響研究所</div>
-      <div class="card-desc">8bit宇宙BGMを17パターン鳴らしたり効果音で遊んだりする</div>
-      <span class="card-tag">音楽</span>
-    </a>
-    <a class="card" href="deep-sea-studio.html">
-      <span class="card-icon">🌊</span>
-      <div class="card-title">深海音響スタジオ</div>
-      <div class="card-desc">深海アンビエントを8チャンネルでミックスして自分だけの音空間を作る</div>
-      <span class="card-tag">音楽</span>
-    </a>
-    <a class="card" href="kyou_no_zetsumetsu.html">
-      <span class="card-icon">🦕</span>
-      <div class="card-title">今日の絶滅</div>
-      <div class="card-desc">今日この日に絶滅した（ことにした）古代生物を紹介する</div>
-      <span class="card-tag">古生物</span>
-    </a>
-    <a class="card" href="mesopotamia-recipes.html">
-      <span class="card-icon">𒀭</span>
-      <div class="card-title">王の食卓</div>
-      <div class="card-desc">紀元前1700年頃の粘土板に記された世界最古のレシピ集。ギルガメッシュとエンキドゥのコメントつき</div>
-      <span class="card-tag">古代料理</span>
-    </a>
+  <!-- 実用っぽいやつ -->
+  <div class="section-utility">
+    <div class="section-heading"><span>実用っぽいやつ</span></div>
+    <div class="cards">
+      <a class="card card-wide" href="task-memo.html">
+        <span class="card-icon"><i data-lucide="clipboard-list"></i></span>
+        <div class="card-title">タスクメモ</div>
+        <div class="card-desc">プロジェクト別にタスクを管理。スケジューラーに直接送れる</div>
+        <span class="card-tag">仕事</span>
+      </a>
+      <a class="card" href="pomodoro.html">
+        <span class="card-icon"><i data-lucide="timer"></i></span>
+        <div class="card-title">勝手にポモドーロ</div>
+        <div class="card-desc">ポモドーロタイマー、勝手にやってくれる</div>
+        <span class="card-tag">集中</span>
+      </a>
+      <a class="card" href="task-crusher.html">
+        <span class="card-icon"><i data-lucide="zap"></i></span>
+        <div class="card-title">タスク粉砕機</div>
+        <div class="card-desc">大きなタスクを極小ステップに分解する</div>
+        <span class="card-tag">仕事</span>
+      </a>
+      <a class="card" href="scheduler.html">
+        <span class="card-icon"><i data-lucide="calendar-clock"></i></span>
+        <div class="card-title">ちょろっとスケジューラー</div>
+        <div class="card-desc">今日のタスクをポモドーロで自動配分、前倒しにも対応</div>
+        <span class="card-tag">仕事</span>
+      </a>
+      <a class="card" href="storage-tracker.html">
+        <span class="card-icon"><i data-lucide="package"></i></span>
+        <div class="card-title">保存食管理</div>
+        <div class="card-desc">非常食の賞味期限と在庫をまとめて管理する</div>
+        <span class="card-tag">備蓄</span>
+      </a>
+    </div>
   </div>
-  <div class="site-footer"><span>怠惰な雑種と王の館</span> — a collection of useless but necessary tools</div>
+
+  <!-- 全然実用じゃないやつ -->
+  <div class="section-fun">
+    <div class="section-heading"><span>全然実用じゃないやつ</span></div>
+    <div class="cards">
+      <a class="card" href="lazy-scoreboard.html">
+        <span class="card-icon"><i data-lucide="moon"></i></span>
+        <div class="card-title">怠惰スコアボード</div>
+        <div class="card-desc">今日のサボり具合を診断して称号をもらう</div>
+        <span class="card-tag">在宅勤務</span>
+      </a>
+      <a class="card" href="king-mood.html">
+        <span class="card-icon"><i data-lucide="crown"></i></span>
+        <div class="card-title">王の機嫌予報</div>
+        <div class="card-desc">今日のギルガメッシュの機嫌を理不尽に占う</div>
+        <span class="card-tag">推し活</span>
+      </a>
+      <a class="card card-wide" href="galactic-records.html">
+        <span class="card-icon"><i data-lucide="sparkles"></i></span>
+        <div class="card-title">銀河間記録登録機構</div>
+        <div class="card-desc">地球人の知らない架空の銀河のギネス記録。創作に役立つかもしれない</div>
+        <span class="card-tag">創作</span>
+      </a>
+      <a class="card" href="book-tracker.html">
+        <span class="card-icon"><i data-lucide="book-open"></i></span>
+        <div class="card-title">王の書架</div>
+        <div class="card-desc">積読・読書中・読了を管理する。王のお言葉つき</div>
+        <span class="card-tag">読書</span>
+      </a>
+      <a class="card" href="roulette.html">
+        <span class="card-icon"><i data-lucide="disc"></i></span>
+        <div class="card-title">昼ごはんルーレット</div>
+        <div class="card-desc">今日のランチを運命に委ねる</div>
+        <span class="card-tag">ごはん</span>
+      </a>
+      <a class="card" href="space-walk.html">
+        <span class="card-icon"><i data-lucide="orbit"></i></span>
+        <div class="card-title">宇宙散歩</div>
+        <div class="card-desc">宇宙をぼんやり歩く。流星群や宇宙人にたまに会える</div>
+        <span class="card-tag">散歩</span>
+      </a>
+      <a class="card" href="space-sound-station.html">
+        <span class="card-icon"><i data-lucide="sliders-horizontal"></i></span>
+        <div class="card-title">宇宙音響研究所</div>
+        <div class="card-desc">8bit宇宙BGMを17パターン鳴らしたり効果音で遊んだりする</div>
+        <span class="card-tag">音楽</span>
+      </a>
+      <a class="card" href="deep-sea-studio.html">
+        <span class="card-icon"><i data-lucide="waves"></i></span>
+        <div class="card-title">深海音響スタジオ</div>
+        <div class="card-desc">深海アンビエントを8チャンネルでミックスして自分だけの音空間を作る</div>
+        <span class="card-tag">音楽</span>
+      </a>
+      <a class="card" href="kyou_no_zetsumetsu.html">
+        <span class="card-icon-emoji">🦕</span>
+        <div class="card-title">今日の絶滅</div>
+        <div class="card-desc">今日この日に絶滅した（ことにした）古代生物を紹介する</div>
+        <span class="card-tag">古生物</span>
+      </a>
+      <a class="card card-wide" href="mesopotamia-recipes.html">
+        <span class="card-icon-emoji">𒀭</span>
+        <div class="card-title">王の食卓</div>
+        <div class="card-desc">紀元前1700年頃の粘土板に記された世界最古のレシピ集。ギルガメッシュとエンキドゥのコメントつき</div>
+        <span class="card-tag">古代料理</span>
+      </a>
+    </div>
+  </div>
+
+  <div class="site-footer">
+    <span>怠惰な雑種と王の館</span><br>
+    a collection of useless but necessary tools
+  </div>
 </div>
+<script>lucide.createIcons();</script>
 </body>
 </html>
