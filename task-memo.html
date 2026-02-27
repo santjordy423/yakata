@@ -103,6 +103,15 @@ body{font-family:'Noto Sans JP',sans-serif;background:#f1f5f9;color:#0f172a;heig
 .sent-badge{font-size:.66rem;color:#2563eb;background:#eff6ff;border:1px solid #bfdbfe;border-radius:4px;padding:2px 6px;white-space:nowrap;flex-shrink:0}
 .co-badge{font-size:.66rem;color:#7c3aed;background:#f5f3ff;border:1px solid #ddd6fe;border-radius:4px;padding:2px 6px;white-space:nowrap;flex-shrink:0}
 
+/* Priority */
+.task-row.pri-high{border-left:3px solid #ef4444}
+.task-row.pri-mid{border-left:3px solid #f59e0b}
+.task-row.pri-low{border-left:3px solid #22c55e}
+.pri-badge{font-size:.66rem;border-radius:4px;padding:2px 6px;white-space:nowrap;flex-shrink:0;font-weight:600}
+.pri-badge.high{color:#dc2626;background:#fee2e2;border:1px solid #fecaca}
+.pri-badge.mid{color:#d97706;background:#fffbeb;border:1px solid #fde68a}
+.pri-badge.low{color:#16a34a;background:#f0fdf4;border:1px solid #bbf7d0}
+
 /* Empty state */
 .empty{text-align:center;padding:52px 20px;color:#94a3b8}
 .empty-icon{font-size:2rem;margin-bottom:10px}
@@ -156,6 +165,11 @@ body{font-family:'Noto Sans JP',sans-serif;background:#f1f5f9;color:#0f172a;heig
           <select class="f-select" id="f-project" style="display:none"></select>
         </div>
         <div class="add-form-row2">
+          <select class="f-select" id="f-priority">
+            <option value="high">🔴 高</option>
+            <option value="mid" selected>🟡 中</option>
+            <option value="low">🟢 低</option>
+          </select>
           <div class="time-grp">
             <input type="number" id="f-h" placeholder="0" min="0" />
             <span>h</span>
@@ -252,7 +266,9 @@ function getVisible() {
 
 function renderTasks() {
   const visible = getVisible();
-  const active  = visible.filter(i => !i.completed);
+  const priOrder = { high: 0, mid: 1, low: 2 };
+  const active  = visible.filter(i => !i.completed)
+                         .sort((a, b) => priOrder[a.priority||'mid'] - priOrder[b.priority||'mid']);
   const done    = visible.filter(i => i.completed);
   const cont    = document.getElementById('task-container');
 
@@ -268,17 +284,20 @@ function renderTasks() {
 
   if (active.length > 0) {
     html += `<div class="sec-label">未完了 (${active.length})</div><div class="task-list">`;
+    const priLabel = { high: '🔴 高', mid: '🟡 中', low: '🟢 低' };
     for (const item of active) {
       const pn        = projName(item.projectId);
       const sendLabel = (selId === 'all' && pn) ? `${pn} / ${item.name}` : item.name;
       const isSent    = sentSet.has(item.id);
       const isCo      = coSet.has(item.id);
-      html += `<div class="task-row" data-id="${item.id}">
+      const pri       = item.priority || 'mid';
+      html += `<div class="task-row pri-${pri}" data-id="${item.id}">
         <div class="chk" data-chk="${item.id}"></div>
         <div class="task-name-wrap">
           <span class="task-name-text">${esc(item.name)}</span>
           ${selId === 'all' && pn ? `<span class="proj-badge">${esc(pn)}</span>` : ''}
         </div>
+        <span class="pri-badge ${pri}">${priLabel[pri]}</span>
         <span class="task-time">${fmtTime(item.minutes)}</span>
         ${isSent ? `<span class="sent-badge">📅 送信済み</span>` : ''}
         ${isCo   ? `<span class="co-badge">🌙 持ち越し済み</span>` : ''}
@@ -363,9 +382,9 @@ function renameProject(id, name) {
   const p = projects.find(p => p.id === id);
   if (p && name.trim()) { p.name = name.trim(); saveP(); render(); }
 }
-function addItem(name, minutes, projectId) {
+function addItem(name, minutes, projectId, priority) {
   if (!name.trim()) return;
-  items.push({ id: uid(), projectId, name: name.trim(), minutes: minutes || 0, completed: false, createdAt: todayStr() });
+  items.push({ id: uid(), projectId, name: name.trim(), minutes: minutes || 0, priority: priority || 'mid', completed: false, createdAt: todayStr() });
   saveI(); render();
 }
 function toggleDone(id) {
@@ -444,6 +463,7 @@ document.getElementById('open-add-btn').addEventListener('click', () => {
 function closeAddForm() {
   addForm.classList.remove('open');
   ['f-name','f-h','f-m'].forEach(id => { document.getElementById(id).value = ''; });
+  document.getElementById('f-priority').value = 'mid';
 }
 document.getElementById('cancel-add-btn').addEventListener('click', closeAddForm);
 function submitAdd() {
@@ -454,7 +474,8 @@ function submitAdd() {
   const fProj     = document.getElementById('f-project');
   const projectId = selId === 'all' ? fProj.value : selId;
   if (!projectId) { alert('プロジェクトを選択してください。'); return; }
-  addItem(name, h * 60 + m, projectId);
+  const priority  = document.getElementById('f-priority').value;
+  addItem(name, h * 60 + m, projectId, priority);
   closeAddForm();
 }
 document.getElementById('confirm-add-btn').addEventListener('click', submitAdd);
