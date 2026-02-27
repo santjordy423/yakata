@@ -59,7 +59,7 @@ input[type=range] { flex: 1; accent-color: #9b7fff; height: 6px; }
       <label>今日やらかしたこと（複数選択可）</label>
       <div class="checkboxes">
         <label><input type="checkbox" class="sin" value="15"><span>布団から出るのに1時間以上かかった</span></label>
-        <label><input type="checkbox" class="sin" value="10"><span>Twitterで溶けた</span></label>
+        <label><input type="checkbox" class="sin" value="10"><span>SNSで溶けた</span></label>
         <label><input type="checkbox" class="sin" value="12"><span>会議中に別タブ見てた</span></label>
         <label><input type="checkbox" class="sin" value="8"><span>昼ごはんが夕方だった</span></label>
         <label><input type="checkbox" class="sin" value="10"><span>予定を明日に持ち越した</span></label>
@@ -68,6 +68,26 @@ input[type=range] { flex: 1; accent-color: #9b7fff; height: 6px; }
         <label><input type="checkbox" class="sin" value="9"><span>同人活動してた（業務時間中に）</span></label>
         <label><input type="checkbox" class="sin" value="5"><span>間食が止まらなかった</span></label>
         <label><input type="checkbox" class="sin" value="20"><span>気づいたら夜だった</span></label>
+        <label><input type="checkbox" class="sin" value="13"><span>昼寝したら夕方だった</span></label>
+        <label><input type="checkbox" class="sin" value="8"><span>返信を「あとで」にしたまま忘れた</span></label>
+        <label><input type="checkbox" class="sin" value="12"><span>YouTubeのおすすめを1時間以上眺めた</span></label>
+        <label><input type="checkbox" class="sin" value="11"><span>タスクリストを整理しただけで仕事した気になった</span></label>
+        <label><input type="checkbox" class="sin" value="6"><span>既読無視した</span></label>
+        <label><input type="checkbox" class="sin" value="9"><span>デスク周りの整頓に没頭した（本来の仕事そっちのけで）</span></label>
+        <label><input type="checkbox" class="sin" value="14"><span>「あとちょっと」が3時間だった</span></label>
+        <label><input type="checkbox" class="sin" value="7"><span>脳内で上司への言い訳を練習した</span></label>
+        <label><input type="checkbox" class="sin" value="8"><span>通販サイトをBGMにした</span></label>
+        <label><input type="checkbox" class="sin" value="12"><span>業務時間中に二次創作のネタを考えた</span></label>
+        <label><input type="checkbox" class="sin" value="10"><span>今日こそやると3回以上思ったが動かなかった</span></label>
+        <label><input type="checkbox" class="sin" value="9"><span>風呂を明日に持ち越した</span></label>
+        <label><input type="checkbox" class="sin" value="7"><span>メールを開いて閉じただけだった</span></label>
+        <label><input type="checkbox" class="sin" value="5"><span>水を飲みに行くだけで10分かかった</span></label>
+        <label><input type="checkbox" class="sin" value="16"><span>業務中にゲームした</span></label>
+        <label><input type="checkbox" class="sin" value="6"><span>同じ動画を2回見た</span></label>
+        <label><input type="checkbox" class="sin" value="11"><span>「後で読む」タブが10個以上ある</span></label>
+        <label><input type="checkbox" class="sin" value="8"><span>歯を磨くのを忘れた（昼まで）</span></label>
+        <label><input type="checkbox" class="sin" value="13"><span>夜更かしのせいで午前中が使えなかった</span></label>
+        <label><input type="checkbox" class="sin" value="18"><span>仕事中に推しの動画を見た</span></label>
       </div>
       <label>今の自己評価</label>
       <div class="slider-row">
@@ -93,12 +113,16 @@ input[type=range] { flex: 1; accent-color: #9b7fff; height: 6px; }
 </div>
 <script>
 const ranks = [
-  { min:0,max:20,emoji:'💼',title:'勤勉市民',desc:'今日はちゃんとしてたんですね。\nなんか怖いですね。' },
-  { min:21,max:40,emoji:'😏',title:'小狡い社会人',desc:'上手いことやってますね。\n生き方として正しいかもしれない。' },
-  { min:41,max:60,emoji:'🛋️',title:'在宅の申し子',desc:'在宅勤務の本来の姿がここに。\nリビングはあなたのもの。' },
-  { min:61,max:80,emoji:'🌫️',title:'時間溶解者',desc:'気づいたら夕方、よくある。\n時間の概念が薄れてきている。' },
-  { min:81,max:100,emoji:'👑',title:'怠惰の賢者',desc:'これはもう才能です。\nサボることへの全力投球を感じる。' },
-  { min:101,max:999,emoji:'🌌',title:'怠惰の神',desc:'測定不能な領域に達しました。\n今日あなたは何かを超えた。' },
+  { min:0,  max:12, emoji:'💼', title:'勤勉市民',      desc:'今日はちゃんとしてたんですね。\nなんか怖いですね。本当に？' },
+  { min:13, max:25, emoji:'😏', title:'小狡い社会人',  desc:'上手いことやってますね。\n生き方として正しいかもしれない。' },
+  { min:26, max:38, emoji:'🍵', title:'緩慢な職業人',  desc:'やることはやってる、たぶん。\nお茶を3杯飲んだだけとも言える。' },
+  { min:39, max:52, emoji:'🛋️', title:'ソファ哲学者',  desc:'あなたは考えていた。\nただし横になりながら。' },
+  { min:53, max:65, emoji:'🌿', title:'在宅の申し子',  desc:'在宅勤務の本来の姿がここに。\nリビングはあなたのもの。' },
+  { min:66, max:78, emoji:'🌫️', title:'時間溶解者',    desc:'気づいたら夕方、よくある。\n時間の概念が薄れてきている。' },
+  { min:79, max:92, emoji:'🥀', title:'廃人見習い',    desc:'本格的になってきました。\n明日からがんばる、と何度目かの誓い。' },
+  { min:93, max:110,emoji:'👑', title:'怠惰の賢者',    desc:'これはもう才能です。\nサボることへの全力投球を感じる。' },
+  { min:111,max:130,emoji:'🌑', title:'虚無の住人',    desc:'存在しているのか怪しいレベル。\n今日あなたは概念だった。' },
+  { min:131,max:999,emoji:'🌌', title:'怠惰の神',      desc:'測定不能な領域に達しました。\nこれはもう修行の域です。' },
 ];
 function calcScore() {
   const work = 10 - parseInt(document.getElementById('work').value);
