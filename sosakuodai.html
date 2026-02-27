@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>創作お題ガチャ — 怠惰な雑種と王の館</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700&family=Noto+Serif+JP:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #08070f;
+  --rose: #c0607e;
+  --rose-dim: #6a3045;
+  --gold: #c9a84c;
+  --gold-dim: #6a5228;
+  --text: #e8dcc0;
+  --muted: #6a5c50;
+  --card-bg: #100e1a;
+  --border: #2a2035;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Noto Serif JP', serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background:
+    radial-gradient(ellipse 55% 35% at 50% 0%, rgba(90,20,50,.45) 0%, transparent 70%),
+    radial-gradient(ellipse 35% 25% at 90% 85%, rgba(50,15,75,.2) 0%, transparent 60%);
+  pointer-events: none; z-index: 0;
+}
+.back-btn {
+  position: fixed; top: 16px; left: 16px; z-index: 100;
+  background: rgba(8,7,15,.85); border: 1px solid var(--border);
+  color: var(--rose-dim); font-family: 'Noto Serif JP', serif;
+  font-size: .75rem; letter-spacing: .15em; padding: 7px 14px;
+  cursor: pointer; transition: all .2s; backdrop-filter: blur(4px);
+  text-decoration: none; display: inline-block;
+}
+.back-btn:hover { border-color: var(--rose); color: var(--rose); }
+
+.container {
+  max-width: 520px; margin: 0 auto;
+  padding: 72px 20px 80px; position: relative; z-index: 1;
+}
+
+/* ── ヘッダー ── */
+.header { text-align: center; margin-bottom: 44px; }
+.header-icon {
+  font-size: 1.8rem; color: var(--rose);
+  filter: drop-shadow(0 0 14px rgba(192,96,126,.55));
+  margin-bottom: 12px; display: block;
+  animation: float 4s ease-in-out infinite;
+}
+@keyframes float { 0%,100%{transform:translateY(0);}50%{transform:translateY(-7px);} }
+.header-label {
+  font-family: 'Cinzel Decorative', serif;
+  font-size: .62rem; letter-spacing: .35em;
+  color: var(--rose-dim); text-transform: uppercase; margin-bottom: 8px;
+}
+h1 {
+  font-size: 1.6rem; font-weight: 600; color: var(--text);
+  letter-spacing: .2em; margin-bottom: 8px;
+  text-shadow: 0 0 30px rgba(192,96,126,.2);
+}
+.header-sub {
+  font-size: .68rem; color: var(--muted);
+  letter-spacing: .1em; line-height: 1.9;
+}
+
+/* ── 区切り ── */
+.divider {
+  display: flex; align-items: center; gap: 12px; margin: 0 0 24px;
+}
+.divider::before, .divider::after {
+  content: ''; flex: 1; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--rose-dim), transparent);
+}
+.divider span { color: var(--rose); font-size: .58rem; letter-spacing: .3em; white-space: nowrap; }
+
+/* ── 結果グリッド ── */
+.result-grid {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 10px; margin-bottom: 16px;
+}
+.result-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 0 20px 0 0;
+  padding: 16px 14px 14px;
+  position: relative; overflow: hidden;
+  transition: border-color .3s;
+  min-height: 92px;
+}
+.result-card.cycling { border-color: rgba(192,96,126,.25); }
+.result-card.landed {
+  border-color: rgba(192,96,126,.55);
+  animation: land .32s ease-out;
+}
+@keyframes land {
+  0%  { transform: scale(.97); }
+  60% { transform: scale(1.025); }
+  100%{ transform: scale(1); }
+}
+.card-cat {
+  font-size: .54rem; letter-spacing: .28em;
+  color: var(--rose-dim); margin-bottom: 9px;
+  display: flex; align-items: center; gap: 5px;
+}
+.card-cat::before {
+  content: ''; display: inline-block;
+  width: 12px; height: 1px; background: var(--rose-dim);
+}
+.card-result {
+  font-size: .9rem; font-weight: 600;
+  color: var(--text); letter-spacing: .06em;
+  line-height: 1.55; min-height: 1.55em;
+}
+.card-result.cycling { color: #3a3040; }
+
+.reroll-btn {
+  position: absolute; top: 8px; right: 9px;
+  background: none; border: none;
+  color: var(--rose-dim); cursor: pointer;
+  font-size: .78rem; padding: 2px 4px;
+  transition: color .15s; opacity: 0;
+  font-family: inherit; line-height: 1;
+}
+.result-card:hover .reroll-btn { opacity: 1; }
+.reroll-btn:hover { color: var(--rose); }
+@media (hover: none) { .reroll-btn { opacity: .45; } }
+
+/* ── サマリー ── */
+.prompt-summary {
+  background: rgba(192,96,126,.04);
+  border: 1px solid rgba(192,96,126,.14);
+  padding: 15px 18px;
+  font-size: .8rem; color: var(--muted);
+  line-height: 2.1; letter-spacing: .05em;
+  margin-bottom: 16px; text-align: center;
+  display: none;
+}
+.prompt-summary.show { display: block; }
+.prompt-summary strong { color: var(--text); }
+
+/* ── ボタン ── */
+.gacha-btn {
+  width: 100%; padding: 16px;
+  background: transparent; border: 1px solid var(--rose-dim);
+  color: var(--rose); font-family: 'Noto Serif JP', serif;
+  font-size: .9rem; letter-spacing: .35em;
+  cursor: pointer; position: relative; overflow: hidden;
+  transition: all .3s; margin-bottom: 10px;
+}
+.gacha-btn::before {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(192,96,126,.08), transparent);
+  transform: translateX(-100%); transition: transform .5s;
+}
+.gacha-btn:hover::before { transform: translateX(100%); }
+.gacha-btn:hover { border-color: var(--rose); box-shadow: 0 0 22px rgba(192,96,126,.18); }
+.gacha-btn:disabled { opacity: .35; cursor: not-allowed; }
+
+.save-btn {
+  width: 100%; padding: 10px;
+  background: transparent; border: 1px solid var(--border);
+  color: var(--muted); font-family: 'Noto Serif JP', serif;
+  font-size: .73rem; letter-spacing: .2em;
+  cursor: pointer; transition: all .2s; display: none;
+}
+.save-btn.show { display: block; }
+.save-btn:hover { border-color: var(--gold-dim); color: var(--gold); }
+.save-btn.saved { color: var(--gold); border-color: var(--gold-dim); cursor: default; }
+
+/* ── 保存済み ── */
+.saved-section { margin-top: 44px; }
+.saved-item {
+  padding: 13px 0; border-bottom: 1px solid #14101e;
+  font-size: .75rem; color: var(--muted); line-height: 1.9;
+}
+.saved-item:last-child { border-bottom: none; }
+.saved-date { font-size: .6rem; color: #2e2838; margin-bottom: 3px; }
+.saved-text strong { color: #998880; }
+.empty-saved {
+  font-size: .73rem; color: #2a2535;
+  text-align: center; padding: 16px 0; letter-spacing: .1em;
+}
+</style>
+</head>
+<body>
+<a href="index.html" class="back-btn">← もどる</a>
+<div class="container">
+
+  <div class="header">
+    <span class="header-icon">✦</span>
+    <div class="header-label">Creative Writing Oracle</div>
+    <h1>創作お題ガチャ</h1>
+    <p class="header-sub">書けるかもしれない組み合わせが、今日もどこかにある</p>
+  </div>
+
+  <div class="divider"><span>◆ お題を引く ◆</span></div>
+
+  <div class="result-grid">
+    <div class="result-card" id="card-0">
+      <button class="reroll-btn" onclick="rerollOne(0)" title="引き直す">↺</button>
+      <div class="card-cat">主人公</div>
+      <div class="card-result" id="result-0">――</div>
+    </div>
+    <div class="result-card" id="card-1">
+      <button class="reroll-btn" onclick="rerollOne(1)" title="引き直す">↺</button>
+      <div class="card-cat">感情・状態</div>
+      <div class="card-result" id="result-1">――</div>
+    </div>
+    <div class="result-card" id="card-2">
+      <button class="reroll-btn" onclick="rerollOne(2)" title="引き直す">↺</button>
+      <div class="card-cat">場所・時</div>
+      <div class="card-result" id="result-2">――</div>
+    </div>
+    <div class="result-card" id="card-3">
+      <button class="reroll-btn" onclick="rerollOne(3)" title="引き直す">↺</button>
+      <div class="card-cat">縛り</div>
+      <div class="card-result" id="result-3">――</div>
+    </div>
+  </div>
+
+  <div class="prompt-summary" id="promptSummary"></div>
+  <button class="gacha-btn" id="gachaBtn" onclick="gacha()">✦ お題をガチャる ✦</button>
+  <button class="save-btn" id="saveBtn" onclick="savePrompt()">— このお題を保存する —</button>
+
+  <div class="saved-section">
+    <div class="divider" style="margin-top:0;margin-bottom:16px;"><span>◆ 保存したお題 ◆</span></div>
+    <div id="savedList"></div>
+  </div>
+
+</div>
+<script>
+const cats = [
+  { name:'主人公', items:[
+    '英雄王','孤独な戦士','記憶を失った者','嘘をつき続ける人',
+    '死にゆく者','かつて神だった者','王の右腕','裏切り者',
+    '名もなき民','呪われた者','最後の生き残り','愛を知らない者',
+    '復讐者','道化師','老いた英雄','二重生活を送る者',
+    '死者の声を聞く者','時間を止められた者','世界に飽きた王','迷子の子ども',
+    'ようやく帰ってきた者','長い旅を終えた者','初めて心を開いた者',
+    '奇跡を起こした人','誰かに救われた者','不器用な善人','約束を守り続けた者'
+  ]},
+  { name:'感情・状態', items:[
+    '後悔','諦め','狂おしい愛','静かな怒り','絶望の中の希望',
+    '静かな憎しみ','喪失','罪悪感','解放','孤独',
+    '嫉妬','誇り','恐怖','懐かしさ','狂気の一歩手前',
+    '伝えられなかった感謝','何も感じなくなること','初めての敗北感',
+    '名もない穏やかさ','誰かのために死ぬ覚悟',
+    '再会の喜び','ようやく泣けた安堵','愛されていると知った瞬間',
+    '許すことができた','長い夜が明けた感覚','初めての安らぎ',
+    '誰かのそばにいたい気持ち','傷が癒えていく日々'
+  ]},
+  { name:'場所・時', items:[
+    '雨の夜','戦場の夜明け','誰もいない神殿','最後の晩餐',
+    '廃墟の中','嵐の前','別れの朝','夢の中',
+    '炎に囲まれて','月のない夜','二度と戻れない場所','時が止まった部屋',
+    '終わりの見えない旅路','春の終わり','誰も知らない海の底',
+    '百年後の同じ場所','滅びゆく都市','記憶の中の庭','世界の果て','神と人の境界',
+    '長い旅の終着点','桜の下','夜明けの直前','懐かしい場所への帰還',
+    '全てが終わった後の静けさ','二人だけが知っている場所','春の朝'
+  ]},
+  { name:'縛り', items:[
+    'セリフなし','一人称で','二人称（あなた）で','500字以内',
+    '最後に希望を残して','救いなし','モノローグのみ','色を一色だけ使って',
+    '比喩を3つ以上','名前を一切書かない','時系列を逆にして','沈黙を描いて',
+    '匂いから始めて','神話的な語り口で','現代に置き換えて','手紙の形式で',
+    '回想のみ','一文だけ','誰かが嘘をついている','季節を感じさせて',
+    'ハッピーエンドで','誰も死なない','再会で終わる','泣けるけど救いがある',
+    '最初より幸せになって終わる','笑顔で終わる','二人が並んで終わる'
+  ]}
+];
+
+let current = [null, null, null, null];
+let isAnimating = false;
+
+function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+
+function animateCard(index, finalVal, delay, onDone) {
+  const el    = document.getElementById(`result-${index}`);
+  const card  = document.getElementById(`card-${index}`);
+  card.classList.add('cycling');
+  el.classList.add('cycling');
+  let n = 0;
+  const maxN = 10 + index * 3;
+  setTimeout(() => {
+    const t = setInterval(() => {
+      el.textContent = pick(cats[index].items);
+      if (++n >= maxN) {
+        clearInterval(t);
+        el.textContent = finalVal;
+        el.classList.remove('cycling');
+        card.classList.remove('cycling');
+        card.classList.add('landed');
+        setTimeout(() => card.classList.remove('landed'), 400);
+        if (onDone) onDone();
+      }
+    }, 52);
+  }, delay);
+}
+
+function gacha() {
+  if (isAnimating) return;
+  isAnimating = true;
+  const btn = document.getElementById('gachaBtn');
+  btn.disabled = true;
+  document.getElementById('promptSummary').classList.remove('show');
+  const sb = document.getElementById('saveBtn');
+  sb.classList.remove('show', 'saved');
+  sb.textContent = '— このお題を保存する —';
+
+  const chosen = cats.map(c => pick(c.items));
+  chosen.forEach((val, i) => {
+    const last = i === chosen.length - 1;
+    animateCard(i, val, i * 130, last ? () => {
+      current = chosen;
+      showSummary();
+      btn.disabled = false;
+      isAnimating = false;
+    } : null);
+  });
+}
+
+function rerollOne(i) {
+  if (isAnimating) return;
+  const val = pick(cats[i].items);
+  animateCard(i, val, 0, () => {
+    current[i] = val;
+    if (current.every(v => v !== null)) showSummary();
+  });
+}
+
+function showSummary() {
+  const s = document.getElementById('promptSummary');
+  s.innerHTML =
+    `<strong>${current[0]}</strong> が <strong>${current[1]}</strong> の中で、` +
+    `<strong>${current[2]}</strong> を舞台に。<br>縛り：<strong>${current[3]}</strong>`;
+  s.classList.add('show');
+  document.getElementById('saveBtn').classList.add('show');
+}
+
+function savePrompt() {
+  if (!current[0]) return;
+  const btn = document.getElementById('saveBtn');
+  if (btn.classList.contains('saved')) return;
+  const saved = JSON.parse(localStorage.getItem('odai-saved') || '[]');
+  const date = new Date().toLocaleDateString('ja-JP', {month:'numeric', day:'numeric'});
+  saved.unshift({ date, parts: [...current] });
+  if (saved.length > 15) saved.pop();
+  localStorage.setItem('odai-saved', JSON.stringify(saved));
+  btn.textContent = '— 保存しました —';
+  btn.classList.add('saved');
+  renderSaved();
+}
+
+function renderSaved() {
+  const saved = JSON.parse(localStorage.getItem('odai-saved') || '[]');
+  const el = document.getElementById('savedList');
+  if (!saved.length) {
+    el.innerHTML = '<div class="empty-saved">まだ保存したお題はありません</div>';
+    return;
+  }
+  el.innerHTML = saved.map(s =>
+    `<div class="saved-item">
+      <div class="saved-date">${s.date}</div>
+      <div class="saved-text">
+        <strong>${s.parts[0]}</strong> が <strong>${s.parts[1]}</strong> の中で、<strong>${s.parts[2]}</strong>。縛り：<strong>${s.parts[3]}</strong>
+      </div>
+    </div>`
+  ).join('');
+}
+
+renderSaved();
+</script>
+</body>
+</html>
