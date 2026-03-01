@@ -1,0 +1,1107 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='80'>✦</text></svg>">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>体調不良ポイントカード — 怠惰な雑種と王の館</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;700&family=Special+Elite&family=Courier+Prime:wght@400;700&display=swap');
+
+  :root {
+    --cream: #f5f0e8;
+    --paper: #faf7f2;
+    --ink: #1a1a2e;
+    --ink-light: #3d3d5c;
+    --red: #c0392b;
+    --red-light: #e74c3c;
+    --gray: #7f8c8d;
+    --gray-light: #bdc3c7;
+    --border: #2c2c4a;
+    --stamp-blue: #2563a8;
+    --stamp-red: #c0392b;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: #d4c9b0;
+    background-image: 
+      repeating-linear-gradient(0deg, transparent, transparent 24px, rgba(0,0,0,0.03) 24px, rgba(0,0,0,0.03) 25px),
+      repeating-linear-gradient(90deg, transparent, transparent 24px, rgba(0,0,0,0.02) 24px, rgba(0,0,0,0.02) 25px);
+    min-height: 100vh;
+    font-family: 'Courier Prime', monospace;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+  }
+
+  /* ===== メインカード（処方箋風） ===== */
+  .prescription {
+    background: var(--paper);
+    width: 100%;
+    max-width: 560px;
+    border: 1px solid #c8b89a;
+    box-shadow: 3px 3px 0 #b0a080, 6px 6px 0 #9a8860, 2px 2px 20px rgba(0,0,0,0.3);
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* 用紙の質感 */
+  .prescription::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='400' height='400' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .prescription-header {
+    background: var(--ink);
+    color: var(--cream);
+    padding: 14px 20px 10px;
+    position: relative;
+    border-bottom: 4px double var(--cream);
+  }
+
+  .clinic-name {
+    font-family: 'Special Elite', serif;
+    font-size: 11px;
+    letter-spacing: 3px;
+    opacity: 0.7;
+    text-transform: uppercase;
+  }
+
+  .rx-symbol {
+    font-family: 'Special Elite', serif;
+    font-size: 32px;
+    line-height: 1;
+    float: right;
+    opacity: 0.6;
+    margin-top: -4px;
+  }
+
+  .prescription-title {
+    font-family: 'Noto Serif JP', serif;
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    margin-top: 4px;
+  }
+
+  /* 患者情報欄 */
+  .patient-info {
+    padding: 12px 20px;
+    border-bottom: 1px solid #c8b89a;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    background: rgba(255,255,255,0.5);
+    position: relative;
+    z-index: 1;
+  }
+
+  .info-field {
+    font-size: 10px;
+    color: var(--gray);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  .info-value {
+    font-family: 'Special Elite', serif;
+    font-size: 13px;
+    color: var(--ink);
+    border-bottom: 1px solid var(--gray-light);
+    padding-bottom: 2px;
+    min-height: 20px;
+  }
+
+  /* ランクバッジ */
+  .rank-section {
+    padding: 16px 20px;
+    border-bottom: 2px dashed #c8b89a;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .rank-badge {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    border: 3px solid var(--ink);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    position: relative;
+    background: var(--paper);
+    box-shadow: inset 0 0 0 2px var(--cream), 0 2px 8px rgba(0,0,0,0.2);
+    transition: all 0.5s;
+  }
+
+  .rank-badge.bronze { border-color: #cd7f32; color: #cd7f32; }
+  .rank-badge.silver { border-color: #8e9eab; color: #8e9eab; }
+  .rank-badge.gold { border-color: #c9a84c; color: #c9a84c; }
+  .rank-badge.platinum { border-color: #4a90a4; color: #4a90a4; }
+
+  .rank-badge-icon { font-size: 22px; line-height: 1; }
+  .rank-badge-name { font-size: 8px; letter-spacing: 1px; margin-top: 2px; font-weight: 700; }
+
+  .rank-details { flex: 1; }
+  .rank-label { font-size: 9px; color: var(--gray); letter-spacing: 2px; text-transform: uppercase; }
+  .rank-name { font-family: 'Noto Serif JP', serif; font-size: 16px; font-weight: 700; color: var(--ink); margin: 2px 0; }
+  .rank-desc { font-size: 10px; color: var(--ink-light); }
+
+  .points-display {
+    text-align: right;
+  }
+  .points-label { font-size: 9px; color: var(--gray); letter-spacing: 1px; text-transform: uppercase; }
+  .points-total { font-family: 'Special Elite', serif; font-size: 28px; color: var(--ink); line-height: 1; }
+  .points-unit { font-size: 10px; color: var(--gray); }
+
+  /* 今日の診断・コメント欄 */
+  .diagnosis-section {
+    padding: 12px 20px;
+    border-bottom: 2px dashed #c8b89a;
+    position: relative;
+    z-index: 1;
+    display: none;
+  }
+  .diagnosis-section.visible { display: block; }
+
+  .diagnosis-name {
+    font-family: 'Noto Serif JP', serif;
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--ink);
+    letter-spacing: 1px;
+    margin-bottom: 10px;
+  }
+  .diagnosis-name span {
+    font-size: 10px;
+    color: var(--gray);
+    font-weight: 400;
+    letter-spacing: 2px;
+    display: block;
+    margin-bottom: 2px;
+    font-family: 'Courier Prime', monospace;
+  }
+
+  .receptionist-comment {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    margin-top: 8px;
+    padding: 10px 12px;
+    background: rgba(255,255,255,0.6);
+    border: 1px solid #d8ccb8;
+  }
+  .receptionist-icon {
+    font-size: 22px;
+    flex-shrink: 0;
+    line-height: 1;
+  }
+  .receptionist-body { flex: 1; }
+  .receptionist-name {
+    font-size: 9px;
+    color: var(--gray);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 3px;
+  }
+  .receptionist-text {
+    font-family: 'Noto Serif JP', serif;
+    font-size: 12px;
+    color: var(--ink);
+    line-height: 1.7;
+  }
+
+  /* 今日のポイント */
+  .today-section {
+    padding: 12px 20px;
+    border-bottom: 1px solid #c8b89a;
+    position: relative;
+    z-index: 1;
+  }
+
+  .section-label {
+    font-size: 9px;
+    color: var(--gray);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .section-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--gray-light);
+  }
+
+  .today-items {
+    min-height: 40px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .today-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 12px;
+    color: var(--ink);
+    padding: 2px 0;
+    animation: slideIn 0.3s ease;
+  }
+  .today-item-name { }
+  .today-item-pt { font-family: 'Special Elite', serif; color: var(--red); font-size: 14px; }
+
+  .today-total {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid var(--ink);
+    font-weight: 700;
+  }
+  .today-total-label { font-size: 11px; letter-spacing: 1px; }
+  .today-total-pt { font-family: 'Special Elite', serif; font-size: 20px; color: var(--red); }
+
+  .empty-today {
+    font-size: 11px;
+    color: var(--gray);
+    font-style: italic;
+    text-align: center;
+    padding: 8px 0;
+  }
+
+  /* 進捗バー */
+  .progress-section {
+    padding: 10px 20px 14px;
+    border-bottom: 2px dashed #c8b89a;
+    position: relative;
+    z-index: 1;
+  }
+
+  .progress-bar-wrap {
+    background: var(--gray-light);
+    height: 8px;
+    border-radius: 0;
+    margin-top: 6px;
+    position: relative;
+    border: 1px solid #9a9a9a;
+  }
+  .progress-bar-fill {
+    background: repeating-linear-gradient(90deg, var(--ink) 0px, var(--ink) 8px, transparent 8px, transparent 12px);
+    height: 100%;
+    transition: width 0.8s cubic-bezier(0.4,0,0.2,1);
+  }
+  .progress-labels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 9px;
+    color: var(--gray);
+    margin-top: 4px;
+  }
+
+  /* 失効警告 */
+  .expiry-warning {
+    padding: 6px 20px;
+    background: #fff3cd;
+    border-bottom: 1px solid #ffc107;
+    font-size: 10px;
+    color: #856404;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    position: relative;
+    z-index: 1;
+  }
+  .expiry-warning.danger { background: #f8d7da; border-color: var(--red); color: var(--red); }
+  .expiry-warning.hidden { display: none; }
+
+  /* 症状選択エリア */
+  .symptoms-section {
+    padding: 14px 20px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .symptom-categories { display: flex; flex-direction: column; gap: 12px; }
+
+  .category-title {
+    font-size: 9px;
+    color: var(--gray);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+
+  .symptom-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .symptom-btn {
+    background: var(--paper);
+    border: 1px solid var(--ink);
+    color: var(--ink);
+    font-family: 'Courier Prime', monospace;
+    font-size: 11px;
+    padding: 4px 10px;
+    cursor: pointer;
+    transition: all 0.15s;
+    letter-spacing: 0.5px;
+    position: relative;
+    white-space: nowrap;
+  }
+
+  .symptom-btn:hover {
+    background: var(--ink);
+    color: var(--cream);
+  }
+
+  .symptom-btn.fever-btn { border-color: var(--red); color: var(--red); }
+  .symptom-btn.fever-btn:hover { background: var(--red); color: white; }
+
+  .symptom-btn.disease-btn { border-color: var(--stamp-blue); color: var(--stamp-blue); }
+  .symptom-btn.disease-btn:hover { background: var(--stamp-blue); color: white; }
+
+  .symptom-btn .pt-badge {
+    font-size: 9px;
+    opacity: 0.6;
+    margin-left: 4px;
+  }
+
+  /* 発熱サブメニュー */
+  .fever-sub {
+    display: none;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 6px;
+    padding: 8px;
+    border: 1px dashed var(--red);
+    background: #fff5f5;
+  }
+  .fever-sub.open { display: flex; }
+  .fever-sub .symptom-btn { border-color: var(--red); color: var(--red); font-size: 10px; }
+  .fever-sub .symptom-btn:hover { background: var(--red); color: white; }
+
+  /* フッター（スタンプ欄風） */
+  .prescription-footer {
+    padding: 12px 20px;
+    border-top: 2px double var(--ink);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+    z-index: 1;
+    background: rgba(255,255,255,0.3);
+  }
+
+  .footer-note {
+    font-size: 9px;
+    color: var(--gray);
+    line-height: 1.6;
+  }
+
+  .doctor-stamp {
+    width: 64px;
+    height: 64px;
+    border: 2px solid var(--stamp-red);
+    border-radius: 50%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: var(--stamp-red);
+    font-size: 8px;
+    letter-spacing: 1px;
+    text-align: center;
+    opacity: 0.7;
+    transform: rotate(-12deg);
+    font-family: 'Special Elite', serif;
+    padding: 4px;
+    line-height: 1.4;
+  }
+
+  /* トースト通知 */
+  .toast {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%) translateY(-60px);
+    background: var(--ink);
+    color: var(--cream);
+    padding: 10px 20px;
+    font-family: 'Courier Prime', monospace;
+    font-size: 12px;
+    letter-spacing: 1px;
+    transition: transform 0.4s cubic-bezier(0.34,1.56,0.64,1);
+    z-index: 1000;
+    white-space: nowrap;
+    border: 1px solid var(--cream);
+  }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+
+  /* 処方日 */
+  .date-stamp {
+    font-family: 'Special Elite', serif;
+    font-size: 11px;
+    color: var(--stamp-blue);
+    opacity: 0.8;
+    text-align: right;
+    padding: 0 20px 6px;
+    position: relative;
+    z-index: 1;
+  }
+
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateX(-10px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+
+  /* 選択済みボタン */
+  .symptom-btn.selected {
+    background: var(--ink);
+    color: var(--cream);
+    opacity: 0.5;
+    cursor: not-allowed;
+    position: relative;
+  }
+  .symptom-btn.selected::after {
+    content: '✓';
+    margin-left: 4px;
+    font-size: 10px;
+  }
+  .symptom-btn.fever-btn.selected {
+    background: var(--red);
+    color: white;
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  .symptom-btn.disease-btn.selected {
+    background: var(--stamp-blue);
+    color: white;
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  /* リセットボタン */
+  .reset-btn {
+    background: none;
+    border: 1px solid var(--gray-light);
+    color: var(--gray);
+    font-family: 'Courier Prime', monospace;
+    font-size: 9px;
+    padding: 3px 8px;
+    cursor: pointer;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-top: 4px;
+  }
+  .reset-btn:hover { border-color: var(--red); color: var(--red); }
+
+  /* 館に戻るボタン */
+  .back-btn {
+    position: fixed; top: 16px; left: 16px; z-index: 100;
+    background: rgba(250,247,242,.92); border: 1px solid #b0a080;
+    color: var(--ink-light); font-family: 'Courier Prime', monospace;
+    font-size: .75rem; letter-spacing: .1em; padding: 7px 14px;
+    cursor: pointer; transition: all .2s; backdrop-filter: blur(4px);
+    text-decoration: none; display: inline-block;
+    box-shadow: 2px 2px 0 #b0a080;
+  }
+  .back-btn:hover { border-color: var(--ink); color: var(--ink); background: var(--paper); }
+
+  /* リセット確認オーバーレイ */
+  .reset-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    z-index: 2000;
+    align-items: center;
+    justify-content: center;
+  }
+  .reset-dialog {
+    background: var(--paper);
+    border: 2px solid var(--ink);
+    padding: 24px 28px;
+    max-width: 300px;
+    width: 90%;
+    font-family: 'Courier Prime', monospace;
+    box-shadow: 4px 4px 0 var(--ink);
+  }
+  .reset-dialog-title {
+    font-family: 'Noto Serif JP', serif;
+    font-size: 14px;
+    font-weight: 700;
+    margin-bottom: 8px;
+    color: var(--red);
+  }
+  .reset-dialog-body {
+    font-size: 11px;
+    color: var(--ink-light);
+    margin-bottom: 16px;
+    line-height: 1.7;
+  }
+  .reset-dialog-btns {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+  }
+  .reset-dialog-btns button {
+    font-family: 'Courier Prime', monospace;
+    font-size: 11px;
+    padding: 5px 14px;
+    border: 1px solid var(--ink);
+    cursor: pointer;
+    letter-spacing: 1px;
+  }
+  .btn-cancel { background: var(--paper); color: var(--ink); }
+  .btn-cancel:hover { background: var(--gray-light); }
+  .btn-confirm { background: var(--red); color: white; border-color: var(--red); }
+  .btn-confirm:hover { background: #a93226; }
+</style>
+</head>
+<body>
+
+<a class="back-btn" href="index.html">← 館へ戻る</a>
+
+<div class="prescription">
+  <!-- ヘッダー -->
+  <div class="prescription-header">
+    <div class="clinic-name">Fuguai Clinic — Member Card</div>
+    <span class="rx-symbol">℞</span>
+    <div class="prescription-title">体調不良ポイントカード</div>
+  </div>
+
+  <!-- 患者情報 -->
+  <div class="patient-info">
+    <div>
+      <div class="info-field">Patient / 患者名</div>
+      <div class="info-value" id="patientName">—</div>
+    </div>
+    <div>
+      <div class="info-field">Member No. / 会員番号</div>
+      <div class="info-value" id="memberNo">—</div>
+    </div>
+  </div>
+
+  <!-- ランク -->
+  <div class="rank-section">
+    <div class="rank-badge" id="rankBadge">
+      <div class="rank-badge-icon" id="rankIcon">🏥</div>
+      <div class="rank-badge-name" id="rankBadgeName">一般</div>
+    </div>
+    <div class="rank-details">
+      <div class="rank-label">Current Rank</div>
+      <div class="rank-name" id="rankName">新規患者</div>
+      <div class="rank-desc" id="rankDesc">ようこそ、不調の世界へ</div>
+      <button class="reset-btn" onclick="confirmReset()">[ データリセット ]</button>
+    </div>
+    <div class="points-display">
+      <div class="points-label">累計</div>
+      <div class="points-total" id="totalPoints">0</div>
+      <div class="points-unit">pt</div>
+    </div>
+  </div>
+
+  <!-- 今日の診断・受付コメント -->
+  <div class="diagnosis-section" id="diagnosisSection">
+    <div class="section-label">本日の診断</div>
+    <div class="diagnosis-name">
+      <span>Diagnosis</span>
+      <span id="diagnosisName">—</span>
+    </div>
+    <div class="receptionist-comment">
+      <div class="receptionist-icon" id="receptionistIcon">👩</div>
+      <div class="receptionist-body">
+        <div class="receptionist-name" id="receptionistName">受付</div>
+        <div class="receptionist-text" id="receptionistText">—</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 今日のポイント -->
+  <div class="today-section">
+    <div class="section-label">本日の処方記録</div>
+    <div class="today-items" id="todayItems">
+      <div class="empty-today">本日の不調はまだ記録されていません</div>
+    </div>
+    <div class="today-total" id="todayTotal" style="display:none">
+      <span class="today-total-label">本日合計</span>
+      <span class="today-total-pt" id="todayTotalPt">0 pt</span>
+    </div>
+  </div>
+
+  <!-- 進捗バー -->
+  <div class="progress-section">
+    <div class="section-label">次のランクまで</div>
+    <div class="progress-bar-wrap">
+      <div class="progress-bar-fill" id="progressBar" style="width:0%"></div>
+    </div>
+    <div class="progress-labels">
+      <span id="progressCurrent">0 pt</span>
+      <span id="progressNext">次: ブロンズ 100pt</span>
+    </div>
+  </div>
+
+  <!-- 失効警告 -->
+  <div class="expiry-warning hidden" id="expiryWarning">
+    ⚠ <span id="expiryText"></span>
+  </div>
+
+  <!-- 処方日 -->
+  <div class="date-stamp" id="dateStamp"></div>
+
+  <!-- 症状選択 -->
+  <div class="symptoms-section">
+    <div class="section-label">症状を選択して記録</div>
+    <div class="symptom-categories">
+
+      <!-- 定番 -->
+      <div>
+        <div class="category-title">▸ 定番症状</div>
+        <div class="symptom-grid">
+          <button class="symptom-btn" data-name="頭痛" onclick="addSymptom('頭痛',15)">頭痛<span class="pt-badge">15pt</span></button>
+          <button class="symptom-btn" data-name="倦怠感" onclick="addSymptom('倦怠感',10)">倦怠感<span class="pt-badge">10pt</span></button>
+          <button class="symptom-btn" data-name="吐き気" onclick="addSymptom('吐き気',15)">吐き気<span class="pt-badge">15pt</span></button>
+          <button class="symptom-btn" data-name="腹痛" onclick="addSymptom('腹痛',15)">腹痛<span class="pt-badge">15pt</span></button>
+          <button class="symptom-btn" data-name="下痢" onclick="addSymptom('下痢',20)">下痢<span class="pt-badge">20pt</span></button>
+          <button class="symptom-btn" data-name="鼻水" onclick="addSymptom('鼻水',8)">鼻水<span class="pt-badge">8pt</span></button>
+          <button class="symptom-btn" data-name="咳" onclick="addSymptom('咳',10)">咳<span class="pt-badge">10pt</span></button>
+          <button class="symptom-btn" data-name="喉の痛み" onclick="addSymptom('喉の痛み',10)">喉の痛み<span class="pt-badge">10pt</span></button>
+          <button class="symptom-btn" data-name="めまい" onclick="addSymptom('めまい',15)">めまい<span class="pt-badge">15pt</span></button>
+        </div>
+      </div>
+
+      <!-- 発熱 -->
+      <div>
+        <div class="category-title">▸ 発熱（タップで詳細）</div>
+        <div class="symptom-grid">
+          <button class="symptom-btn fever-btn" onclick="toggleFever()">発熱 🌡️<span class="pt-badge">▾</span></button>
+        </div>
+        <div class="fever-sub" id="feverSub">
+          <button class="symptom-btn" data-name="微熱 (37度台)" data-group="fever" onclick="addSymptom('微熱 (37度台)',20)">微熱 37度台<span class="pt-badge">20pt</span></button>
+          <button class="symptom-btn" data-name="発熱 (38度台)" data-group="fever" onclick="addSymptom('発熱 (38度台)',35)">発熱 38度台<span class="pt-badge">35pt</span></button>
+          <button class="symptom-btn" data-name="高熱 (39度以上)" data-group="fever" onclick="addSymptom('高熱 (39度以上)',50)">高熱 39度+<span class="pt-badge">50pt</span></button>
+        </div>
+      </div>
+
+      <!-- 肩腰系 -->
+      <div>
+        <div class="category-title">▸ 肩・腰・その他の痛み</div>
+        <div class="symptom-grid">
+          <button class="symptom-btn" data-name="肩こり" onclick="addSymptom('肩こり',8)">肩こり<span class="pt-badge">8pt</span></button>
+          <button class="symptom-btn" data-name="腰痛" onclick="addSymptom('腰痛',12)">腰痛<span class="pt-badge">12pt</span></button>
+          <button class="symptom-btn" data-name="首こり" onclick="addSymptom('首こり',8)">首こり<span class="pt-badge">8pt</span></button>
+          <button class="symptom-btn" data-name="眼精疲労" onclick="addSymptom('眼精疲労',8)">眼精疲労<span class="pt-badge">8pt</span></button>
+          <button class="symptom-btn" data-name="膝の痛み" onclick="addSymptom('膝の痛み',12)">膝の痛み<span class="pt-badge">12pt</span></button>
+          <button class="symptom-btn" data-name="関節痛" onclick="addSymptom('関節痛',15)">関節痛<span class="pt-badge">15pt</span></button>
+          <button class="symptom-btn" data-name="生理痛" onclick="addSymptom('生理痛',20)">生理痛<span class="pt-badge">20pt</span></button>
+          <button class="symptom-btn" data-name="歯痛" onclick="addSymptom('歯痛',15)">歯痛<span class="pt-badge">15pt</span></button>
+          <button class="symptom-btn" data-name="耳鳴り" onclick="addSymptom('耳鳴り',10)">耳鳴り<span class="pt-badge">10pt</span></button>
+          <button class="symptom-btn" data-name="目がかすむ" onclick="addSymptom('目がかすむ',8)">目がかすむ<span class="pt-badge">8pt</span></button>
+        </div>
+      </div>
+
+      <!-- 病名系 -->
+      <div>
+        <div class="category-title">▸ 診断名</div>
+        <div class="symptom-grid">
+          <button class="symptom-btn disease-btn" data-name="インフルエンザA" onclick="addSymptom('インフルエンザA',60)">インフルA<span class="pt-badge">60pt</span></button>
+          <button class="symptom-btn disease-btn" data-name="インフルエンザB" onclick="addSymptom('インフルエンザB',60)">インフルB<span class="pt-badge">60pt</span></button>
+          <button class="symptom-btn disease-btn" data-name="COVID-19" onclick="addSymptom('COVID-19',60)">COVID-19<span class="pt-badge">60pt</span></button>
+          <button class="symptom-btn disease-btn" data-name="迷走神経反射" onclick="addSymptom('迷走神経反射',40)">迷走神経反射<span class="pt-badge">40pt</span></button>
+          <button class="symptom-btn disease-btn" data-name="偏頭痛" onclick="addSymptom('偏頭痛',30)">偏頭痛<span class="pt-badge">30pt</span></button>
+          <button class="symptom-btn disease-btn" data-name="貧血" onclick="addSymptom('貧血',25)">貧血<span class="pt-badge">25pt</span></button>
+          <button class="symptom-btn disease-btn" data-name="胃腸炎" onclick="addSymptom('胃腸炎',40)">胃腸炎<span class="pt-badge">40pt</span></button>
+          <button class="symptom-btn disease-btn" data-name="扁桃炎" onclick="addSymptom('扁桃炎',35)">扁桃炎<span class="pt-badge">35pt</span></button>
+        </div>
+      </div>
+
+      <!-- ふわっと系 -->
+      <div>
+        <div class="category-title">▸ なんとなく系</div>
+        <div class="symptom-grid">
+          <button class="symptom-btn" data-name="なんか怠い" onclick="addSymptom('なんか怠い',5)">なんか怠い<span class="pt-badge">5pt</span></button>
+          <button class="symptom-btn" data-name="メンタルがしんどい" onclick="addSymptom('メンタルがしんどい',5)">メンタルがしんどい<span class="pt-badge">5pt</span></button>
+          <button class="symptom-btn" data-name="気力がない" onclick="addSymptom('気力がない',5)">気力がない<span class="pt-badge">5pt</span></button>
+          <button class="symptom-btn" data-name="寝すぎた" onclick="addSymptom('寝すぎた',5)">寝すぎた<span class="pt-badge">5pt</span></button>
+          <button class="symptom-btn" data-name="花粉症" onclick="addSymptom('花粉症',8)">花粉症<span class="pt-badge">8pt</span></button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- フッター -->
+  <div class="prescription-footer">
+    <div class="footer-note">
+      ※ 1ヶ月間の不記録によりランク失効<br>
+      ※ 累計ポイントもリセットされます<br>
+      ※ 当カードは架空のポイントカードです
+    </div>
+    <div class="doctor-stamp" id="doctorStamp">
+      FUGUAI<br>CLINIC<br>認定
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<div class="reset-overlay" id="resetOverlay">
+  <div class="reset-dialog">
+    <div class="reset-dialog-title">⚠ データリセット</div>
+    <div class="reset-dialog-body">
+      全ての記録・累計ポイント・ランクが削除されます。<br>
+      この操作は取り消せません。
+    </div>
+    <div class="reset-dialog-btns">
+      <button class="btn-cancel" onclick="cancelReset()">キャンセル</button>
+      <button class="btn-confirm" onclick="doReset()">リセットする</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ===== 受付キャラクター =====
+const RECEPTIONISTS = [
+  {
+    name: '田中さん（ベテラン・無愛想）',
+    icon: '👩‍💼',
+    comments: [
+      { max: 0,   text: '今日は何もないんですか。では何しに来たんですか。' },
+      { max: 15,  text: '病は気から、です。精神力で何とかしてください。' },
+      { max: 30,  text: '…それくらいで来ますか、普通。次の方どうぞ。' },
+      { max: 50,  text: 'まあ、休んでいいんじゃないですか。責任は持ちませんが。' },
+      { max: 80,  text: '早く寝なさい。話はそれからです。' },
+      { max: 120, text: '今すぐ病院に行ってください。ここは架空の受付です。' },
+      { max: 200, text: 'よく今日も生きて来られましたね。感心します。' },
+      { max: Infinity, text: '入院してください。なんなら今日から。' },
+    ]
+  },
+  {
+    name: '佐藤さん（新人・優しい）',
+    icon: '👧',
+    comments: [
+      { max: 0,   text: 'お体の調子はいかがでしょうか？何かあればいつでもどうぞ！' },
+      { max: 15,  text: 'あまり無理しないでくださいね。少しお休みを取るのも大事です。' },
+      { max: 30,  text: 'お体つらいですよね…。今日はゆっくり休んでください。' },
+      { max: 50,  text: 'それは大変でしたね。暖かくして、しっかり休んでください。' },
+      { max: 80,  text: '早めに休んでくださいね。お体が心配です…。' },
+      { max: 120, text: 'これは…早めに病院に行かれた方がよいかと思います。お大事に。' },
+      { max: 200, text: 'お体大丈夫ですか？本当によく頑張っていらっしゃいますね…。' },
+      { max: Infinity, text: 'こんなに頑張らなくていいんですよ…。ゆっくり休んでください。' },
+    ]
+  },
+];
+
+// セッションごとにランダムで受付を決める
+let _receptionist = null;
+function getReceptionist() {
+  if (!_receptionist) {
+    _receptionist = RECEPTIONISTS[Math.floor(Math.random() * RECEPTIONISTS.length)];
+  }
+  return _receptionist;
+}
+
+function getComment(receptionist, pt) {
+  return receptionist.comments.find(c => pt <= c.max)?.text || receptionist.comments.at(-1).text;
+}
+
+// ===== 診断名 =====
+function getDiagnosis(items) {
+  if (!items || items.length === 0) return null;
+  const names = items.map(i => i.name);
+
+  const hasFever = names.some(n => n.includes('熱'));
+  const hasHeadache = names.includes('頭痛') || names.includes('偏頭痛');
+  const hasStomach = names.some(n => ['腹痛','吐き気','下痢','胃腸炎'].includes(n));
+  const hasMental = names.some(n => ['メンタルがしんどい','気力がない','なんか怠い'].includes(n));
+  const hasDesk = names.some(n => ['肩こり','首こり','眼精疲労','目がかすむ'].includes(n));
+  const hasPollen = names.includes('花粉症');
+  const hasInfluA = names.includes('インフルエンザA');
+  const hasInfluB = names.includes('インフルエンザB');
+  const hasInflu = hasInfluA || hasInfluB;
+  const hasCovid = names.includes('COVID-19');
+  const hasVagal = names.includes('迷走神経反射');
+  const hasBack = names.some(n => ['腰痛','膝の痛み','関節痛'].includes(n));
+  const hasDizzy = names.includes('めまい');
+
+  if (hasInfluA) return 'A型インフルエンザ感染症';
+  if (hasInfluB) return 'B型インフルエンザ感染症';
+  if (hasCovid) return 'COVID-19感染症';
+  if (hasVagal) return '迷走神経反射性失神';
+  if (hasFever && hasHeadache && hasStomach) return '総合不調症候群（重症）';
+  if (hasFever && hasHeadache) return '急性熱性頭痛症';
+  if (hasFever && hasStomach) return '発熱性胃腸炎';
+  if (hasFever) return '急性発熱症';
+  if (hasStomach && hasDizzy) return '自律神経失調症（消化器型）';
+  if (hasStomach) return '急性胃腸障害';
+  if (hasDesk && hasHeadache) return 'デスクワーカー病（頭痛合併型）';
+  if (hasDesk && hasMental) return '慢性疲労症候群（デスクワーク型）';
+  if (hasDesk) return 'デスクワーカー病';
+  if (hasBack) return '慢性筋骨格系疼痛症';
+  if (hasPollen) return '季節性アレルギー性鼻炎（重症）';
+  if (hasMental && names.length === 1) return '慢性怠惰症';
+  if (hasMental) return '心身疲弊症候群';
+  if (hasHeadache) return '緊張性頭痛症';
+  return '原因不明の複合不調症';
+}
+
+// ===== データ =====
+const RANKS = [
+  { name: '新規患者',    desc: 'ようこそ、不調の世界へ',         min: 0,    max: 99,   badge: '🏥', cls: '' },
+  { name: '常連患者',    desc: 'お顔を存じております',           min: 100,  max: 299,  badge: '🥉', cls: 'bronze' },
+  { name: '顔なじみ',   desc: '受付さんに名前で呼ばれます',     min: 300,  max: 599,  badge: '🥈', cls: 'silver' },
+  { name: '主治医に名前を覚えられた', desc: '担当医が変わると少し不安', min: 600, max: 999, badge: '🥇', cls: 'gold' },
+  { name: '病院の人に心配される',  desc: '「また来ましたね…」',  min: 1000, max: Infinity, badge: '💎', cls: 'platinum' },
+];
+
+function getData() {
+  const d = localStorage.getItem('byoki_data');
+  if (d) return JSON.parse(d);
+  return {
+    totalPoints: 0,
+    todayPoints: 0,
+    todayItems: [],
+    lastRecordDate: null,
+    lastActiveDate: null,
+    memberNo: 'B-' + String(Math.floor(Math.random()*90000)+10000),
+    registeredAt: new Date().toISOString(),
+  };
+}
+
+function saveData(data) {
+  localStorage.setItem('byoki_data', JSON.stringify(data));
+}
+
+function getToday() {
+  return new Date().toISOString().slice(0,10);
+}
+
+// 日付が変わっていたら今日のデータをリセット
+function checkDayReset(data) {
+  const today = getToday();
+  if (data.lastRecordDate && data.lastRecordDate !== today) {
+    data.todayPoints = 0;
+    data.todayItems = [];
+  }
+  return data;
+}
+
+// 1ヶ月不記録チェック
+function checkExpiry(data) {
+  if (!data.lastActiveDate) return null;
+  const last = new Date(data.lastActiveDate);
+  const now = new Date();
+  const diff = Math.floor((now - last) / (1000*60*60*24));
+  if (diff >= 30) return 'expired';
+  if (diff >= 20) return `あと${30-diff}日で失効（ランク・累計リセット）`;
+  return null;
+}
+
+function applyExpiry(data) {
+  if (!data.lastActiveDate) return data;
+  const last = new Date(data.lastActiveDate);
+  const now = new Date();
+  const diff = Math.floor((now - last) / (1000*60*60*24));
+  if (diff >= 30) {
+    data.totalPoints = 0;
+    data.todayPoints = 0;
+    data.todayItems = [];
+  }
+  return data;
+}
+
+function getRank(pts) {
+  for (let i = RANKS.length-1; i >= 0; i--) {
+    if (pts >= RANKS[i].min) return RANKS[i];
+  }
+  return RANKS[0];
+}
+
+function render() {
+  let data = getData();
+  data = applyExpiry(data);
+  data = checkDayReset(data);
+  saveData(data);
+
+  // 患者情報
+  document.getElementById('memberNo').textContent = data.memberNo;
+  document.getElementById('patientName').textContent = '—';
+
+  // 日付
+  const now = new Date();
+  document.getElementById('dateStamp').textContent = 
+    `処方日: ${now.getFullYear()}年${now.getMonth()+1}月${now.getDate()}日`;
+
+  // ランク
+  const rank = getRank(data.totalPoints);
+  const badge = document.getElementById('rankBadge');
+  badge.className = 'rank-badge ' + rank.cls;
+  document.getElementById('rankIcon').textContent = rank.badge;
+  document.getElementById('rankBadgeName').textContent = rank.cls.toUpperCase() || '一般';
+  document.getElementById('rankName').textContent = rank.name;
+  document.getElementById('rankDesc').textContent = rank.desc;
+  document.getElementById('totalPoints').textContent = data.totalPoints.toLocaleString();
+
+  // 今日の記録
+  const itemsEl = document.getElementById('todayItems');
+  const totalEl = document.getElementById('todayTotal');
+  if (data.todayItems && data.todayItems.length > 0) {
+    itemsEl.innerHTML = data.todayItems.map(it =>
+      `<div class="today-item"><span class="today-item-name">${it.name}</span><span class="today-item-pt">+${it.pt} pt</span></div>`
+    ).join('');
+    totalEl.style.display = 'flex';
+    document.getElementById('todayTotalPt').textContent = data.todayPoints + ' pt';
+  } else {
+    itemsEl.innerHTML = '<div class="empty-today">本日の不調はまだ記録されていません</div>';
+    totalEl.style.display = 'none';
+  }
+
+  // 診断名・受付コメント
+  const diagSection = document.getElementById('diagnosisSection');
+  const diagnosis = getDiagnosis(data.todayItems);
+  if (diagnosis && data.todayItems.length > 0) {
+    diagSection.classList.add('visible');
+    document.getElementById('diagnosisName').textContent = diagnosis;
+    const rec = getReceptionist();
+    document.getElementById('receptionistIcon').textContent = rec.icon;
+    document.getElementById('receptionistName').textContent = rec.name;
+    document.getElementById('receptionistText').textContent = getComment(rec, data.todayPoints);
+  } else {
+    diagSection.classList.remove('visible');
+  }
+
+  // 進捗バー
+  const nextRankIdx = RANKS.findIndex(r => r.min > data.totalPoints);
+  if (nextRankIdx === -1) {
+    document.getElementById('progressBar').style.width = '100%';
+    document.getElementById('progressCurrent').textContent = data.totalPoints + ' pt';
+    document.getElementById('progressNext').textContent = 'MAX RANK 達成';
+  } else {
+    const prev = RANKS[nextRankIdx-1]?.min || 0;
+    const next = RANKS[nextRankIdx].min;
+    const pct = Math.min(100, ((data.totalPoints - prev) / (next - prev)) * 100);
+    document.getElementById('progressBar').style.width = pct + '%';
+    document.getElementById('progressCurrent').textContent = data.totalPoints + ' pt';
+    document.getElementById('progressNext').textContent = `次: ${RANKS[nextRankIdx].name} ${next}pt`;
+  }
+
+  // 選択済みボタンの状態更新
+  const selectedNames = new Set((data.todayItems || []).map(it => it.name));
+  const feverGroups = ['微熱 (37度台)', '発熱 (38度台)', '高熱 (39度以上)'];
+  const feverSelected = feverGroups.some(n => selectedNames.has(n));
+
+  document.querySelectorAll('.symptom-btn[data-name]').forEach(btn => {
+    const name = btn.dataset.name;
+    const isGroup = btn.dataset.group === 'fever';
+    const disabled = selectedNames.has(name) || (isGroup && feverSelected);
+    if (disabled) {
+      btn.classList.add('selected');
+      btn.disabled = true;
+    } else {
+      btn.classList.remove('selected');
+      btn.disabled = false;
+    }
+  });
+
+  // 失効警告
+  const expiryStatus = checkExpiry(data);
+  const warningEl = document.getElementById('expiryWarning');
+  if (expiryStatus === 'expired') {
+    warningEl.classList.remove('hidden');
+    warningEl.classList.add('danger');
+    document.getElementById('expiryText').textContent = 'ランク・累計ポイントがリセットされました。久しぶりですね、お元気でしたか？';
+  } else if (expiryStatus) {
+    warningEl.classList.remove('hidden', 'danger');
+    document.getElementById('expiryText').textContent = expiryStatus;
+  } else {
+    warningEl.classList.add('hidden');
+  }
+}
+
+function addSymptom(name, pt) {
+  let data = getData();
+  data = checkDayReset(data);
+  const today = getToday();
+
+  if (!data.todayItems) data.todayItems = [];
+
+  // 当日すでに選択済みならスキップ
+  if (data.todayItems.some(it => it.name === name)) {
+    showToast(`${name} は本日すでに記録済みです`);
+    return;
+  }
+
+  // 発熱グループは1つだけ
+  const btn = document.querySelector(`[data-name="${name}"]`);
+  if (btn && btn.dataset.group === 'fever') {
+    const feverGroups = ['微熱 (37度台)', '発熱 (38度台)', '高熱 (39度以上)'];
+    if (data.todayItems.some(it => feverGroups.includes(it.name))) {
+      showToast('発熱は1日1種類まで記録できます');
+      return;
+    }
+  }
+
+  data.todayItems.push({ name, pt });
+  data.todayPoints = (data.todayPoints || 0) + pt;
+  data.totalPoints = (data.totalPoints || 0) + pt;
+  data.lastRecordDate = today;
+  data.lastActiveDate = today;
+  saveData(data);
+
+  showToast(`${name} +${pt}pt 記録しました`);
+  render();
+}
+
+function toggleFever() {
+  const sub = document.getElementById('feverSub');
+  sub.classList.toggle('open');
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+function confirmReset() {
+  const overlay = document.getElementById('resetOverlay');
+  overlay.style.display = 'flex';
+}
+
+function doReset() {
+  localStorage.removeItem('byoki_data');
+  document.getElementById('resetOverlay').style.display = 'none';
+  render();
+  showToast('リセットしました');
+}
+
+function cancelReset() {
+  document.getElementById('resetOverlay').style.display = 'none';
+}
+
+render();
+</script>
+</body>
+</html>
