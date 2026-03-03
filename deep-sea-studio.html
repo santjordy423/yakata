@@ -574,6 +574,7 @@
     <button class="preset-btn" onclick="loadPreset('wreck')">WRECK</button>
     <button class="preset-btn" onclick="loadPreset('drift')">DRIFT</button>
     <button class="preset-btn" onclick="loadPreset('void')">VOID</button>
+    <button class="preset-btn" onclick="loadPreset('lounge')">LOUNGE</button>
   </div>
 
   <!-- チャンネル -->
@@ -635,6 +636,64 @@
         </div>
       </div>
       <div class="waveform" id="wf-ice"></div>
+    </div>
+
+    <div class="channel" id="ch-clink">
+      <div class="channel-header">
+        <div class="channel-icon" style="color:#a8e4f5">◇</div>
+        <div class="channel-name">
+          <div class="channel-name-jp">グラスの氷</div>
+          <div class="channel-name-en">GLASS ICE</div>
+        </div>
+        <div class="channel-toggle" id="tog-clink" onclick="toggleChannel('clink')"></div>
+      </div>
+      <div class="slider-row">
+        <div class="slider-item">
+          <span class="slider-label">VOL</span>
+          <input type="range" min="0" max="100" value="0" oninput="setParam('clink','vol',this.value)" id="sl-clink-vol">
+          <span class="slider-value" id="sv-clink-vol">0</span>
+        </div>
+        <div class="slider-item">
+          <span class="slider-label">PITCH</span>
+          <input type="range" min="1" max="100" value="55" oninput="setParam('clink','pitch',this.value)" id="sl-clink-pitch">
+          <span class="slider-value" id="sv-clink-pitch">55</span>
+        </div>
+        <div class="slider-item">
+          <span class="slider-label">SPARSE</span>
+          <input type="range" min="1" max="100" value="60" oninput="setParam('clink','sparse',this.value)" id="sl-clink-sparse">
+          <span class="slider-value" id="sv-clink-sparse">60</span>
+        </div>
+      </div>
+      <div class="waveform" id="wf-clink"></div>
+    </div>
+
+    <div class="channel" id="ch-bubble">
+      <div class="channel-header">
+        <div class="channel-icon" style="color:#a8e4f5">○</div>
+        <div class="channel-name">
+          <div class="channel-name-jp">深海の泡</div>
+          <div class="channel-name-en">BUBBLE STREAM</div>
+        </div>
+        <div class="channel-toggle" id="tog-bubble" onclick="toggleChannel('bubble')"></div>
+      </div>
+      <div class="slider-row">
+        <div class="slider-item">
+          <span class="slider-label">VOL</span>
+          <input type="range" min="0" max="100" value="0" oninput="setParam('bubble','vol',this.value)" id="sl-bubble-vol">
+          <span class="slider-value" id="sv-bubble-vol">0</span>
+        </div>
+        <div class="slider-item">
+          <span class="slider-label">DENSITY</span>
+          <input type="range" min="1" max="100" value="50" oninput="setParam('bubble','density',this.value)" id="sl-bubble-density">
+          <span class="slider-value" id="sv-bubble-density">50</span>
+        </div>
+        <div class="slider-item">
+          <span class="slider-label">SIZE</span>
+          <input type="range" min="1" max="100" value="40" oninput="setParam('bubble','size',this.value)" id="sl-bubble-size">
+          <span class="slider-value" id="sv-bubble-size">40</span>
+        </div>
+      </div>
+      <div class="waveform" id="wf-bubble"></div>
     </div>
 
     <div class="channel" id="ch-water">
@@ -882,6 +941,8 @@ let isPlaying = false;
 const channels = {
   metal:  { active: false, nodes: [], params: { vol: 0, rate: 30, decay: 70 } },
   ice:    { active: false, nodes: [], params: { vol: 0, pitch: 60, sparse: 50 } },
+  clink:  { active: false, nodes: [], params: { vol: 0, pitch: 55, sparse: 60 } },
+  bubble: { active: false, nodes: [], params: { vol: 0, density: 50, size: 40 } },
   water:  { active: false, nodes: [], params: { vol: 0, depth: 70, flow: 40 } },
   drone:  { active: false, nodes: [], params: { vol: 0, freq: 30, warp: 50 } },
   creak:  { active: false, nodes: [], params: { vol: 0, heavy: 60, rand: 70 } },
@@ -896,7 +957,17 @@ function initAudio() {
   masterGain = ctx.createGain();
   masterGain.gain.value = 0.7;
   masterGain.connect(ctx.destination);
+
+  // バックグラウンドでAudioContextが停止されたら自動再開
+  ctx.onstatechange = () => {
+    if (ctx.state === 'suspended' && isPlaying) ctx.resume();
+  };
 }
+
+// タブに戻ってきたときも再開
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden && ctx && isPlaying) ctx.resume();
+});
 
 function toggleMaster() {
   initAudio();
@@ -949,7 +1020,7 @@ function toggleChannel(ch) {
 
 function updateStatus() {
   const active = Object.keys(channels).filter(c => channels[c].active);
-  const names = { metal:'金属', ice:'氷', water:'深層流', drone:'虚空', creak:'船体', bell:'鐘', pad:'パッド', melody:'旋律' };
+  const names = { metal:'金属', ice:'氷の結晶', clink:'グラスの氷', bubble:'泡', water:'深層流', drone:'虚空', creak:'船体', bell:'鐘', pad:'パッド', melody:'旋律' };
   if (active.length === 0) {
     document.getElementById('statusText').textContent = '深海の静寂...';
   } else {
@@ -981,6 +1052,8 @@ function startChannel(ch) {
   switch(ch) {
     case 'metal':  startMetal(); break;
     case 'ice':    startIce(); break;
+    case 'clink':  startClink(); break;
+    case 'bubble': startBubble(); break;
     case 'water':  startWater(); break;
     case 'drone':  startDrone(); break;
     case 'creak':  startCreak(); break;
@@ -1065,7 +1138,6 @@ function startIce() {
     const baseFreq = 1500 + (pitch / 100) * 3000;
     const now = ctx.currentTime;
 
-    // 氷のクリック音
     const osc = ctx.createOscillator();
     const env = ctx.createGain();
     const filter = ctx.createBiquadFilter();
@@ -1088,6 +1160,67 @@ function startIce() {
     ch.timer2 = setTimeout(scheduleIce, interval);
   };
   scheduleIce();
+}
+
+// --- CLINK: グラスの氷 ---
+function startClink() {
+  const ch = channels.clink;
+  const g = ctx.createGain();
+  g.gain.value = ch.params.vol / 100 * 0.6;
+  g.connect(masterGain);
+  ch.gainNode = g;
+
+  const scheduleClink = () => {
+    if (!ch.active || !isPlaying) return;
+    const pitch = ch.params.pitch;
+    const sparse = ch.params.sparse;
+    const now = ctx.currentTime;
+
+    // 1イベントで1〜3回まとめて当たる（カランコロン）
+    const hitCount = 1 + Math.floor(Math.random() * 3);
+    for (let h = 0; h < hitCount; h++) {
+      const t = now + h * (0.04 + Math.random() * 0.09);
+
+      // 打撃音：ノイズバーストをバンドパスで整形
+      const bufLen = Math.floor(ctx.sampleRate * 0.018);
+      const buf = ctx.createBuffer(1, bufLen, ctx.sampleRate);
+      const data = buf.getChannelData(0);
+      for (let i = 0; i < bufLen; i++) data[i] = Math.random() * 2 - 1;
+      const src = ctx.createBufferSource();
+      src.buffer = buf;
+      const bpf = ctx.createBiquadFilter();
+      bpf.type = 'bandpass';
+      bpf.frequency.value = 1800 + (pitch / 100) * 2500;
+      bpf.Q.value = 4;
+      const clickEnv = ctx.createGain();
+      clickEnv.gain.setValueAtTime(0.7, t);
+      clickEnv.gain.exponentialRampToValueAtTime(0.001, t + 0.04);
+      src.connect(bpf);
+      bpf.connect(clickEnv);
+      clickEnv.connect(g);
+      src.start(t);
+      ch.nodes.push(src, bpf, clickEnv);
+
+      // 余韻：中域サイン波で短く減衰
+      const osc = ctx.createOscillator();
+      const resEnv = ctx.createGain();
+      const resonFreq = 700 + (pitch / 100) * 1000 + Math.random() * 300;
+      osc.type = 'sine';
+      osc.frequency.value = resonFreq;
+      resEnv.gain.setValueAtTime(0, t);
+      resEnv.gain.linearRampToValueAtTime(0.28, t + 0.004);
+      resEnv.gain.exponentialRampToValueAtTime(0.001, t + 0.35 + Math.random() * 0.35);
+      osc.connect(resEnv);
+      resEnv.connect(g);
+      osc.start(t);
+      osc.stop(t + 0.75);
+      ch.nodes.push(osc, resEnv);
+    }
+
+    const interval = (sparse / 100) * 5000 + 600 + Math.random() * 2000;
+    ch.timer2 = setTimeout(scheduleClink, interval);
+  };
+  scheduleClink();
 }
 
 // --- WATER: 深海流アンビエント ---
@@ -1440,6 +1573,56 @@ function startMelody() {
   scheduleNote();
 }
 
+// --- BUBBLE: 深海の泡 ---
+function startBubble() {
+  const ch = channels.bubble;
+  const g = ctx.createGain();
+  g.gain.value = ch.params.vol / 100 * 0.5;
+  g.connect(masterGain);
+  ch.gainNode = g;
+
+  const scheduleBubble = () => {
+    if (!ch.active || !isPlaying) return;
+    const density = ch.params.density;
+    const size = ch.params.size;
+    const now = ctx.currentTime;
+
+    // 密度に応じて1〜4個まとめて鳴らす
+    const count = 1 + Math.floor(Math.random() * (density / 30));
+    for (let i = 0; i < count; i++) {
+      const t = now + i * (Math.random() * 0.25);
+      const startFreq = 180 + (size / 100) * 500 + Math.random() * 150;
+      const dur = 0.04 + (size / 100) * 0.12 + Math.random() * 0.05;
+
+      const osc = ctx.createOscillator();
+      const env = ctx.createGain();
+      const filter = ctx.createBiquadFilter();
+      filter.type = 'bandpass';
+      filter.frequency.value = startFreq * 1.5;
+      filter.Q.value = 8;
+
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(startFreq, t);
+      osc.frequency.exponentialRampToValueAtTime(startFreq * 2.8, t + dur);
+
+      env.gain.setValueAtTime(0, t);
+      env.gain.linearRampToValueAtTime(0.5, t + dur * 0.1);
+      env.gain.exponentialRampToValueAtTime(0.001, t + dur);
+
+      osc.connect(filter);
+      filter.connect(env);
+      env.connect(g);
+      osc.start(t);
+      osc.stop(t + dur + 0.05);
+      ch.nodes.push(osc, env, filter);
+    }
+
+    const interval = (1 - density / 100) * 2500 + 200 + Math.random() * 800;
+    ch.timer2 = setTimeout(scheduleBubble, interval);
+  };
+  scheduleBubble();
+}
+
 // ===== 波形表示 =====
 function generateWaveform(ch) {
   const wf = document.getElementById('wf-' + ch);
@@ -1491,6 +1674,14 @@ const presets = {
     drone:  { active: true, vol: 65, freq: 10, warp: 90 },
     water:  { active: true, vol: 15, depth: 95, flow: 5 },
     pad:    { active: true, vol: 40, warm: 20, swell: 90, chord: 3 },
+  },
+  lounge: {
+    water:  { active: true, vol: 20, depth: 45, flow: 30 },
+    clink:  { active: true, vol: 45, pitch: 55, sparse: 65 },
+    bubble: { active: true, vol: 35, density: 35, size: 40 },
+    bell:   { active: true, vol: 25, tone: 55, space: 80 },
+    pad:    { active: true, vol: 50, warm: 55, swell: 65, chord: 4 },
+    melody: { active: true, vol: 35, tempo: 30, ghost: 55, scale: 3 },
   },
 };
 
