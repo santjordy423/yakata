@@ -359,7 +359,7 @@ function App() {
       .filter(t => completedNames.has(t.name))
       .map(t => t.name.replace(' / ', ''))
       .join('、');
-    navigator.clipboard.writeText(text).then(() => {
+    navigator.clipboard.writeText(`終業　業務内容：${text}`).then(() => {
       setCopyDone(true);
       setTimeout(() => setCopyDone(false), 2000);
     });
