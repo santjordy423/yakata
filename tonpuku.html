@@ -1,0 +1,791 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>頓服ノート</title>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;600;700&family=Special+Elite&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --cream: #f5f0e8;
+    --paper: #faf7f2;
+    --ink: #2c2416;
+    --ink-light: #6b5c3e;
+    --accent: #8b3a2a;
+    --accent-light: #c4644f;
+    --rule: #d4c9b0;
+    --stamp: #4a6741;
+    --bg: #d4c9b0;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    background-image: repeating-linear-gradient(0deg, transparent, transparent 31px, rgba(0,0,0,0.04) 31px, rgba(0,0,0,0.04) 32px);
+    min-height: 100vh;
+    font-family: 'Shippori Mincho', serif;
+    color: var(--ink);
+    display: flex;
+    justify-content: center;
+    padding: 24px 12px 60px;
+  }
+
+  .notebook {
+    width: 100%;
+    max-width: 480px;
+    background: var(--paper);
+    border-radius: 2px;
+    box-shadow: 4px 4px 0 #b0a690, 8px 8px 0 #9a9080;
+    position: relative;
+    overflow: hidden;
+    align-self: flex-start;
+  }
+
+  .notebook::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 40px;
+    background: var(--cream);
+    border-right: 1px solid var(--rule);
+    z-index: 1;
+  }
+
+  .holes {
+    position: absolute;
+    left: 10px; top: 0; bottom: 0;
+    width: 20px; z-index: 3;
+  }
+  .holes::before, .holes::after {
+    content: '';
+    position: absolute;
+    left: 50%; transform: translateX(-50%);
+    width: 16px; height: 16px; border-radius: 50%;
+    background: var(--bg);
+    border: 1px solid #b0a690;
+    box-shadow: inset 1px 1px 2px rgba(0,0,0,0.2);
+  }
+  .holes::before { top: 48px; }
+  .holes::after  { bottom: 48px; }
+
+  .notebook-content {
+    padding: 24px 24px 32px 56px;
+    position: relative; z-index: 2;
+  }
+
+  header {
+    border-bottom: 2px solid var(--ink);
+    padding-bottom: 12px;
+    display: flex; justify-content: space-between; align-items: flex-end;
+  }
+
+  .title-block h1 { font-size: 22px; font-weight: 700; letter-spacing: 0.1em; }
+  .title-block .subtitle {
+    font-family: 'Special Elite', monospace;
+    font-size: 10px; color: var(--ink-light); letter-spacing: 0.15em; margin-top: 2px;
+  }
+  .today-date {
+    font-family: 'Special Elite', monospace;
+    font-size: 11px; color: var(--ink-light); text-align: right; line-height: 1.6;
+  }
+
+  /* ── タブ ── */
+  .tabs {
+    display: flex; margin-top: 16px;
+    border-bottom: 2px solid var(--rule);
+  }
+  .tab-btn {
+    background: none; border: none;
+    border-bottom: 2px solid transparent; margin-bottom: -2px;
+    padding: 8px 16px 8px 12px;
+    font-family: 'Shippori Mincho', serif;
+    font-size: 12px; letter-spacing: 0.15em;
+    color: var(--ink-light); cursor: pointer; transition: all 0.15s;
+  }
+  .tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); font-weight: 600; }
+  .tab-btn:hover:not(.active) { color: var(--ink); }
+
+  .tab-panel { display: none; padding-top: 20px; }
+  .tab-panel.active { display: block; }
+
+  /* ── 共通 ── */
+  .section-title {
+    font-size: 11px; letter-spacing: 0.2em; color: var(--ink-light);
+    border-bottom: 1px solid var(--rule);
+    padding-bottom: 4px; margin-bottom: 12px;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+
+  /* ── 薬リスト ── */
+  .medicine-list { display: flex; flex-direction: column; gap: 6px; margin-bottom: 20px; }
+
+  .medicine-item {
+    display: flex; align-items: center; gap: 8px;
+    padding: 10px 12px;
+    background: var(--cream);
+    border: 1px solid var(--rule); border-left: 3px solid var(--accent);
+  }
+  .medicine-item .med-name { flex: 1; font-size: 15px; font-weight: 600; }
+  .medicine-item .last-info {
+    font-family: 'Special Elite', monospace;
+    font-size: 10px; color: var(--ink-light); text-align: right; line-height: 1.5;
+  }
+  .elapsed { font-size: 11px; font-weight: bold; color: var(--stamp); }
+  .elapsed.fresh { color: var(--accent); }
+
+  .take-btn {
+    background: var(--accent); color: white; border: none;
+    padding: 5px 10px; font-family: 'Shippori Mincho', serif;
+    font-size: 12px; cursor: pointer; white-space: nowrap; transition: background 0.15s;
+  }
+  .take-btn:hover { background: var(--accent-light); }
+
+  .del-med-btn {
+    background: none; border: none; color: var(--rule);
+    cursor: pointer; font-size: 14px; padding: 0 2px; transition: color 0.15s;
+  }
+  .del-med-btn:hover { color: var(--accent); }
+
+  .add-medicine-form { display: flex; gap: 6px; margin-bottom: 24px; }
+  .add-medicine-form input {
+    flex: 1; padding: 8px 10px;
+    border: 1px solid var(--rule); border-bottom: 2px solid var(--ink-light);
+    background: transparent; font-family: 'Shippori Mincho', serif;
+    font-size: 13px; color: var(--ink); outline: none;
+  }
+  .add-medicine-form input:focus { border-bottom-color: var(--accent); }
+  .add-medicine-form button {
+    background: var(--ink); color: var(--paper); border: none;
+    padding: 8px 14px; font-family: 'Shippori Mincho', serif;
+    font-size: 12px; cursor: pointer; letter-spacing: 0.1em; transition: background 0.15s;
+  }
+  .add-medicine-form button:hover { background: var(--ink-light); }
+
+  /* ── ログ ── */
+  .log-list { display: flex; flex-direction: column; }
+  .log-entry {
+    display: grid; grid-template-columns: 80px 1fr auto;
+    gap: 8px; align-items: start;
+    padding: 10px 0; border-bottom: 1px solid var(--rule);
+  }
+  .log-entry:last-child { border-bottom: none; }
+  .log-time { font-family: 'Special Elite', monospace; font-size: 11px; color: var(--ink-light); line-height: 1.5; }
+  .log-time .log-date { font-size: 9px; color: #a09080; }
+  .log-med { font-size: 13px; font-weight: 600; line-height: 1.5; }
+  .log-memo { font-size: 11px; color: var(--ink-light); margin-top: 2px; font-style: italic; }
+  .del-log-btn {
+    background: none; border: none; color: var(--rule);
+    cursor: pointer; font-size: 12px; padding: 0; transition: color 0.15s; align-self: center;
+  }
+  .del-log-btn:hover { color: var(--accent); }
+
+  /* 評価ボタン */
+  .effect-btns {
+    display: flex; gap: 4px; margin-top: 5px;
+  }
+  .effect-btn {
+    background: none;
+    border: 1px solid var(--rule);
+    padding: 2px 7px;
+    font-size: 10px;
+    font-family: 'Shippori Mincho', serif;
+    color: var(--ink-light);
+    cursor: pointer;
+    letter-spacing: 0.05em;
+    transition: all 0.15s;
+    line-height: 1.6;
+  }
+  .effect-btn:hover { border-color: var(--ink-light); color: var(--ink); }
+  .effect-btn.active-good {
+    background: var(--stamp); border-color: var(--stamp);
+    color: white; font-weight: 600;
+  }
+  .effect-btn.active-bad {
+    background: var(--accent); border-color: var(--accent);
+    color: white; font-weight: 600;
+  }
+
+  /* ── カレンダー ── */
+  .cal-nav {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 14px;
+  }
+  .cal-nav button {
+    background: none; border: 1px solid var(--rule);
+    width: 28px; height: 28px; cursor: pointer;
+    font-size: 14px; color: var(--ink-light); line-height: 1; transition: all 0.15s;
+  }
+  .cal-nav button:hover { border-color: var(--ink-light); color: var(--ink); }
+  .cal-month-label {
+    font-family: 'Special Elite', monospace;
+    font-size: 15px; letter-spacing: 0.15em; color: var(--ink);
+  }
+
+  .cal-grid { display: grid; grid-template-columns: repeat(7,1fr); gap: 2px; }
+
+  .cal-dow {
+    text-align: center;
+    font-family: 'Special Elite', monospace;
+    font-size: 9px; letter-spacing: 0.1em; color: var(--ink-light);
+    padding: 4px 0 6px;
+  }
+  .cal-dow:first-child { color: var(--accent); }
+  .cal-dow:last-child  { color: #5a7a9a; }
+
+  .cal-day {
+    min-height: 54px;
+    background: var(--cream);
+    border: 1px solid var(--rule);
+    padding: 3px 4px;
+  }
+  .cal-day.empty   { background: transparent; border-color: transparent; }
+  .cal-day.today   { border-color: var(--accent); }
+  .cal-day.today .cal-day-num { color: var(--accent); font-weight: 700; }
+  .cal-day.has-log { cursor: pointer; }
+  .cal-day.has-log:hover { background: #ede8de; }
+
+  .cal-day-num {
+    font-family: 'Special Elite', monospace;
+    font-size: 10px; color: var(--ink-light);
+    display: block; line-height: 1; margin-bottom: 3px;
+  }
+  /* 日曜列・土曜列の色 — nth-childはグリッド全体で数えるので曜日ヘッダー7個分ずれる */
+  .cal-grid .cal-dow:nth-child(1)  { color: var(--accent); }
+  .cal-grid .cal-dow:nth-child(7)  { color: #5a7a9a; }
+
+  .cal-pills { display: flex; flex-direction: column; gap: 1px; }
+  .cal-pill {
+    font-size: 9px; color: white;
+    padding: 1px 3px; border-radius: 1px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    max-width: 100%; line-height: 1.4;
+  }
+  .cal-pill.more {
+    background: var(--ink-light) !important;
+    font-family: 'Special Elite', monospace; font-size: 8px;
+  }
+
+  .cal-legend {
+    margin-top: 12px;
+    display: flex; flex-wrap: wrap; gap: 6px;
+  }
+  .legend-item { display: flex; align-items: center; gap: 4px; font-size: 10px; color: var(--ink-light); }
+  .legend-dot  { width: 8px; height: 8px; border-radius: 1px; }
+
+  /* 日付詳細 */
+  .cal-day-detail {
+    margin-top: 16px; padding: 12px;
+    background: var(--cream);
+    border: 1px solid var(--rule); border-left: 3px solid var(--accent);
+    display: none;
+  }
+  .cal-day-detail.open { display: block; }
+  .cal-day-detail h4 {
+    font-family: 'Special Elite', monospace;
+    font-size: 12px; letter-spacing: 0.15em; color: var(--ink-light); margin-bottom: 8px;
+  }
+  .detail-entry {
+    font-size: 12px; padding: 4px 0;
+    border-bottom: 1px solid var(--rule);
+    display: flex; gap: 8px;
+  }
+  .detail-entry:last-child { border-bottom: none; }
+  .detail-time { font-family: 'Special Elite', monospace; color: var(--ink-light); min-width: 36px; }
+  .detail-name { font-weight: 600; }
+  .detail-memo { font-size: 11px; color: var(--ink-light); font-style: italic; margin-top: 1px; }
+  .detail-effect {
+    font-size: 9px; font-weight: 600;
+    padding: 1px 5px; margin-left: 6px;
+    vertical-align: middle; border-radius: 1px;
+  }
+  .detail-effect.good { background: var(--stamp); color: white; }
+  .detail-effect.bad  { background: var(--accent); color: white; }
+
+  /* ── モーダル ── */
+  .modal-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,0.5); z-index: 100;
+    align-items: center; justify-content: center; padding: 20px;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: var(--paper); padding: 24px;
+    width: 100%; max-width: 360px;
+    box-shadow: 6px 6px 0 rgba(0,0,0,0.3);
+    border-top: 4px solid var(--accent);
+  }
+  .modal h3 { font-size: 16px; margin-bottom: 16px; letter-spacing: 0.1em; }
+  .modal label {
+    display: block; font-size: 11px; color: var(--ink-light);
+    letter-spacing: 0.15em; margin-bottom: 4px; margin-top: 12px;
+  }
+  .modal input, .modal textarea {
+    width: 100%; padding: 8px 10px;
+    border: 1px solid var(--rule); border-bottom: 2px solid var(--ink-light);
+    background: var(--cream); font-family: 'Shippori Mincho', serif;
+    font-size: 13px; color: var(--ink); outline: none; resize: none;
+  }
+  .modal input:focus, .modal textarea:focus { border-bottom-color: var(--accent); }
+  .modal-btns { display: flex; gap: 8px; margin-top: 20px; justify-content: flex-end; }
+  .btn-primary {
+    background: var(--accent); color: white; border: none;
+    padding: 8px 20px; font-family: 'Shippori Mincho', serif;
+    font-size: 13px; cursor: pointer; letter-spacing: 0.1em; transition: background 0.15s;
+  }
+  .btn-primary:hover { background: var(--accent-light); }
+  .btn-cancel {
+    background: none; border: 1px solid var(--rule); padding: 8px 16px;
+    font-family: 'Shippori Mincho', serif; font-size: 13px;
+    cursor: pointer; color: var(--ink-light); transition: border-color 0.15s;
+  }
+  .btn-cancel:hover { border-color: var(--ink-light); }
+
+  .empty-state { text-align: center; color: var(--ink-light); font-size: 12px; padding: 20px 0; letter-spacing: 0.1em; }
+  .divider { border: none; border-top: 1px dashed var(--rule); margin: 20px 0; }
+
+  /* インライン削除確認 */
+  .inline-confirm {
+    display: none; align-items: center; gap: 4px;
+  }
+  .inline-confirm.open { display: flex; }
+  .inline-confirm span {
+    font-size: 10px; color: var(--accent); white-space: nowrap;
+  }
+  .confirm-yes, .confirm-no {
+    border: none; cursor: pointer;
+    font-size: 11px; padding: 2px 6px;
+    font-family: 'Shippori Mincho', serif;
+  }
+  .confirm-yes { background: var(--accent); color: white; }
+  .confirm-yes:hover { background: var(--accent-light); }
+  .confirm-no  { background: none; border: 1px solid var(--rule); color: var(--ink-light); }
+  .confirm-no:hover { border-color: var(--ink-light); }
+
+  .back-link {
+    display: inline-block;
+    margin-bottom: 12px;
+    font-family: 'Special Elite', monospace;
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    color: var(--ink-light);
+    text-decoration: none;
+  }
+  .back-link:hover { color: var(--accent); }
+</style>
+</head>
+<body>
+<div class="notebook">
+  <div class="holes"></div>
+  <div class="notebook-content">
+
+    <a class="back-link" href="index.html">← 館に戻る</a>
+    <header>
+      <div class="title-block">
+        <h1>頓服ノート</h1>
+        <div class="subtitle">PRN MEDICATION LOG</div>
+      </div>
+      <div class="today-date" id="todayDate"></div>
+    </header>
+
+    <div class="tabs">
+      <button class="tab-btn active" data-action="tab" data-tab="home">▎ 記録</button>
+      <button class="tab-btn"        data-action="tab" data-tab="calendar">▎ カレンダー</button>
+    </div>
+
+    <!-- 記録タブ -->
+    <div class="tab-panel active" id="tab-home">
+      <div class="section-title"><span>登録中の薬</span></div>
+      <div class="medicine-list" id="medicineList"></div>
+      <div class="add-medicine-form">
+        <input type="text" id="newMedName" placeholder="薬の名前を追加…" maxlength="20">
+        <button data-action="add-med">追加</button>
+      </div>
+      <hr class="divider">
+      <div class="section-title">
+        <span>服用記録</span>
+        <span id="logCount" style="font-family:'Special Elite',monospace;font-size:10px;"></span>
+      </div>
+      <div class="log-list" id="logList"></div>
+      <div class="empty-state" id="emptyLog">記録がありません</div>
+    </div>
+
+    <!-- カレンダータブ -->
+    <div class="tab-panel" id="tab-calendar">
+      <div class="cal-nav">
+        <button data-action="cal-prev">‹</button>
+        <div class="cal-month-label" id="calMonthLabel"></div>
+        <button data-action="cal-next">›</button>
+      </div>
+      <div class="cal-grid" id="calGrid"></div>
+      <div class="cal-legend" id="calLegend"></div>
+      <div class="cal-day-detail" id="calDetail">
+        <h4 id="calDetailTitle"></h4>
+        <div id="calDetailBody"></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- 服用モーダル -->
+<div class="modal-overlay" id="takeModal">
+  <div class="modal">
+    <h3 id="modalTitle">服用を記録する</h3>
+    <label>服用時刻</label>
+    <input type="datetime-local" id="takeTime">
+    <label>メモ（症状など・任意）</label>
+    <textarea id="takeMemo" rows="3" placeholder="例：頭痛、めまいがひどかった…"></textarea>
+    <div class="modal-btns">
+      <button class="btn-cancel"  data-action="close-modal">キャンセル</button>
+      <button class="btn-primary" data-action="confirm-take">記録する</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  let medicines = JSON.parse(localStorage.getItem('tonpuku_meds') || '[]');
+  let logs      = JSON.parse(localStorage.getItem('tonpuku_logs') || '[]');
+  let activeMedId = null;
+
+  const today = new Date();
+  let calYear  = today.getFullYear();
+  let calMonth = today.getMonth();
+
+  function saveMeds() { localStorage.setItem('tonpuku_meds', JSON.stringify(medicines)); }
+  function saveLogs() { localStorage.setItem('tonpuku_logs', JSON.stringify(logs)); }
+  function genId()    { return 'id' + Date.now().toString(36) + Math.random().toString(36).slice(2,5); }
+  function escHtml(s) {
+    return String(s)
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+      .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  function fmtDate(iso) {
+    const d = new Date(iso);
+    return `${d.getMonth()+1}/${d.getDate()}`;
+  }
+  function fmtTime(iso) {
+    const d = new Date(iso);
+    return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+  }
+  function elapsedStr(iso) {
+    const diff = Date.now() - new Date(iso).getTime();
+    const h = Math.floor(diff/3600000);
+    const m = Math.floor((diff%3600000)/60000);
+    if (h===0) return `${m}分前`;
+    if (h<24)  return `${h}時間${m}分前`;
+    return `${Math.floor(h/24)}日前`;
+  }
+  function isFresh(iso) { return (Date.now()-new Date(iso).getTime()) < 6*3600000; }
+
+  function updateHeader() {
+    const d = new Date();
+    const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+    document.getElementById('todayDate').innerHTML =
+      `${d.getFullYear()}.<br>${String(d.getMonth()+1).padStart(2,'0')}.${String(d.getDate()).padStart(2,'0')} ${days[d.getDay()]}`;
+  }
+
+  // タブ
+  function switchTab(name) {
+    document.querySelectorAll('.tab-btn').forEach((b,i) => {
+      b.classList.toggle('active', ['home','calendar'][i]===name);
+    });
+    document.querySelectorAll('.tab-panel').forEach(p => {
+      p.classList.toggle('active', p.id==='tab-'+name);
+    });
+    if (name==='calendar') renderCalendar();
+  }
+
+  // 薬
+  function renderMedicines() {
+    const el = document.getElementById('medicineList');
+    if (!medicines.length) {
+      el.innerHTML = '<div class="empty-state">薬を追加してください</div>';
+      return;
+    }
+    el.innerHTML = medicines.map(med => {
+      const last = logs
+        .filter(l=>l.medId===med.id)
+        .sort((a,b)=>new Date(b.time)-new Date(a.time))[0];
+      const lastHtml = last
+        ? `<div style="font-size:9px;color:#a09080">${fmtDate(last.time)}</div>
+           <div>${fmtTime(last.time)}</div>
+           <div class="elapsed ${isFresh(last.time)?'fresh':''}">${elapsedStr(last.time)}</div>`
+        : '<div style="font-size:10px;color:#a09080;">記録なし</div>';
+      return `
+        <div class="medicine-item" id="med-${med.id}">
+          <div class="med-name">${escHtml(med.name)}</div>
+          <div class="last-info">${lastHtml}</div>
+          <button class="take-btn"    data-action="take"           data-id="${med.id}">飲んだ</button>
+          <button class="del-med-btn" data-action="ask-del-med"    data-id="${med.id}" title="削除">✕</button>
+          <div class="inline-confirm" id="del-med-confirm-${med.id}">
+            <span>削除?</span>
+            <button class="confirm-yes" data-action="del-med" data-id="${med.id}">はい</button>
+            <button class="confirm-no"  data-action="cancel-del-med" data-id="${med.id}">いいえ</button>
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  // ログ
+  function renderLogs() {
+    const el    = document.getElementById('logList');
+    const empty = document.getElementById('emptyLog');
+    const cnt   = document.getElementById('logCount');
+    const sorted = [...logs].sort((a,b)=>new Date(b.time)-new Date(a.time));
+    cnt.textContent = sorted.length ? `${sorted.length}件` : '';
+    empty.style.display = sorted.length ? 'none' : 'block';
+    el.innerHTML = sorted.map(log => {
+      const med  = medicines.find(m=>m.id===log.medId);
+      const name = med ? escHtml(med.name) : `<span style="opacity:.5">${escHtml(log.medName||'?')}</span>`;
+      const memo = log.memo ? `<div class="log-memo">${escHtml(log.memo)}</div>` : '';
+      const effectHtml = `
+        <div class="effect-btns">
+          <button class="effect-btn ${log.effect==='good'?'active-good':''}"
+            data-action="set-effect" data-id="${log.id}" data-val="good">✓ 効いた</button>
+          <button class="effect-btn ${log.effect==='bad'?'active-bad':''}"
+            data-action="set-effect" data-id="${log.id}" data-val="bad">✗ 効かなかった</button>
+        </div>`;
+      return `
+        <div class="log-entry" id="log-${log.id}">
+          <div class="log-time"><div class="log-date">${fmtDate(log.time)}</div><div>${fmtTime(log.time)}</div></div>
+          <div><div class="log-med">${name}</div>${memo}${effectHtml}</div>
+          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px">
+            <button class="del-log-btn" data-action="ask-del-log" data-id="${log.id}" title="削除">✕</button>
+            <div class="inline-confirm" id="del-log-confirm-${log.id}">
+              <span>削除?</span>
+              <button class="confirm-yes" data-action="del-log" data-id="${log.id}">はい</button>
+              <button class="confirm-no"  data-action="cancel-del-log" data-id="${log.id}">いいえ</button>
+            </div>
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  // カレンダー用カラーパレット
+  const CAL_COLORS = ['#8b3a2a','#4a6741','#5a7a9a','#7a5a9a','#9a7a2a','#2a6a7a','#9a4a6a'];
+  function medColor(medId) {
+    const i = medicines.findIndex(m=>m.id===medId);
+    return CAL_COLORS[Math.max(0,i) % CAL_COLORS.length];
+  }
+
+  function renderCalendar() {
+    document.getElementById('calMonthLabel').textContent =
+      `${calYear} . ${String(calMonth+1).padStart(2,'0')}`;
+
+    const dows = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+    let html = dows.map(d=>`<div class="cal-dow">${d}</div>`).join('');
+
+    const firstDay    = new Date(calYear, calMonth, 1).getDay();
+    const daysInMonth = new Date(calYear, calMonth+1, 0).getDate();
+
+    // 日→ログ のマップ
+    const dayMap = {};
+    logs.forEach(log => {
+      const d = new Date(log.time);
+      if (d.getFullYear()===calYear && d.getMonth()===calMonth) {
+        const k = d.getDate();
+        (dayMap[k] = dayMap[k]||[]).push(log);
+      }
+    });
+
+    for (let i=0; i<firstDay; i++) html += '<div class="cal-day empty"></div>';
+
+    for (let day=1; day<=daysInMonth; day++) {
+      const isToday  = calYear===today.getFullYear() && calMonth===today.getMonth() && day===today.getDate();
+      const dayLogs  = dayMap[day] || [];
+      const hasLog   = dayLogs.length > 0;
+
+      // 薬ごとにまとめる
+      const grouped = {};
+      dayLogs.forEach(l => {
+        if (!grouped[l.medId]) {
+          const m = medicines.find(m=>m.id===l.medId);
+          grouped[l.medId] = { name: m?m.name:(l.medName||'?'), count:0, medId:l.medId };
+        }
+        grouped[l.medId].count++;
+      });
+
+      const entries  = Object.values(grouped);
+      const MAX_SHOW = 2;
+      let pillsHtml  = entries.slice(0,MAX_SHOW).map(e => {
+        const label = e.count>1 ? `${e.name}×${e.count}` : e.name;
+        return `<div class="cal-pill" style="background:${medColor(e.medId)}" title="${escHtml(e.name)}">${escHtml(label)}</div>`;
+      }).join('');
+      if (entries.length>MAX_SHOW)
+        pillsHtml += `<div class="cal-pill more">+${entries.length-MAX_SHOW}</div>`;
+
+      html += `
+        <div class="cal-day${isToday?' today':''}${hasLog?' has-log':''}"
+             data-action="${hasLog?'show-day':''}"
+             data-day="${day}">
+          <span class="cal-day-num">${day}</span>
+          <div class="cal-pills">${pillsHtml}</div>
+        </div>`;
+    }
+
+    document.getElementById('calGrid').innerHTML = html;
+
+    // 凡例
+    document.getElementById('calLegend').innerHTML = medicines.map((m,i) =>
+      `<div class="legend-item">
+         <div class="legend-dot" style="background:${CAL_COLORS[i%CAL_COLORS.length]}"></div>
+         <span>${escHtml(m.name)}</span>
+       </div>`
+    ).join('');
+  }
+
+  function showDayDetail(day) {
+    const detail = document.getElementById('calDetail');
+    // 同じ日クリックで閉じる
+    if (detail.classList.contains('open') && detail.dataset.day===String(day)) {
+      detail.classList.remove('open'); return;
+    }
+    detail.dataset.day = day;
+    document.getElementById('calDetailTitle').textContent = `${calMonth+1} / ${day}`;
+
+    const dayLogs = logs
+      .filter(l => {
+        const d = new Date(l.time);
+        return d.getFullYear()===calYear && d.getMonth()===calMonth && d.getDate()===day;
+      })
+      .sort((a,b)=>new Date(a.time)-new Date(b.time));
+
+    document.getElementById('calDetailBody').innerHTML = dayLogs.map(log => {
+      const med  = medicines.find(m=>m.id===log.medId);
+      const name = med ? escHtml(med.name) : escHtml(log.medName||'?');
+      const memo = log.memo ? `<div class="detail-memo">${escHtml(log.memo)}</div>` : '';
+      const effectLabel = log.effect === 'good'
+        ? `<span class="detail-effect good">✓ 効いた</span>`
+        : log.effect === 'bad'
+        ? `<span class="detail-effect bad">✗ 効かなかった</span>`
+        : '';
+      return `
+        <div class="detail-entry">
+          <div class="detail-time">${fmtTime(log.time)}</div>
+          <div><div class="detail-name">${name}${effectLabel}</div>${memo}</div>
+        </div>`;
+    }).join('');
+
+    detail.classList.add('open');
+  }
+
+  function prevMonth() {
+    calMonth--; if(calMonth<0){calMonth=11;calYear--;}
+    document.getElementById('calDetail').classList.remove('open');
+    renderCalendar();
+  }
+  function nextMonth() {
+    calMonth++; if(calMonth>11){calMonth=0;calYear++;}
+    document.getElementById('calDetail').classList.remove('open');
+    renderCalendar();
+  }
+
+  // 薬 追加・削除
+  function addMedicine() {
+    const inp  = document.getElementById('newMedName');
+    const name = inp.value.trim();
+    if (!name) return;
+    medicines.push({id:genId(), name});
+    saveMeds(); inp.value=''; renderAll();
+  }
+  document.getElementById('newMedName').addEventListener('keydown', e=>{if(e.key==='Enter')addMedicine();});
+
+  function askDelMed(id) {
+    document.querySelectorAll('.inline-confirm').forEach(el => el.classList.remove('open'));
+    document.getElementById('del-med-confirm-'+id)?.classList.add('open');
+  }
+  function cancelDelMed(id) {
+    document.getElementById('del-med-confirm-'+id)?.classList.remove('open');
+  }
+  function deleteMedicine(id) {
+    medicines = medicines.filter(m=>m.id!==id);
+    saveMeds(); renderAll();
+  }
+
+  // モーダル
+  function openModal(medId) {
+    activeMedId = medId;
+    const med = medicines.find(m=>m.id===medId);
+    document.getElementById('modalTitle').textContent = `「${med.name}」を記録する`;
+    const now   = new Date();
+    const local = new Date(now.getTime()-now.getTimezoneOffset()*60000).toISOString().slice(0,16);
+    document.getElementById('takeTime').value = local;
+    document.getElementById('takeMemo').value = '';
+    document.getElementById('takeModal').classList.add('open');
+  }
+  function closeModal() {
+    document.getElementById('takeModal').classList.remove('open');
+    activeMedId = null;
+  }
+  function confirmTake() {
+    const time = document.getElementById('takeTime').value;
+    const memo = document.getElementById('takeMemo').value.trim();
+    if (!time) { alert('時刻を選択してください'); return; }
+    const med = medicines.find(m=>m.id===activeMedId);
+    logs.push({id:genId(), medId:activeMedId, medName:med?.name||'?',
+               time:new Date(time).toISOString(), memo});
+    saveLogs(); closeModal(); renderAll();
+  }
+
+  function askDelLog(id) {
+    document.querySelectorAll('.inline-confirm').forEach(el => el.classList.remove('open'));
+    document.getElementById('del-log-confirm-'+id)?.classList.add('open');
+  }
+  function cancelDelLog(id) {
+    document.getElementById('del-log-confirm-'+id)?.classList.remove('open');
+  }
+  function deleteLog(id) {
+    logs = logs.filter(l=>l.id!==id);
+    saveLogs(); renderAll();
+  }
+
+  function setEffect(id, val) {
+    const log = logs.find(l=>l.id===id);
+    if (!log) return;
+    // 同じボタンを押したらトグルで解除
+    log.effect = log.effect === val ? null : val;
+    saveLogs(); renderLogs();
+  }
+
+  // モーダル背景クリック
+  document.getElementById('takeModal').addEventListener('click', function(e){
+    if(e.target===this) closeModal();
+  });
+
+  // ── イベント委譲（onclick属性の代替） ──
+  document.addEventListener('click', function(e) {
+    const btn = e.target.closest('[data-action]');
+    if (!btn) return;
+    const action = btn.dataset.action;
+    const id     = btn.dataset.id;
+    if (action === 'tab')            { switchTab(btn.dataset.tab); }
+    else if (action === 'add-med')   { addMedicine(); }
+    else if (action === 'cal-prev')  { prevMonth(); }
+    else if (action === 'cal-next')  { nextMonth(); }
+    else if (action === 'close-modal')   { closeModal(); }
+    else if (action === 'confirm-take')  { confirmTake(); }
+    else if (action === 'take')          { openModal(id); }
+    else if (action === 'ask-del-med')   { askDelMed(id); }
+    else if (action === 'del-med')       { deleteMedicine(id); }
+    else if (action === 'cancel-del-med'){ cancelDelMed(id); }
+    else if (action === 'ask-del-log')   { askDelLog(id); }
+    else if (action === 'del-log')       { deleteLog(id); }
+    else if (action === 'cancel-del-log'){ cancelDelLog(id); }
+    else if (action === 'set-effect')    { setEffect(id, btn.dataset.val); }
+    else if (action === 'show-day')      { showDayDetail(Number(btn.dataset.day)); }
+  });
+
+  function renderAll() {
+    updateHeader();
+    renderMedicines();
+    renderLogs();
+    if (document.getElementById('tab-calendar').classList.contains('active')) renderCalendar();
+  }
+
+  setInterval(renderAll, 60000);
+  renderAll();
+</script>
+</body>
+</html>
