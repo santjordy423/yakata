@@ -220,6 +220,16 @@ body { min-height: 100vh; overflow: auto; font-family: 'Zen Kaku Gothic New', sa
       <button class="preview-btn" onclick="previewSound()">▶ 試聴</button>
     </div>
   </div>
+
+  <div class="settings-section">
+    <div class="settings-row-space">
+      <div>
+        <div class="settings-section-title">バックグラウンド通知</div>
+        <div class="settings-desc">タブが裏にいるときもOSで通知</div>
+      </div>
+      <button id="notif-btn" class="toggle-btn off" onclick="requestNotificationPermission()">許可する</button>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -390,6 +400,33 @@ function previewSound() {
   playSound(true);
 }
 
+// --- 通知許可 ---
+function updateNotifBtn() {
+  const btn = document.getElementById('notif-btn');
+  if (!btn || !('Notification' in window)) return;
+  if (Notification.permission === 'granted') {
+    btn.textContent = '許可済み'; btn.classList.remove('off');
+  } else if (Notification.permission === 'denied') {
+    btn.textContent = 'ブロック中'; btn.classList.add('off');
+  } else {
+    btn.textContent = '許可する'; btn.classList.add('off');
+  }
+}
+
+function requestNotificationPermission() {
+  if (!('Notification' in window)) return;
+  if (Notification.permission === 'granted') return;
+  Notification.requestPermission().then(updateNotifBtn);
+}
+
+function sendChimeNotification(label) {
+  if (!('Notification' in window) || Notification.permission !== 'granted') return;
+  new Notification('怠惰な雑種と王の館', {
+    body: label + ' チャイム',
+    icon: "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='80'>✦</text></svg>"
+  });
+}
+
 // --- チャイム判定 ---
 function checkCycleChime(info) {
   if (!cycleChimeEnabled) return;
@@ -400,18 +437,29 @@ function checkCycleChime(info) {
   }
 }
 
-function checkTimeChimes() {
+// strict=true: s===0 のときのみ（通常tick用）
+// strict=false: 分が合えば鳴らす（visibilitychange用の見逃しチェック）
+function checkTimeChimes(strict = true) {
   const now = new Date();
   const h = now.getHours(), m = now.getMinutes(), s = now.getSeconds();
-  if (s !== 0) return;
-  timeChimes.forEach((chime, idx) => {
+  if (strict && s !== 0) return;
+  timeChimes.forEach(chime => {
     if (!chime.enabled || chime.hour !== h || chime.minute !== m) return;
     const key = `${h}:${String(m).padStart(2, '0')}`;
     if (chime.lastPlayed === key) return;
     chime.lastPlayed = key;
-    playSound(true);
+    // フォアグラウンドなら音も鳴らす
+    if (document.visibilityState === 'visible') playSound(true);
+    sendChimeNotification(key);
   });
 }
+
+// --- visibilitychange：見逃しチェック ---
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible') {
+    checkTimeChimes(false);
+  }
+});
 
 function tick() {
   const info = getCurrentPhaseInfo();
@@ -422,6 +470,7 @@ function tick() {
 
 setInterval(tick, 1000);
 tick();
+updateNotifBtn();
 </script>
 </body>
 </html>
