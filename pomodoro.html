@@ -437,27 +437,44 @@ function checkCycleChime(info) {
   }
 }
 
-// strict=true: s===0 のときのみ（通常tick用）
-// strict=false: 分が合えば鳴らす（visibilitychange用の見逃しチェック）
-function checkTimeChimes(strict = true) {
+// 通常tick用：バックグラウンドスロットリング対策で s<=5 まで許容
+function checkTimeChimes() {
   const now = new Date();
   const h = now.getHours(), m = now.getMinutes(), s = now.getSeconds();
-  if (strict && s !== 0) return;
+  if (s > 5) return;
   timeChimes.forEach(chime => {
     if (!chime.enabled || chime.hour !== h || chime.minute !== m) return;
     const key = `${h}:${String(m).padStart(2, '0')}`;
     if (chime.lastPlayed === key) return;
     chime.lastPlayed = key;
-    // フォアグラウンドなら音も鳴らす
     if (document.visibilityState === 'visible') playSound(true);
     sendChimeNotification(key);
   });
 }
 
-// --- visibilitychange：見逃しチェック ---
+// 非表示になった時刻を記録し、戻ったときに見逃しチェック
+let hiddenAt = null;
 document.addEventListener('visibilitychange', () => {
-  if (document.visibilityState === 'visible') {
-    checkTimeChimes(false);
+  if (document.visibilityState === 'hidden') {
+    hiddenAt = new Date();
+  } else {
+    if (hiddenAt) {
+      const now = new Date();
+      timeChimes.forEach(chime => {
+        if (!chime.enabled) return;
+        // 今日のチャイム時刻を生成
+        const chimeTime = new Date(now);
+        chimeTime.setHours(chime.hour, chime.minute, 0, 0);
+        const key = `${chime.hour}:${String(chime.minute).padStart(2, '0')}`;
+        // 隠れていた間にチャイム時刻をまたいでいれば発火
+        if (chimeTime >= hiddenAt && chimeTime <= now && chime.lastPlayed !== key) {
+          chime.lastPlayed = key;
+          playSound(true);
+          sendChimeNotification(key);
+        }
+      });
+      hiddenAt = null;
+    }
   }
 });
 
