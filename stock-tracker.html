@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ストック帳</title>
+<link href="https://fonts.googleapis.com/css2?family=Kiwi+Maru:wght@300;400;500&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f5f0e8; --surface: #faf7f2; --ink: #2c2416; --ink-light: #8a7a60;
+    --accent: #c47c3e; --accent-light: #f0d9bb;
+    --danger: #b84a4a; --danger-light: #f5dede;
+    --ok: #4a8a5a; --ok-light: #dff0e4; --border: #ddd3c0;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); font-family: 'Kiwi Maru', serif; color: var(--ink); min-height: 100vh; padding-bottom: 80px; }
+  .nav { position: sticky; top: 0; z-index: 100; background: var(--bg); border-bottom: 1.5px solid var(--border); padding: 16px 16px 0; }
+  .nav-top { max-width: 560px; margin: 0 auto; display: flex; align-items: baseline; gap: 10px; margin-bottom: 12px; }
+  h1 { font-size: 24px; font-weight: 500; letter-spacing: 0.04em; }
+  h1 span.sub { font-size: 11px; font-weight: 300; color: var(--ink-light); font-family: 'DM Mono', monospace; letter-spacing: 0.08em; }
+  .page-tabs { max-width: 560px; margin: 0 auto; display: flex; }
+  .page-tab { flex: 1; padding: 10px 0; border: none; background: transparent; font-family: 'Kiwi Maru', serif; font-size: 14px; color: var(--ink-light); cursor: pointer; border-bottom: 2.5px solid transparent; transition: all 0.18s; }
+  .page-tab.active { color: var(--ink); border-bottom-color: var(--ink); }
+  .badge { display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 18px; border-radius: 50%; background: var(--danger); color: #fff; font-size: 10px; font-family: 'DM Mono', monospace; margin-left: 5px; }
+  .page { display: none; padding: 20px 16px; }
+  .page.active { display: block; }
+  .filter-tabs { max-width: 560px; margin: 0 auto 16px; display: flex; gap: 6px; flex-wrap: wrap; }
+  .tab { padding: 5px 14px; border-radius: 20px; border: 1.5px solid var(--border); background: transparent; font-family: 'Kiwi Maru', serif; font-size: 12px; color: var(--ink-light); cursor: pointer; transition: all 0.18s; }
+  .tab.active { background: var(--ink); border-color: var(--ink); color: var(--bg); }
+  .list { max-width: 560px; margin: 0 auto; display: flex; flex-direction: column; gap: 10px; }
+  .item { background: var(--surface); border: 1.5px solid var(--border); border-radius: 14px; padding: 14px 16px 16px; display: flex; align-items: flex-start; gap: 12px; transition: all 0.2s; animation: slideIn 0.18s ease; }
+  @keyframes slideIn { from { opacity:0; transform:translateY(-6px); } to { opacity:1; transform:translateY(0); } }
+  .item.low { background: var(--danger-light); border-color: #e8c0c0; }
+  .item.ok  { background: var(--ok-light); border-color: #b8d8c2; }
+  .item-icon { width: 36px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; padding-top: 3px; }
+  .item-icon svg { width: 24px; height: 24px; stroke: var(--ink-light); fill: none; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+  .item-info { flex: 1; min-width: 0; }
+  .item-name { font-size: 15px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .item-meta { font-size: 11px; color: var(--ink-light); font-family: 'DM Mono', monospace; margin-top: 2px; }
+  .item.low .item-meta { color: var(--danger); }
+  .stock-bar-wrap { width: 100%; height: 4px; background: var(--border); border-radius: 2px; margin-top: 6px; margin-bottom: 2px; overflow: hidden; }
+  .stock-bar { height: 100%; border-radius: 2px; transition: width 0.3s ease; }
+  .stock-control { display: flex; align-items: center; gap: 6px; flex-shrink: 0; align-self: center; }
+  .btn-count { width: 28px; height: 28px; border-radius: 50%; border: 1.5px solid var(--border); background: var(--bg); font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.15s; color: var(--ink); }
+  .btn-count:hover { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+  .count-display { font-size: 20px; font-weight: 500; font-family: 'DM Mono', monospace; min-width: 36px; text-align: center; }
+  .count-display.low { color: var(--danger); }
+  .count-display.ok  { color: var(--ok); }
+  .btn-delete { width: 24px; height: 24px; border-radius: 50%; border: none; background: transparent; color: var(--ink-light); font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; margin-left: 4px; transition: all 0.15s; opacity: 0; align-self: center; }
+  .item:hover .btn-delete { opacity: 1; }
+  .btn-delete:hover { background: var(--danger-light); color: var(--danger); }
+  .cat-badge { font-size: 10px; font-family: 'DM Mono', monospace; padding: 2px 7px; border-radius: 10px; background: var(--bg); border: 1px solid var(--border); color: var(--ink-light); vertical-align: middle; white-space: nowrap; }
+  .add-section { max-width: 560px; margin: 20px auto 0; }
+  .add-toggle { width: 100%; padding: 12px; border: 1.5px dashed var(--border); border-radius: 14px; background: transparent; font-family: 'Kiwi Maru', serif; font-size: 14px; color: var(--ink-light); cursor: pointer; transition: all 0.2s; }
+  .add-toggle:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-light); }
+  .add-form { background: var(--surface); border: 1.5px solid var(--border); border-radius: 14px; padding: 18px; margin-top: 8px; display: none; flex-direction: column; gap: 12px; animation: slideIn 0.2s ease; }
+  .add-form.open { display: flex; }
+  .form-row { display: flex; gap: 10px; flex-wrap: wrap; }
+  .form-field { display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 110px; }
+  .form-field label { font-size: 11px; color: var(--ink-light); font-family: 'DM Mono', monospace; letter-spacing: 0.06em; }
+  .form-field input, .form-field select { padding: 8px 10px; border: 1.5px solid var(--border); border-radius: 8px; background: var(--bg); font-family: 'Kiwi Maru', serif; font-size: 14px; color: var(--ink); outline: none; transition: border-color 0.15s; }
+  .form-field input:focus, .form-field select:focus { border-color: var(--accent); }
+  .icon-picker { display: flex; gap: 6px; flex-wrap: wrap; }
+  .icon-opt { width: 42px; height: 42px; border-radius: 8px; border: 1.5px solid var(--border); background: var(--bg); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.15s; }
+  .icon-opt svg { width: 22px; height: 22px; stroke: var(--ink-light); fill: none; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+  .icon-opt.selected { border-color: var(--accent); background: var(--accent-light); }
+  .icon-opt.selected svg { stroke: var(--accent); }
+  .btn-add-submit { padding: 10px; border-radius: 10px; border: none; background: var(--ink); color: var(--bg); font-family: 'Kiwi Maru', serif; font-size: 14px; cursor: pointer; transition: all 0.15s; }
+  .btn-add-submit:hover { background: var(--accent); }
+  .stats-bar { max-width: 560px; margin: 16px auto 0; display: flex; gap: 16px; font-size: 12px; font-family: 'DM Mono', monospace; color: var(--ink-light); }
+  .stat { display: flex; gap: 4px; align-items: center; }
+  .stat-dot { width: 8px; height: 8px; border-radius: 50%; }
+  .dot-low { background: var(--danger); } .dot-ok { background: var(--ok); } .dot-all { background: var(--ink-light); }
+  .shop-item { background: var(--surface); border: 1.5px solid var(--border); border-radius: 14px; padding: 14px 16px; display: flex; align-items: center; gap: 12px; transition: all 0.25s; animation: slideIn 0.18s ease; cursor: pointer; }
+  .shop-item.checked { opacity: 0.45; background: var(--ok-light); border-color: #b8d8c2; }
+  .shop-check { width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--border); flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 13px; transition: all 0.2s; }
+  .shop-item.checked .shop-check { background: var(--ok); border-color: var(--ok); color: #fff; }
+  .shop-icon { width: 28px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+  .shop-icon svg { width: 20px; height: 20px; stroke: var(--ink-light); fill: none; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+  .shop-info { flex: 1; min-width: 0; }
+  .shop-name { font-size: 15px; font-weight: 500; }
+  .shop-sub { font-size: 11px; color: var(--ink-light); font-family: 'DM Mono', monospace; margin-top: 2px; }
+  .shop-replenish { font-size: 11px; font-family: 'DM Mono', monospace; color: var(--ok); margin-left: 6px; }
+  .shop-actions { max-width: 560px; margin: 16px auto 0; display: flex; gap: 10px; }
+  .btn-clear { flex: 1; padding: 11px; border-radius: 10px; border: 1.5px solid var(--border); background: var(--surface); font-family: 'Kiwi Maru', serif; font-size: 13px; color: var(--ink-light); cursor: pointer; transition: all 0.15s; }
+  .btn-clear:hover { border-color: var(--danger); color: var(--danger); background: var(--danger-light); }
+  .btn-replenish-all { flex: 2; padding: 11px; border-radius: 10px; border: none; background: var(--ok); color: #fff; font-family: 'Kiwi Maru', serif; font-size: 13px; cursor: pointer; transition: all 0.15s; }
+  .btn-replenish-all:hover { background: #3a7a4a; }
+  .empty-state { text-align: center; padding: 48px 24px; color: var(--ink-light); font-size: 14px; line-height: 2.2; }
+  .empty-state .big { font-size: 40px; margin-bottom: 8px; }
+  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(44,36,22,0.45); z-index: 200; align-items: center; justify-content: center; padding: 24px; }
+  .modal-overlay.open { display: flex; }
+  .modal { background: var(--surface); border-radius: 18px; border: 1.5px solid var(--border); padding: 24px; max-width: 360px; width: 100%; animation: slideIn 0.2s ease; }
+  .modal h3 { font-size: 16px; font-weight: 500; margin-bottom: 8px; }
+  .modal p { font-size: 13px; color: var(--ink-light); margin-bottom: 18px; line-height: 1.8; }
+  .modal-btns { display: flex; gap: 10px; }
+  .modal-btn { flex: 1; padding: 10px; border-radius: 10px; border: 1.5px solid var(--border); background: var(--bg); font-family: 'Kiwi Maru', serif; font-size: 13px; cursor: pointer; transition: all 0.15s; color: var(--ink); }
+  .modal-btn.primary { background: var(--ok); border-color: var(--ok); color: #fff; }
+  .modal-btn.primary:hover { background: #3a7a4a; }
+
+  .back-link {
+    display: inline-block;
+    margin: 14px 16px 0;
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    color: var(--ink-light);
+    text-decoration: none;
+    transition: color 0.15s;
+  }
+  .back-link:hover { color: var(--accent); }
+</style>
+</head>
+<body>
+
+<a class="back-link" href="index.html">← 館に戻る</a>
+
+<nav class="nav">
+  <div class="nav-top"><h1>ストック帳 <span class="sub">STOCK LOG</span></h1></div>
+  <div class="page-tabs">
+    <button class="page-tab active" data-page="stock">在庫</button>
+    <button class="page-tab" data-page="shop">買い物リスト<span class="badge" id="shopBadge" style="display:none">0</span></button>
+  </div>
+</nav>
+
+<div class="page active" id="page-stock">
+  <div class="filter-tabs">
+    <button class="tab active" data-filter="all">すべて</button>
+    <button class="tab" data-filter="low">残り少ない</button>
+    <button class="tab" data-filter="日用品">日用品</button>
+    <button class="tab" data-filter="食品">食品</button>
+    <button class="tab" data-filter="薬・衛生">薬・衛生</button>
+    <button class="tab" data-filter="その他">その他</button>
+  </div>
+  <div class="list" id="itemList"></div>
+  <div class="stats-bar" id="statsBar"></div>
+  <div class="add-section">
+    <button class="add-toggle" id="toggleAdd">＋ 品目を追加する</button>
+    <div class="add-form" id="addForm">
+      <div class="form-row">
+        <div class="form-field" style="flex:2"><label>品名</label><input type="text" id="newName" placeholder="例：シャンプー"></div>
+        <div class="form-field"><label>カテゴリ</label>
+          <select id="newCat"><option>日用品</option><option>食品</option><option>薬・衛生</option><option>その他</option></select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-field"><label>現在の数</label><input type="number" id="newCount" value="1" min="0" max="99"></div>
+        <div class="form-field"><label>警告ライン</label><input type="number" id="newThreshold" value="2" min="0" max="99"></div>
+        <div class="form-field"><label>最大ストック数</label><input type="number" id="newMax" value="10" min="1" max="99"></div>
+      </div>
+      <div class="form-field"><label>アイコン</label><div class="icon-picker" id="iconPicker"></div></div>
+      <button class="btn-add-submit" id="submitAdd">追加する</button>
+    </div>
+  </div>
+</div>
+
+<div class="page" id="page-shop">
+  <div class="list" id="shopList"></div>
+  <div class="shop-actions" id="shopActions" style="display:none">
+    <button class="btn-clear" id="btnClearChecked">選択を解除</button>
+    <button class="btn-replenish-all" id="btnReplenishAll">✓ チェック済みを補充する</button>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <h3 id="modalTitle"></h3><p id="modalBody"></p>
+    <div class="modal-btns">
+      <button class="modal-btn" id="modalCancel">キャンセル</button>
+      <button class="modal-btn primary" id="modalOk">補充する</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── SVGアイコン定義（inline SVG、CDN不要）──
+const ICONS = {
+  soap:       `<svg viewBox="0 0 24 24"><path d="M7 10h10v10a2 2 0 01-2 2H9a2 2 0 01-2-2V10z"/><path d="M7 10V8a2 2 0 012-2h2V4h2v2h1a2 2 0 012 2v2"/><path d="M9.5 14.5h5"/></svg>`,
+  drop:       `<svg viewBox="0 0 24 24"><path d="M12 2C12 2 5 10 5 14a7 7 0 0014 0c0-4-7-12-7-12z"/></svg>`,
+  pill:       `<svg viewBox="0 0 24 24"><rect x="7" y="3" width="10" height="18" rx="5"/><path d="M7 12h10"/></svg>`,
+  bandage:    `<svg viewBox="0 0 24 24"><rect x="2" y="8" width="20" height="8" rx="2" transform="rotate(0)"/><path d="M9 12h6M12 9v6"/><circle cx="6" cy="12" r="1" fill="currentColor"/><circle cx="18" cy="12" r="1" fill="currentColor"/></svg>`,
+  toothbrush: `<svg viewBox="0 0 24 24"><path d="M3 3l12 12M15 3h4a2 2 0 012 2v4l-6 6-3-3 6-6"/><path d="M9 15l-6 6"/></svg>`,
+  shampoo:    `<svg viewBox="0 0 24 24"><path d="M9 3h6l1 4H8L9 3z"/><rect x="7" y="7" width="10" height="14" rx="2"/><path d="M11 11h2M11 14h2"/></svg>`,
+  tissue:     `<svg viewBox="0 0 24 24"><rect x="4" y="6" width="16" height="12" rx="2"/><path d="M12 6v12M8 6v12M16 6v12"/></svg>`,
+  basket:     `<svg viewBox="0 0 24 24"><path d="M6 2l-4 6h20l-4-6"/><path d="M2 8l2 13h16l2-13H2z"/><path d="M10 12v6M14 12v6"/></svg>`,
+  coffee:     `<svg viewBox="0 0 24 24"><path d="M6 2h12v12a6 6 0 01-12 0V2z"/><path d="M18 6h2a2 2 0 010 4h-2"/><path d="M6 20h12"/></svg>`,
+  food:       `<svg viewBox="0 0 24 24"><rect x="8" y="3" width="8" height="18" rx="4"/><path d="M8 10q-3 1-3 5M16 10q3 1 3 5"/></svg>`,
+  rice:       `<svg viewBox="0 0 24 24"><path d="M4 18h16"/><path d="M6 18V8a6 6 0 0112 0v10"/><path d="M9 18v-6M12 18V6M15 18v-6"/></svg>`,
+  can:        `<svg viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="7" ry="2"/><path d="M5 5v14"/><path d="M19 5v14"/><ellipse cx="12" cy="19" rx="7" ry="2"/></svg>`,
+  bottle:     `<svg viewBox="0 0 24 24"><path d="M9 3h6M8 7V5h8v2M7 7h10l1 13H6L7 7z"/></svg>`,
+  milk:       `<svg viewBox="0 0 24 24"><path d="M8 2h8M7 6V4h10v2M6 6l-1 16h14L18 6H6z"/><path d="M6 12h12"/></svg>`,
+  battery:    `<svg viewBox="0 0 24 24"><rect x="2" y="7" width="16" height="10" rx="2"/><path d="M20 11v2"/><path d="M7 11v2M10 10v4M13 11v2"/></svg>`,
+  lightbulb:  `<svg viewBox="0 0 24 24"><path d="M9 18h6M10 22h4M12 2a7 7 0 00-4 12.7V16a1 1 0 001 1h6a1 1 0 001-1v-1.3A7 7 0 0012 2z"/></svg>`,
+  home:       `<svg viewBox="0 0 24 24"><path d="M3 10.5L12 3l9 7.5V20a1 1 0 01-1 1H5a1 1 0 01-1-1v-9.5z"/><path d="M9 21v-8h6v8"/></svg>`,
+  leaf:       `<svg viewBox="0 0 24 24"><path d="M21 3s-9 0-14 5c-3.5 3.5-3 9 0 12"/><path d="M21 3c0 0-2 10-8 14"/><path d="M3 20l4-4"/></svg>`,
+  recycle:    `<svg viewBox="0 0 24 24"><path d="M7 3h4l1.5 3H5L7 3z"/><path d="M5 6l-2 5h4l2-5H5z"/><path d="M3 11l3 7h12l3-7H3z"/><path d="M9 15v3M12 15v3M15 15v3"/></svg>`,
+  box:        `<svg viewBox="0 0 24 24"><path d="M21 8l-9-5-9 5v8l9 5 9-5V8z"/><path d="M12 3v18M3 8l9 5 9-5"/></svg>`,
+  cart:       `<svg viewBox="0 0 24 24"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 01-8 0"/></svg>`,
+  fridge:     `<svg viewBox="0 0 24 24"><rect x="5" y="2" width="14" height="20" rx="2"/><path d="M5 10h14"/><path d="M9 6v2M9 14v4"/></svg>`,
+  medical:    `<svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M12 8v8M8 12h8"/></svg>`,
+  pet:        `<svg viewBox="0 0 24 24"><path d="M5 13 a7 7 0 0 1 14 0 z"/><path d="M5 13h14"/><circle cx="19" cy="12" r="1.8"/><path d="M7 13l-1.5 3M10 13l-0.5 3M14 13l0.5 3M17 13l1.5 3"/><path d="M5 13l-2.5 0.5"/></svg>`,
+  cleaning:   `<svg viewBox="0 0 24 24"><path d="M4 21l4-4M15 3l6 6-7 7-6-6 7-7z"/><path d="M4 21v-3l3 3H4z"/><path d="M11 9l4 4"/></svg>`,
+  laundry:    `<svg viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="3"/><circle cx="12" cy="13" r="5"/><circle cx="12" cy="13" r="2.5"/><circle cx="7" cy="6.5" r="1" fill="currentColor" stroke="none"/><circle cx="10" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>`,
+  bread:      `<svg viewBox="0 0 24 24"><path d="M3 11a5 5 0 0110 0v10H3V11z"/><path d="M13 11a5 5 0 0110 0v1H13v-1z"/><path d="M13 12h10v9H13V12z"/></svg>`,
+  cup:        `<svg viewBox="0 0 24 24"><path d="M7 3h10l-1 13a2 2 0 01-2 2H9a2 2 0 01-2-2L6 3z"/><path d="M17 7h2a2 2 0 010 4h-2"/><path d="M5 21h14"/></svg>`,
+  towel:      `<svg viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="3" rx="1"/><path d="M6 6v15"/><path d="M18 6v6"/><path d="M6 21h6"/><path d="M18 12a4 4 0 01-4 4H6"/></svg>`,
+};
+
+const ICON_KEYS = Object.keys(ICONS);
+
+const SAMPLE = [
+  { id:1, name:'シャンプー',         cat:'日用品',  icon:'shampoo',   count:1, threshold:2, max:3 },
+  { id:2, name:'トイレットペーパー', cat:'日用品',  icon:'tissue',    count:8, threshold:3, max:12 },
+  { id:3, name:'歯ブラシ',           cat:'薬・衛生',icon:'toothbrush',count:2, threshold:1, max:6 },
+  { id:4, name:'缶詰',               cat:'食品',    icon:'can',       count:5, threshold:2, max:10 },
+  { id:5, name:'薬（風邪薬）',       cat:'薬・衛生',icon:'pill',      count:0, threshold:1, max:3 },
+];
+
+let items       = JSON.parse(localStorage.getItem('stockItems') || 'null') || SAMPLE;
+let nextId      = Math.max(...items.map(i=>i.id), 0) + 1;
+let curFilter   = 'all';
+let selIcon     = 'box';
+let shopChecked = new Set();
+
+function save() { localStorage.setItem('stockItems', JSON.stringify(items)); }
+function svg(key) { return ICONS[key] || ICONS.box; }
+function getState(item) {
+  if (item.count <= item.threshold) return 'low';
+  if (item.count >= item.max * 0.8) return 'ok';
+  return 'mid';
+}
+function barColor(s) { return s==='low'?'#b84a4a':s==='ok'?'#4a8a5a':'#c47c3e'; }
+function shopItems() { return items.filter(i => i.count <= i.threshold); }
+function render() { renderStock(); renderShop(); updateBadge(); }
+
+function renderStock() {
+  const filtered = curFilter==='all' ? items
+    : curFilter==='low' ? items.filter(i=>getState(i)==='low')
+    : items.filter(i=>i.cat===curFilter);
+
+  const list = document.getElementById('itemList');
+  if (!filtered.length) {
+    list.innerHTML = `<div class="empty-state"><div class="big">📭</div>品目がありません<br><span style="font-size:12px">下のボタンから追加できます</span></div>`;
+  } else {
+    list.innerHTML = filtered.map(item => {
+      const s = getState(item);
+      const pct = Math.min(100, Math.round(item.count/item.max*100));
+      const meta = s==='low' ? '⚠ 残り少ない → 買い物リストに追加済み'
+                 : s==='ok'  ? '✓ 十分あり' : `残り${item.count}個`;
+      return `<div class="item ${s}" data-id="${item.id}">
+        <div class="item-icon">${svg(item.icon)}</div>
+        <div class="item-info">
+          <div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap;">
+            <div class="item-name">${item.name}</div><span class="cat-badge">${item.cat}</span>
+          </div>
+          <div class="item-meta">${meta}</div>
+          <div class="stock-bar-wrap"><div class="stock-bar" style="width:${pct}%;background:${barColor(s)}"></div></div>
+        </div>
+        <div class="stock-control">
+          <button class="btn-count" data-action="dec" data-id="${item.id}">−</button>
+          <div class="count-display ${s}">${item.count}</div>
+          <button class="btn-count" data-action="inc" data-id="${item.id}">＋</button>
+        </div>
+        <button class="btn-delete" data-action="del" data-id="${item.id}">✕</button>
+      </div>`;
+    }).join('');
+  }
+
+  const low = items.filter(i=>getState(i)==='low').length;
+  const ok  = items.filter(i=>getState(i)==='ok').length;
+  document.getElementById('statsBar').innerHTML = `
+    <div class="stat"><span class="stat-dot dot-all"></span>${items.length}品目</div>
+    ${low?`<div class="stat"><span class="stat-dot dot-low"></span>残り少ない ${low}件</div>`:''}
+    ${ok ?`<div class="stat"><span class="stat-dot dot-ok"></span>十分あり ${ok}件</div>`:''}
+  `;
+}
+
+function renderShop() {
+  const needs = shopItems();
+  const list  = document.getElementById('shopList');
+  if (!needs.length) {
+    list.innerHTML = `<div class="empty-state"><div class="big">🛒</div>買い物リストは空です<br><span style="font-size:12px">在庫が警告ラインを下回ると<br>ここに自動で表示されます</span></div>`;
+    document.getElementById('shopActions').style.display = 'none';
+    return;
+  }
+  list.innerHTML = needs.map(item => {
+    const checked = shopChecked.has(item.id);
+    return `<div class="shop-item ${checked?'checked':''}" data-action="shop-check" data-id="${item.id}">
+      <div class="shop-check">${checked?'✓':''}</div>
+      <div class="shop-icon">${svg(item.icon)}</div>
+      <div class="shop-info">
+        <div class="shop-name">${item.name}</div>
+        <div class="shop-sub">残り ${item.count} / 最大 ${item.max}${checked?'<span class="shop-replenish">→ 補充予定</span>':''}</div>
+      </div>
+    </div>`;
+  }).join('');
+  document.getElementById('shopActions').style.display = shopChecked.size > 0 ? 'flex' : 'none';
+}
+
+function updateBadge() {
+  const n = shopItems().length;
+  const b = document.getElementById('shopBadge');
+  b.textContent = n;
+  b.style.display = n > 0 ? 'inline-flex' : 'none';
+}
+
+document.addEventListener('click', e => {
+  const pageTab = e.target.closest('.page-tab');
+  if (pageTab) {
+    const p = pageTab.dataset.page;
+    document.querySelectorAll('.page-tab').forEach(t=>t.classList.remove('active'));
+    document.querySelectorAll('.page').forEach(pg=>pg.classList.remove('active'));
+    pageTab.classList.add('active');
+    document.getElementById('page-'+p).classList.add('active');
+    return;
+  }
+  const tab = e.target.closest('.tab');
+  if (tab) {
+    curFilter = tab.dataset.filter;
+    document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+    tab.classList.add('active');
+    renderStock(); return;
+  }
+  const btn = e.target.closest('[data-action]');
+  if (btn) {
+    const id   = parseInt(btn.dataset.id);
+    const item = items.find(i=>i.id===id);
+    const act  = btn.dataset.action;
+    if (act==='inc' && item) { item.count=Math.min(item.count+1,99); save(); render(); return; }
+    if (act==='dec' && item) { item.count=Math.max(item.count-1,0); save(); render(); return; }
+    if (act==='del' && item) {
+      if (confirm(`「${item.name}」を削除しますか？`)) { items=items.filter(i=>i.id!==id); save(); render(); }
+      return;
+    }
+    if (act==='shop-check') {
+      if (shopChecked.has(id)) shopChecked.delete(id); else shopChecked.add(id);
+      renderShop(); return;
+    }
+  }
+  if (e.target.id==='toggleAdd') {
+    const form = document.getElementById('addForm');
+    form.classList.toggle('open');
+    e.target.textContent = form.classList.contains('open') ? '✕ 閉じる' : '＋ 品目を追加する';
+    return;
+  }
+  if (e.target.id==='submitAdd') {
+    const name = document.getElementById('newName').value.trim();
+    if (!name) { alert('品名を入力してください'); return; }
+    items.push({ id:nextId++, name,
+      cat:document.getElementById('newCat').value, icon:selIcon,
+      count:parseInt(document.getElementById('newCount').value)||0,
+      threshold:parseInt(document.getElementById('newThreshold').value)||1,
+      max:parseInt(document.getElementById('newMax').value)||10
+    });
+    save(); render();
+    document.getElementById('newName').value='';
+    document.getElementById('addForm').classList.remove('open');
+    document.getElementById('toggleAdd').textContent='＋ 品目を追加する';
+    return;
+  }
+  const io = e.target.closest('.icon-opt');
+  if (io) {
+    selIcon = io.dataset.icon;
+    document.querySelectorAll('.icon-opt').forEach(el=>el.classList.remove('selected'));
+    io.classList.add('selected'); return;
+  }
+  if (e.target.id==='btnReplenishAll') {
+    const names = [...shopChecked].map(id=>items.find(i=>i.id===id)?.name).filter(Boolean).join('、');
+    document.getElementById('modalTitle').textContent = `${shopChecked.size}品目を補充しますか？`;
+    document.getElementById('modalBody').textContent  = `${names} を最大数まで補充します。`;
+    document.getElementById('modalOverlay').classList.add('open'); return;
+  }
+  if (e.target.id==='btnClearChecked') { shopChecked.clear(); renderShop(); return; }
+  if (e.target.id==='modalOk') {
+    shopChecked.forEach(id=>{const it=items.find(i=>i.id===id);if(it)it.count=it.max;});
+    shopChecked.clear(); save(); render();
+    document.getElementById('modalOverlay').classList.remove('open'); return;
+  }
+  if (e.target.id==='modalCancel'||e.target.id==='modalOverlay') {
+    document.getElementById('modalOverlay').classList.remove('open'); return;
+  }
+});
+
+// アイコンピッカー構築
+const picker = document.getElementById('iconPicker');
+ICON_KEYS.forEach(key => {
+  const b = document.createElement('button');
+  b.className = 'icon-opt' + (key===selIcon?' selected':'');
+  b.dataset.icon = key;
+  b.innerHTML = svg(key);
+  picker.appendChild(b);
+});
+
+render();
+</script>
+</body>
+</html>
