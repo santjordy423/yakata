@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>宛名ラベル印刷</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='80'>✦</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=BIZ+UDPGothic:wght@400;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'BIZ UDPGothic','Hiragino Kaku Gothic Pro','Yu Gothic',Meiryo,sans-serif;background:#f5f4f0;color:#1a1a1a;min-height:100vh;}
+.app{max-width:960px;margin:0 auto;padding:2rem 1.5rem;}
+h1{font-size:13px;font-weight:400;color:#999;letter-spacing:.08em;margin-bottom:1.5rem;}
+.top-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem;gap:1rem;flex-wrap:wrap;}
+.top-left{display:flex;align-items:center;gap:1rem;}
+.layout-tabs{display:flex;gap:4px;}
+.layout-tab{font-size:12px;font-weight:700;padding:5px 14px;border:1px solid #ddd;border-radius:20px;background:#fafaf8;color:#888;cursor:pointer;transition:all .12s;font-family:inherit;}
+.layout-tab.active{background:#1a1a1a;color:#fff;border-color:#1a1a1a;}
+.btn-print{display:flex;align-items:center;gap:7px;font-size:13px;font-weight:700;padding:8px 18px;border:none;border-radius:8px;background:#1a1a1a;color:#fff;cursor:pointer;transition:opacity .15s;font-family:inherit;}
+.btn-print:hover{opacity:.8;}
+.btn-print svg{width:14px;height:14px;flex-shrink:0;}
+.btn-back{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:700;padding:6px 14px;border:1px solid #ddd;border-radius:8px;background:#fafaf8;color:#666;cursor:pointer;transition:all .15s;text-decoration:none;font-family:inherit;}
+.btn-back:hover{background:#f0f0ed;color:#333;}
+.btn-back svg{width:13px;height:13px;flex-shrink:0;}
+.sender-bar{background:#fff;border:1px solid #e0dfd8;border-radius:10px;padding:.85rem 1.1rem;margin-bottom:1.25rem;}
+.sender-bar-row{display:flex;align-items:center;gap:.75rem;flex-wrap:wrap;}
+.lbl{font-size:11px;color:#888;white-space:nowrap;font-weight:700;}
+.sender-bar input{font-size:12px;padding:5px 9px;height:30px;border:1px solid #ddd;border-radius:6px;background:#fafaf8;color:#1a1a1a;font-family:inherit;}
+.sender-bar input:focus{outline:none;border-color:#aaa;background:#fff;}
+.saved-msg{font-size:11px;color:#aaa;margin-left:auto;}
+.zip-wrap{display:flex;align-items:center;gap:8px;}
+.zip-status{font-size:10px;display:inline-block;white-space:nowrap;min-width:80px;}
+.zip-status.ok{color:#1d9e75;}
+.zip-status.err{color:#d85a30;}
+.zip-status.loading{color:#aaa;}
+.grid{display:grid;gap:0;background:#fff;border:1px solid #e0dfd8;border-radius:10px;overflow:hidden;}
+.label-cell{padding:1rem;border:0.5px solid #e8e7e0;}
+.cell-num{font-size:10px;color:#bbb;margin-bottom:.5rem;font-weight:700;}
+.field-row{display:flex;flex-direction:column;gap:3px;margin-bottom:.4rem;}
+.field-row label{font-size:10px;color:#999;}
+.field-row input{font-size:12px;padding:5px 9px;height:29px;border:1px solid #e0dfd8;border-radius:6px;background:#fafaf8;color:#1a1a1a;width:100%;transition:background .2s,border-color .2s;font-family:inherit;}
+.field-row input:focus{outline:none;border-color:#aaa;background:#fff;}
+.field-row input.autofilled{background:#f0f8f4;border-color:#9fe1cb;}
+.honorific-row{display:flex;align-items:center;gap:5px;margin-top:.5rem;flex-wrap:wrap;}
+.honorific-row .lbl2{font-size:10px;color:#999;margin-right:2px;}
+.honor-btn{font-size:11px;padding:3px 9px;border:1px solid #ddd;border-radius:20px;background:#fafaf8;color:#666;cursor:pointer;transition:all .12s;line-height:1.4;font-family:inherit;}
+.honor-btn.active{background:#1a1a1a;color:#fff;border-color:#1a1a1a;}
+.hint{margin-top:.7rem;font-size:11px;color:#aaa;text-align:center;}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="top-bar">
+    <div class="top-left">
+      <a class="btn-back" href="index.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+        館に戻る
+      </a>
+      <h1>宛名ラベル印刷</h1>
+      <div class="layout-tabs">
+        <button class="layout-tab" data-count="2">2面</button>
+        <button class="layout-tab active" data-count="4">4面</button>
+        <button class="layout-tab" data-count="6">6面</button>
+      </div>
+    </div>
+    <button class="btn-print" id="btn-print">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+      印刷する
+    </button>
+  </div>
+
+  <div class="sender-bar">
+    <div class="sender-bar-row">
+      <span class="lbl">差出人</span>
+      <div class="zip-wrap">
+        <input type="text" id="from-zip" placeholder="郵便番号7桁" maxlength="7" style="width:110px;" inputmode="numeric">
+        <span class="zip-status" id="from-zip-status"></span>
+      </div>
+      <input type="text" id="from-addr" placeholder="住所（郵便番号で自動補完）" style="width:255px;">
+      <input type="text" id="from-name" placeholder="氏名・名称" style="width:135px;">
+      <span class="saved-msg" id="saved-msg"></span>
+    </div>
+  </div>
+
+  <div class="grid" id="grid"></div>
+  <div class="hint">点線が切り取り線 — 印刷後にハサミで切ってお使いください</div>
+</div>
+
+<script>
+const SENDER_KEY = 'addr_print_sender_v3';
+const HONORIFICS = ['様', '御中', '先生', '行', '係'];
+
+const LAYOUT = {
+  2: { cols: 1, rows: 2, label: '2面' },
+  4: { cols: 2, rows: 2, label: '4面' },
+  6: { cols: 2, rows: 3, label: '6面' },
+};
+
+const PRINT_STYLE = {
+  2: { addrPt: 13,   namePt: 24,  honorPt: 14,  fromAddrPt: 10,  fromNamePt: 13, zbW: '8mm',   zbH: '10mm',  zbFs: '13pt', pad: '12mm 14mm 10mm' },
+  4: { addrPt: 12,   namePt: 21,  honorPt: 12.5,fromAddrPt: 9.5, fromNamePt: 12, zbW: '7mm',   zbH: '8.5mm', zbFs: '11.5pt',pad: '10mm 11mm 8mm'  },
+  6: { addrPt: 10,   namePt: 17,  honorPt: 10.5,fromAddrPt: 8,   fromNamePt: 10, zbW: '5.5mm', zbH: '7mm',   zbFs: '9.5pt', pad: '7mm 9mm 6mm'   },
+};
+
+let currentCount = 4;
+let labelData = {};
+
+function extractDigits(input) {
+  const cleaned = input.value.replace(/\D/g, '').slice(0, 7);
+  if (input.value !== cleaned) {
+    const pos = input.selectionStart - (input.value.length - cleaned.length);
+    input.value = cleaned;
+    input.setSelectionRange(Math.max(0, Math.min(pos, cleaned.length)), Math.max(0, Math.min(pos, cleaned.length)));
+  }
+  return cleaned;
+}
+
+async function lookupZip(digits, statusEl, addrEl) {
+  statusEl.className = 'zip-status loading';
+  statusEl.textContent = '検索中…';
+  try {
+    const res = await fetch(`https://geoapi.heartrails.com/api/json?method=searchByPostal&postal=${digits}`);
+    const json = await res.json();
+    const locs = json.response && json.response.location;
+    if (locs && locs.length > 0) {
+      const loc = locs[0];
+      addrEl.value = loc.prefecture + loc.city + loc.town;
+      addrEl.classList.add('autofilled');
+      statusEl.className = 'zip-status ok';
+      statusEl.textContent = '✓ 入力しました';
+      setTimeout(() => { statusEl.textContent = ''; }, 2500);
+    } else {
+      statusEl.className = 'zip-status err';
+      statusEl.textContent = '見つかりませんでした';
+    }
+  } catch(e) {
+    statusEl.className = 'zip-status err';
+    statusEl.textContent = '取得エラー';
+  }
+}
+
+function attachZipHandler(inputEl, statusEl, addrEl) {
+  inputEl.addEventListener('input', function() {
+    const digits = extractDigits(this);
+    if (digits.length === 7) lookupZip(digits, statusEl, addrEl);
+    else statusEl.textContent = '';
+  });
+}
+
+function saveCurrentData() {
+  const grid = document.getElementById('grid');
+  for (let i = 0; i < currentCount; i++) {
+    const zipEl   = grid.querySelector(`.zip[data-i="${i}"]`);
+    const addr1El = grid.querySelector(`.addr1[data-i="${i}"]`);
+    const addr2El = grid.querySelector(`.addr2[data-i="${i}"]`);
+    const nameEl  = grid.querySelector(`.name[data-i="${i}"]`);
+    const honorEl = grid.querySelector(`.honor-btn.active[data-i="${i}"]`);
+    if (!zipEl) continue;
+    labelData[i] = {
+      zip:   zipEl.value,
+      addr1: addr1El ? addr1El.value : '',
+      addr2: addr2El ? addr2El.value : '',
+      name:  nameEl  ? nameEl.value  : '',
+      honor: honorEl ? honorEl.dataset.h : '様',
+    };
+  }
+}
+
+function buildGrid(count) {
+  const layout = LAYOUT[count];
+  const grid = document.getElementById('grid');
+  grid.style.gridTemplateColumns = `repeat(${layout.cols}, 1fr)`;
+
+  grid.innerHTML = '';
+
+  for (let i = 0; i < count; i++) {
+    const saved = labelData[i] || {};
+    const cell = document.createElement('div');
+    cell.className = 'label-cell';
+
+    const honorBtns = HONORIFICS.map((h) => {
+      const active = (saved.honor || '様') === h ? ' active' : '';
+      return `<button class="honor-btn${active}" data-i="${i}" data-h="${h}">${h}</button>`;
+    }).join('');
+
+    cell.style.borderTop    = i < layout.cols ? 'none' : '';
+    cell.style.borderBottom = i >= count - layout.cols ? 'none' : '';
+    cell.style.borderLeft   = i % layout.cols === 0 ? 'none' : '';
+    cell.style.borderRight  = i % layout.cols === layout.cols - 1 ? 'none' : '';
+
+    cell.innerHTML = `
+      <div class="cell-num">ラベル ${i+1}</div>
+      <div class="field-row">
+        <label>郵便番号（数字7桁）</label>
+        <div class="zip-wrap">
+          <input type="text" class="zip" data-i="${i}" placeholder="1234567" maxlength="7" style="width:100px;" inputmode="numeric" value="${saved.zip||''}">
+          <span class="zip-status" id="status-${i}"></span>
+        </div>
+      </div>
+      <div class="field-row"><label>都道府県・市区町村</label><input type="text" class="addr1" data-i="${i}" placeholder="自動入力されます" value="${saved.addr1||''}"></div>
+      <div class="field-row"><label>番地・建物名</label><input type="text" class="addr2" data-i="${i}" placeholder="1-1 ○○ビル 101" value="${saved.addr2||''}"></div>
+      <div class="field-row"><label>宛名</label><input type="text" class="name" data-i="${i}" placeholder="山田太郎" value="${saved.name||''}"></div>
+      <div class="honorific-row"><span class="lbl2">敬称</span>${honorBtns}</div>
+    `;
+    grid.appendChild(cell);
+  }
+
+  for (let i = 0; i < count; i++) {
+    attachZipHandler(
+      grid.querySelector(`.zip[data-i="${i}"]`),
+      document.getElementById(`status-${i}`),
+      grid.querySelector(`.addr1[data-i="${i}"]`)
+    );
+    grid.querySelector(`.addr1[data-i="${i}"]`).addEventListener('input', function() {
+      this.classList.remove('autofilled');
+    });
+    if (labelData[i] && labelData[i].addr1) {
+      grid.querySelector(`.addr1[data-i="${i}"]`).classList.add('autofilled');
+    }
+  }
+
+  grid.addEventListener('click', function(e) {
+    const btn = e.target.closest('.honor-btn');
+    if (!btn) return;
+    const i = btn.dataset.i;
+    grid.querySelectorAll(`.honor-btn[data-i="${i}"]`).forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+  });
+}
+
+document.querySelectorAll('.layout-tab').forEach(tab => {
+  tab.addEventListener('click', function() {
+    saveCurrentData();
+    document.querySelectorAll('.layout-tab').forEach(t => t.classList.remove('active'));
+    this.classList.add('active');
+    currentCount = parseInt(this.dataset.count);
+    buildGrid(currentCount);
+  });
+});
+
+function loadSender() {
+  try {
+    const s = JSON.parse(localStorage.getItem(SENDER_KEY) || '{}');
+    if (s.zip)  document.getElementById('from-zip').value  = s.zip;
+    if (s.addr) document.getElementById('from-addr').value = s.addr;
+    if (s.name) document.getElementById('from-name').value = s.name;
+    if (s.zip || s.addr || s.name) document.getElementById('saved-msg').textContent = '保存済み';
+  } catch(e) {}
+}
+
+function saveSender() {
+  const data = {
+    zip:  document.getElementById('from-zip').value,
+    addr: document.getElementById('from-addr').value,
+    name: document.getElementById('from-name').value,
+  };
+  localStorage.setItem(SENDER_KEY, JSON.stringify(data));
+  document.getElementById('saved-msg').textContent = '保存しました';
+  setTimeout(() => document.getElementById('saved-msg').textContent = '保存済み', 1500);
+}
+
+attachZipHandler(
+  document.getElementById('from-zip'),
+  document.getElementById('from-zip-status'),
+  document.getElementById('from-addr')
+);
+['from-zip','from-addr','from-name'].forEach(id => {
+  document.getElementById(id).addEventListener('change', saveSender);
+});
+
+document.getElementById('btn-print').addEventListener('click', () => {
+  saveCurrentData();
+  const count = currentCount;
+  const layout = LAYOUT[count];
+  const ps = PRINT_STYLE[count];
+  const from = {
+    zip:  document.getElementById('from-zip').value,
+    addr: document.getElementById('from-addr').value,
+    name: document.getElementById('from-name').value,
+  };
+  const labels = Array.from({length: count}, (_, i) => labelData[i] || {zip:'',addr1:'',addr2:'',name:'',honor:'様'});
+
+  function zipBoxes(zip) {
+    const d = zip.replace(/\D/g,'').padEnd(7,' ').split('');
+    return d.slice(0,3).map(c=>`<span class="zb">${c.trim()}</span>`).join('') +
+      `<span class="zs">-</span>` +
+      d.slice(3,7).map(c=>`<span class="zb">${c.trim()}</span>`).join('');
+  }
+
+  function fmtZip(zip) {
+    const d = zip.replace(/\D/g,'');
+    return d.length===7 ? d.slice(0,3)+'-'+d.slice(3) : d;
+  }
+
+  function labelHtml(l) {
+    if (!l.name && !l.addr1) return `<div class="label"><div class="empty">（空白）</div></div>`;
+    const hasFrom = from.zip || from.addr || from.name;
+    const fromBlock = hasFrom ? `
+      <div class="from-block">
+        <div class="from-sep"></div>
+        ${from.zip  ? `<div class="from-zip">〒${fmtZip(from.zip)}</div>` : ''}
+        ${from.addr ? `<div class="from-addr">${from.addr}</div>` : ''}
+        ${from.name ? `<div class="from-name">${from.name}</div>` : ''}
+      </div>` : '';
+    return `<div class="label">
+      <div class="to-block">
+        <div class="zrow">${zipBoxes(l.zip)}</div>
+        <div class="addr">${l.addr1||''}${l.addr2?'<br>'+l.addr2:''}</div>
+        <div class="name-row"><span class="name">${l.name||''}</span><span class="honor">${l.honor}</span></div>
+      </div>
+      ${fromBlock}
+    </div>`;
+  }
+
+  const gridCss = layout.cols === 1
+    ? `grid-template-columns:1fr;grid-template-rows:repeat(${layout.rows},1fr);`
+    : `grid-template-columns:1fr 1fr;grid-template-rows:repeat(${layout.rows},1fr);`;
+
+  const cutLines = layout.cols === 1
+    ? `<div class="ch" style="top:${layout.rows === 2 ? '50%' : '33.33%;"></div><div class="ch" style="top:66.66%'}"></div>`
+    : (() => {
+        let lines = `<div class="cv"></div>`;
+        for (let r = 1; r < layout.rows; r++) {
+          lines += `<div class="ch" style="top:${(100/layout.rows*r).toFixed(2)}%"></div>`;
+        }
+        return lines;
+      })();
+
+  const printHtml = `<!DOCTYPE html>
+<html lang="ja"><head><meta charset="UTF-8"><title>宛名ラベル</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=BIZ+UDPGothic:wght@400;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+@page{size:A4 portrait;margin:0;}
+body{width:210mm;height:297mm;overflow:hidden;background:#fff;font-family:'BIZ UDPGothic','Hiragino Kaku Gothic Pro','Yu Gothic',Meiryo,sans-serif;}
+.page{width:210mm;height:297mm;display:grid;${gridCss}position:relative;}
+.ch{position:absolute;left:4mm;right:4mm;border-top:0.5px dashed #ccc;pointer-events:none;}
+.cv{position:absolute;top:4mm;bottom:4mm;left:50%;border-left:0.5px dashed #ccc;pointer-events:none;}
+.label{padding:${ps.pad};display:flex;flex-direction:column;justify-content:space-between;overflow:hidden;}
+.to-block{flex:1;display:flex;flex-direction:column;justify-content:center;padding-bottom:2mm;}
+.zrow{display:flex;align-items:center;gap:1px;margin-bottom:4mm;}
+.zb{width:${ps.zbW};height:${ps.zbH};border:0.8px solid #cc0000;display:inline-flex;align-items:center;justify-content:center;font-size:${ps.zbFs};font-weight:400;color:#000;}
+.zs{color:#cc0000;font-size:${ps.zbFs};margin:0 1mm;}
+.addr{font-size:${ps.addrPt}pt;line-height:1.85;margin-bottom:3mm;color:#111;}
+.name-row{display:flex;align-items:baseline;gap:2mm;}
+.name{font-size:${ps.namePt}pt;font-weight:700;color:#000;letter-spacing:.04em;}
+.honor{font-size:${ps.honorPt}pt;font-weight:400;color:#222;}
+.from-block{padding-top:3mm;}
+.from-sep{width:100%;border-top:0.5px solid #bbb;margin-bottom:3mm;}
+.from-zip{font-size:${ps.fromAddrPt - 1}pt;color:#555;margin-bottom:1mm;}
+.from-addr{font-size:${ps.fromAddrPt}pt;color:#333;line-height:1.6;margin-bottom:1mm;}
+.from-name{font-size:${ps.fromNamePt}pt;font-weight:700;color:#111;}
+.empty{color:#ddd;font-size:10pt;margin:auto;align-self:center;text-align:center;}
+</style></head><body>
+<div class="page">
+  ${cutLines}
+  ${labels.map(labelHtml).join('')}
+</div>
+</body></html>`;
+
+  const w = window.open('', '_blank');
+  if (w) {
+    w.document.write(printHtml);
+    w.document.close();
+    w.focus();
+    setTimeout(() => w.print(), 800);
+  }
+});
+
+buildGrid(currentCount);
+loadSender();
+</script>
+</body>
+</html>
